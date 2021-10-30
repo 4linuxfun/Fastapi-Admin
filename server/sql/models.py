@@ -38,9 +38,9 @@ class Role(SQLModel, table=True):
 
 
 class User(SQLModel, table=True):
-    id: int = Field(primary_key=True)
-    name: str
-    password: str
+    id: int = Field(default=None, primary_key=True)
+    name: Optional[str]
+    password: Optional[str]
     enable: int
     avatar: Optional[str]
     email: Optional[str]
