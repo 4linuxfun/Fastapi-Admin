@@ -1,2 +1,2 @@
-server/__pycache__
-server/.idea
+server/**/__pycache__
+server/**/.idea
