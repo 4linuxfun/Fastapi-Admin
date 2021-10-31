@@ -1,11 +1,11 @@
 from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import APIRouter, Depends, status
-from sqlmodel import Session
+from sqlmodel import Session, select
 from ..dependencies import get_session, check_token
 from pydantic import BaseModel
 from ..sql import crud
-from ..sql.models import Role, Menu
+from ..sql.models import Role, Menu, RoleMenu
 from typing import List
 from ..sql.schemas import ApiResponse
 from ..common.utils import menu_convert
@@ -16,7 +16,7 @@ router = APIRouter(prefix='/api/role', dependencies=[Depends(check_token), ])
 @router.get('/all',
             description="查询用户角色信息")
 async def get_roles(session: Session = Depends(get_session)):
-    roles: List[Role] = crud.get_roles(session)
+    roles: List[Role] = session.exec(select(Role)).all()
     return ApiResponse(
         code=0,
         message="success",
@@ -30,11 +30,11 @@ async def get_role_menus(id: Optional[int] = None, session: Session = Depends(ge
     menu_list: List[Menu] = crud.get_menu_list('admin', session, enable=True)
     user_menus = menu_convert(menu_list)
     if id is not None:
-        role_menus = crud.get_role_menus(id, session)
+        sql = select(RoleMenu).where(RoleMenu.role_id == id)
+        result = session.exec(sql)
+        role_menus = [role.menu_id for role in result]
     else:
         role_menus = []
-    print(role_menus)
-    print(user_menus)
     return ApiResponse(
         code=0,
         message="success",
@@ -66,7 +66,10 @@ async def update_roles(role_info: RoleInfo, session: Session = Depends(get_sessi
 
 @router.get('/del/{id}')
 async def del_role(id: int, session: Session = Depends(get_session)):
-    crud.delete_role(id, session)
+    sql = select(Role).where(Role.id == id)
+    role = session.exec(sql).one()
+    session.delete(role)
+    session.commit()
     return ApiResponse(
         code=0,
         message="success",

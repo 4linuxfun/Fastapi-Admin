@@ -4,25 +4,6 @@ from .models import *
 from ..common import utils
 
 
-def login_check(username: str, password: str, session: Session) -> User:
-    sql = select(User).where(User.name == username, User.password == password, User.enable == 1)
-    user = session.exec(sql).one()
-    return user
-
-
-def get_user_info(username: str, session: Session) -> User:
-    sql = select(User).where(User.name == username)
-    result = session.exec(sql).first()
-    return result
-
-
-def get_user_roles(user_id: int, session: Session) -> List[int]:
-    sql = select(UserRole).where(UserRole.user_id == user_id)
-    roles = session.exec(sql)
-    role_list = [role.role_id for role in roles]
-    return role_list
-
-
 def get_menu_list(roles: Union[List[int], str], session: Session, enable=False) -> List[Menu]:
     """
     通过role_id，获取对应的menu清单
@@ -60,19 +41,6 @@ def update_menu(menu: Menu, session: Session):
     else:
         session.add(menu)
     session.commit()
-
-
-def delete_menu(id: int, session: Session):
-    sql = select(Menu).where(Menu.id == id)
-    result = session.exec(sql).one()
-    session.delete(result)
-    session.commit()
-
-
-def get_roles(session: Session):
-    sql = select(Role)
-    result = session.exec(sql).all()
-    return result
 
 
 def get_role_menus(role_id: int, session: Session) -> List[int]:
@@ -115,10 +83,3 @@ def update_role(role: Role, session: Session):
     session.commit()
     session.refresh(role_info)
     return role_info.id
-
-
-def delete_role(role_id: int, session: Session):
-    sql = select(Role).where(Role.id == role_id)
-    role = session.exec(sql).one()
-    session.delete(role)
-    session.commit()

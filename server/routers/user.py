@@ -8,7 +8,7 @@ from sqlalchemy.exc import NoResultFound
 from ..common.security import create_access_token
 from ..common.utils import menu_convert
 from ..sql import crud
-from ..sql.models import User, Menu, Role
+from ..sql.models import User, Menu, Role, UserRole
 from ..sql.schemas import ApiResponse
 from ..common.utils import update_model
 
@@ -35,15 +35,18 @@ async def login(login_form: UserLogin, session: Session = Depends(get_session)):
     :return:
     """
     try:
-        user: User = crud.login_check(login_form.username, login_form.password, session)
+        sql = select(User).where(User.name == login_form.username, User.password == login_form.password,
+                                 User.enable == 1)
+        user: User = session.exec(sql).one()
     except NoResultFound:
         return ApiResponse(
             code=1,
             message='error',
             data="用户名或密码错误"
         )
-    print(user)
-    user_roles: List[int] = crud.get_user_roles(user.id, session)
+    sql = select(UserRole).where(UserRole.user_id == user.id)
+    roles = session.exec(sql)
+    user_roles = [role.role_id for role in roles]
     # 把roles封装再token里，每次只需要depends检查对应的roles是否有权限即可
     access_token = create_access_token(
         data={"username": user.name,
@@ -60,13 +63,12 @@ async def login(login_form: UserLogin, session: Session = Depends(get_session)):
             description='获取用户信息')
 async def get_user_info(session: Session = Depends(get_session), token: dict = Depends(check_token)):
     username = token['username']
-    user_info: User = crud.get_user_info(username, session)
-    print('user info is:')
-    print(user_info)
+    sql = select(User).where(User.name == username)
+    user: User = session.exec(sql).one()
     return ApiResponse(
         code=0,
         message="success",
-        data=user_info.dict(exclude={'password': True})
+        data=user.dict(exclude={'password': True})
     )
 
 
@@ -103,12 +105,6 @@ async def update_password(password: str = Form(...), token: dict = Depends(check
     new_password = hash_password(password)
     user_collection.change_password(username, new_password)
     return {'code': 0, 'message': 'success'}
-
-
-@router.post('/disabled',
-             description='用户disabled参数设置，用于设置用户无效')
-async def update_disable():
-    pass
 
 
 @router.get('/permission', description='获取用户角色对应的菜单列表')
@@ -161,8 +157,7 @@ async def get_roles(id: Optional[int] = None, session: Session = Depends(get_ses
     else:
         user = session.exec(select(User).where(User.id == id)).one()
         roles = [role.name for role in user.roles]
-
-    all_roles = crud.get_roles(session)
+    all_roles = session.exec(select(Role))
     roles_list = [role.name for role in all_roles]
     return ApiResponse(
         code=0,
