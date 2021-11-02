@@ -15,7 +15,8 @@
 					<el-input v-model="selectData.path"></el-input>
 				</el-form-item>
 				<el-form-item label="组件">
-					<el-input v-model="selectData.component"></el-input>
+					<el-input v-if="selectData.parent_id == null" v-model="selectData.component" disabled></el-input>
+					<el-input v-else v-model="selectData.component"></el-input>
 				</el-form-item>
 				<el-form-item label="状态">
 					<el-radio-group v-model="selectData.enable">
