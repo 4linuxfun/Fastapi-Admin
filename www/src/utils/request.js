@@ -42,6 +42,12 @@ service.interceptors.response.use(
     response => {
 		// 内部服务状态码
 		console.log('拦截器')
+		// 需要添加下载类型是否为文件，文件不走通用的返回类型
+		console.log(response.headers)
+		if ("content-disposition" in response.headers){
+			console.log('文件类型')
+			return response.data
+		}
 		const code = response.data.code
 		if(code != 0){
 			return Promise.reject(response.data.data)
