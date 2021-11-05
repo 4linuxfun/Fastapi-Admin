@@ -3,7 +3,7 @@
 		<el-table :data="userInfo" border style="width: 100%">
 			<el-table-column prop="id" label="ID" width="180">
 			</el-table-column>
-			<el-table-column prop="name" label="姓名" width="180">
+			<el-table-column prop="name" label="用户名" width="180">
 			</el-table-column>
 			<el-table-column prop="enable" label="状态">
 				<template #default="scope">

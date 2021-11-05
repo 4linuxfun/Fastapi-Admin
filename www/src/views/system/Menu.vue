@@ -1,7 +1,6 @@
 // 菜单管理页面，用于创建菜单关系：菜单名、菜单页面、二级菜单。。。等等
 <template lang="">
 	<div>
-		<el-button>添加父菜单</el-button>
 		<el-table :data="menuData" style="width: 100%; margin-bottom: 20px;" row-key="id" border default-expand-all>
 			<el-table-column prop="id" label="主键" width="180" />
 			<el-table-column prop="name" label="菜单名称" width="180" />
@@ -13,6 +12,9 @@
 				</template>
 			</el-table-column>
 			<el-table-column label="操作" >
+				<template #header>
+					<el-button @click="handleAdd(null)">添加父菜单</el-button>
+				</template>
 				<template #default="scope">
 					<el-button type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
 					<el-button type="danger" size="small" @click="handleDelete(scope.row.id,scope.row.name)">删除</el-button>
@@ -74,16 +76,31 @@
 			},
 			handleAdd(id){
 				this.dialogVisible = true
-				this.selectData = {
-					id:null,
-					parent_id:id,
-					name:'',
-					path:'',
-					component:'',
-					enable:'',
-					type:'page'
-					
+				if(id===null){
+					console.log('添加父级菜单')
+					this.selectData = {
+						id:null,
+						parent_id:null,
+						name:'',
+						path:'',
+						component:"Layout",
+						enable:'',
+						type:'page'
+						
+					}
+				}else{
+					this.selectData = {
+						id:null,
+						parent_id:id,
+						name:'',
+						path:'',
+						component:'',
+						enable:'',
+						type:'page'
+						
+					}
 				}
+				
 			},
 			updateMenu(data) {
 				console.log(data)

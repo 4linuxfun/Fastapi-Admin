@@ -4,6 +4,9 @@
 				<el-form-item label="用户名称">
 					<el-input v-model="selectData.name"></el-input>
 				</el-form-item>
+				<el-form-item label="密码">
+					<el-input v-model="password" placeholder="请输入新密码" :show-password="true"></el-input>
+				</el-form-item>
 				<el-form-item label="状态">
 					<el-radio-group v-model="selectData.enable">
 						<el-radio :label="0" size="medium">禁用</el-radio>
@@ -37,6 +40,7 @@
 				roleList:[],
 				// 拥有权限的列表
 				enableRoleList:[],
+				password:''
 			}
 		},
 		methods: {
@@ -54,7 +58,9 @@
 				
 			},
 			handleUpdate(){
-				
+				if (this.password){
+					this.selectData.password = this.password
+				}
 				this.$emit('update:user',this.selectData,this.enableRoleList)
 				this.$emit('update:visible',false)
 			}

@@ -1,3 +1,6 @@
+import os
+
+
 def menu_convert(menu_list):
     """
     菜单转换函数，转换成嵌套的数据格式
@@ -31,3 +34,8 @@ def update_model(old_model, new_model):
     for key, value in new.items():
         setattr(old_model, key, value)
     return old_model
+
+
+def remove_tmp_file(file):
+    print(f'删除临时文件{file}')
+    os.remove(file)

@@ -3,6 +3,7 @@ from typing import Optional, List
 from sqlmodel import Field, SQLModel, Relationship
 
 
+# 这些是权限验证的基础表，单独放置
 class RoleMenu(SQLModel, table=True):
     __tablename__ = "role_menu"
     role_id: int = Field(foreign_key="roles.id", primary_key=True)
