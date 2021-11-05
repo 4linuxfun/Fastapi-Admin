@@ -1,13 +1,16 @@
 <template>
 	<!-- 导入模板Dialog -->
 	<el-dialog :model-value="visible" title="数据导入" width="30%" @close="$emit('update:visible',false)" destroy-on-close>
-		<el-button type="info" size="small" @click="downloadTemp">模板下载</el-button>
-		<el-upload ref="upload" action="" :file-list="fileList" :on-change="handleChange" :http-request="uploadFiles" :auto-upload="false" multiple>
-			<template #trigger>
-				<el-button type="primary" size="small">添加文件</el-button>
-			</template>
-			<el-button type="success" size="small" @click="handleUpload">上传</el-button>
-		</el-upload>
+		<el-space size="large">
+			<el-button type="info" size="medium" @click="downloadTemp">模板下载</el-button>
+			<el-upload ref="upload" action="" :file-list="fileList" :on-change="handleChange" :http-request="uploadFiles" :auto-upload="false" multiple>
+				<template #trigger>
+					<el-button type="primary" size="medium">添加文件</el-button>
+				</template>
+				<el-button type="success" size="medium" @click="handleUpload">上传</el-button>
+			</el-upload>
+		</el-space>
+		
 	</el-dialog>
 </template>
 
@@ -63,11 +66,12 @@
 				}).then((res)=>{
 					console.log('下载完成')
 					console.log(res)
+					// 此种下载形式，只适合小文件下载，大文件不推荐此种，会大量占用内存
 					let url = window.URL.createObjectURL(new Blob([res]))
 					let a = document.createElement('a')
 					a.style.display = 'none'
 					a.href = url
-					a.setAttribute('download','机器学习数学.pdf')
+					a.setAttribute('download','system.xlsx')
 					document.body.appendChild(a)
 					a.click()
 					document.body.removeChild(a)

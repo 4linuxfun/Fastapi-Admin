@@ -1,6 +1,6 @@
 from typing import Optional
 from fastapi import FastAPI
-from .routers import user, menu, roles,system
+from .routers import user, menu, roles, system
 
 app = FastAPI()
 

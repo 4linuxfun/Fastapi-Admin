@@ -90,17 +90,18 @@
 				})
 			},
 			handleSearch() {
-				if (this.total == 0){
-					console.log('total is 0')
-					request({
-						url:'/api/assets/system/search_total',
-						method:'post',
-						data:this.searchForm
-					}).then((response)=>{
-						this.total=response
-					})
-				}
-				this.requestData()
+				request({
+					url:'/api/assets/system/search_total',
+					method:'post',
+					data:this.searchForm
+				}).then((response)=>{
+					this.total=response
+					this.currentPage = 1
+					this.searchForm.offset = 0
+					this.requestData()
+				})
+				
+				
 			},
 			handlePage(newPage){
 				console.log(newPage)
@@ -120,6 +121,23 @@
 					})
 				}).catch((err)=>{
 					console.log('上传失败'+err)
+				})
+			},
+			handleOutput(){
+				request({
+					url:"/api/assets/system/output",
+					method:"post",
+					data:this.searchForm,
+					responseType:"blob"
+				}).then((res)=>{
+					let url = window.URL.createObjectURL(new Blob([res]))
+					let a = document.createElement('a')
+					a.style.display = 'none'
+					a.href = url
+					a.setAttribute('download','导出.xlsx')
+					document.body.appendChild(a)
+					a.click()
+					document.body.removeChild(a)
 				})
 			}
 			
