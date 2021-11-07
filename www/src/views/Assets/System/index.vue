@@ -59,6 +59,7 @@
 <script>
 	import request from '@/utils/request'
 	import ImportDialog from './ImportDialog'
+	import {downloadFile} from '@/api/file'
 	export default {
 		components:{
 			'import-dialog':ImportDialog,
@@ -124,21 +125,7 @@
 				})
 			},
 			handleOutput(){
-				request({
-					url:"/api/assets/system/output",
-					method:"post",
-					data:this.searchForm,
-					responseType:"blob"
-				}).then((res)=>{
-					let url = window.URL.createObjectURL(new Blob([res]))
-					let a = document.createElement('a')
-					a.style.display = 'none'
-					a.href = url
-					a.setAttribute('download','导出.xlsx')
-					document.body.appendChild(a)
-					a.click()
-					document.body.removeChild(a)
-				})
+				downloadFile("/api/assets/system/output","post",this.searchForm)
 			}
 			
 		},
