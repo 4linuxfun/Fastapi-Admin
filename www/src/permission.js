@@ -33,7 +33,7 @@ router.beforeEach((to) => {
 							router.addRoute(route)
 						}
 
-						return to.fullPath
+						router.push({path:to.fullPath,replace:true})
 					}).catch()
 
 				}).catch((err) => {
