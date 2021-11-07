@@ -30,6 +30,7 @@
 
 <script>
 	import {requestUserRoles} from '@/api/login'
+	import md5 from 'js-md5'
 	export default {
 		props:['user','visible'],
 		emits:['update:user','update:visible'],
@@ -59,7 +60,7 @@
 			},
 			handleUpdate(){
 				if (this.password){
-					this.selectData.password = this.password
+					this.selectData.password = md5(this.password)
 				}
 				this.$emit('update:user',this.selectData,this.enableRoleList)
 				this.$emit('update:visible',false)

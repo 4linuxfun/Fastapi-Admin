@@ -26,6 +26,7 @@
 
 <script>
 	import Cookies from "js-cookie";
+	import md5 from 'js-md5';
 	import {
 		mapActions
 	} from "vuex"
@@ -79,13 +80,13 @@
 			},
 			handleLogin() {
 				this.$refs.loginForm.validate((valid) => {
+					let password = md5(this.loginForm.password)
 					const user = {
 						username: this.loginForm.username,
-						password: this.loginForm.password,
+						password: password,
 						rememberMe: this.loginForm.rememberMe,
 					};
 					console.log("start to do login");
-					console.log(valid);
 					if (valid) {
 						this.loading = true;
 						if (user.rememberMe) {
