@@ -91,7 +91,7 @@ async def download_tmpfile():
 
 
 @router.post("/system/output")
-def output_data(system: SearchForm, ):
+def output_data(system: SearchForm, session:Session=Depends(get_session) ):
     sql = select(assets.System)
     if system.type:
         sql = sql.where(assets.System.type.like('%' + system.type + '%'))
@@ -101,7 +101,7 @@ def output_data(system: SearchForm, ):
         sql = sql.where(assets.System.project.like('%' + system.project + '%'))
     if system.host:
         sql = sql.where(assets.System.host.like('%' + system.host + '%'))
-    select_data = pd.read_sql(sql, engine)
+    select_data = pd.read_sql_query(sql, session.bind)
     select_data.rename(
         columns={"host": "主机名", "ip": "IP地址", "system": "操作系统", "cpu": "CPU数量", "storage": "空间", "memory": "内存",
                  "admin": "管理员", "env": "环境", "type": "类型", "project": "项目", "developer": "三线开发"}, inplace=True)
