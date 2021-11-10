@@ -16,6 +16,7 @@
 
 <script>
 	import request from '@/utils/request'
+	import {downloadFile} from '@/api/file'
 	export default {
 		props: ['visible'],
 		emits: ['upload', 'update:visible'],
@@ -59,25 +60,7 @@
 			},
 			downloadTemp(){
 				console.log('下载模板')
-				request({
-					url:"/api/assets/system/down_temp",
-					method:"get",
-					responseType:"blob"
-				}).then((res)=>{
-					console.log('下载完成')
-					console.log(res)
-					// 此种下载形式，只适合小文件下载，大文件不推荐此种，会大量占用内存
-					let url = window.URL.createObjectURL(new Blob([res]))
-					let a = document.createElement('a')
-					a.style.display = 'none'
-					a.href = url
-					a.setAttribute('download','system.xlsx')
-					document.body.appendChild(a)
-					a.click()
-					document.body.removeChild(a)
-				}).catch((err)=>{
-					console.log('错误'+err)
-				})
+				downloadFile("/api/assets/system/down_temp","get")
 			}
 
 		},

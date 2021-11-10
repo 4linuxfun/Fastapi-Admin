@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, Form
 from ..dependencies import get_session, check_token
-from typing import Optional, List
+from typing import Optional, List, Union
 from ..common.security import hash_password
 from pydantic import BaseModel
 from sqlmodel import Session, select
@@ -116,10 +116,13 @@ async def get_permission(session: Session = Depends(get_session), token: dict = 
     :return:
     """
     if token['username'] == 'admin':
-        roles = 'admin'
+        roles: Union[str, List[int]] = 'admin'
     else:
-        roles = token['roles']
+        roles: Union[str, List[int]] = token['roles']
+    print(f"rolse is:{roles}")
     menu_list: List[Menu] = crud.get_menu_list(roles, session, enable=True)
+    print('menulist')
+    print(menu_list)
     user_menus = menu_convert(menu_list)
 
     print(user_menus)

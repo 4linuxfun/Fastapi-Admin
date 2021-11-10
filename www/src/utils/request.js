@@ -45,8 +45,26 @@ service.interceptors.response.use(
 		// 需要添加下载类型是否为文件，文件不走通用的返回类型
 		console.log(response.headers)
 		if ("content-disposition" in response.headers){
-			console.log('文件类型')
-			return response.data
+			let filename = ""
+			let disposition = response.headers['content-disposition']
+			// 下载文件名的几种获取方式，暂时不够完美，而且中文没有解码
+			let result = disposition.match(/filename="(.*)"/)
+			let result2 = disposition.match(/filename\*=(.*?)''(.*$)/)
+			console.log('result:'+result)
+			console.log('result2:'+ result2)
+			if (result !== null){
+				
+				filename = result[1]	
+			}
+			if (result2 !== null){
+				
+				filename = result2[2]
+			}
+			console.log('filename:'+filename)
+			return {
+				data:response.data,
+				filename
+			}
 		}
 		const code = response.data.code
 		if(code != 0){
@@ -57,7 +75,7 @@ service.interceptors.response.use(
     },
     error => {
         let code = 0
-        console.log(error)
+        console.log('返回错误：'+error)
         try {
             code = error.response.status
         } catch (e) {
@@ -70,20 +88,16 @@ service.interceptors.response.use(
                 return Promise.reject(error)
             }
         }
+		console.log('error code:'+code)
         if (code === 401) {
-            ElNotification.confirm(
-                '登录状态过期了哦，您可以继续留在该页面，或者重新登录',
-                '系统提示',
-                {
-                    confirmButtonText: '重新登录',
-                    cancelButtonText: '取消',
-                    type: 'warning'
-                }
-            ).then(() => {
-                store.dispatch('LogOut').then(() => {
-                    location.reload() // 为了重新实例化vue-router对象 避免bug
-                })
-            })
+            ElNotification({
+                    title: 'Error',
+                    message: '登录超时，需要重新登录',
+                    type: 'error',
+                  })
+			store.dispatch('logOut').then(() => {
+				window.location.reload(); // 为了重新实例化vue-router对象 避免bug
+			})
         } else if (code === 403) {
             router.push({path: '/401'})
         } else if (code === 502) {

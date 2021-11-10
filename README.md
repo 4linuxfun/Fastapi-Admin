@@ -17,3 +17,98 @@
 ```
 uvicorn server.main:app --reload
 ```
+
+
+# 功能实现介绍
+## 权限分配
+实力有限，实现简化的权限分配功能，思路如下：
+### 前端
+1. 页面下的按钮需要权限管控的按钮，单独列出，再对这个按钮做权限分配
+2. 在“菜单管理”中对应页面下添加“按钮”，**路径**字段需要跟到时候做权限判断时对应
+3. 进入“角色管理”页面，分配对应的角色，可选择页面的按钮
+    **NOTICE：**上级页面需要手动勾选，不然登录无法带出来
+4. 给按钮增加**v-if**判断语法，用法如下：
+    ```
+     v-if="$route.meta.import === true"
+    ```
+
+### 后端
+* 用户请求权限，返回子页面带meta元素，示例如下：
+    ```
+        [
+            {
+                "id": 1,
+                "component": 'Layout,
+                "parent_id": null,
+                "url": null,
+                "path": "/assets",
+                "name": "资产管理",
+                "type": "page",
+                "enable": 1,
+                "children": [
+                    {
+                        "id": 2,
+                        "parent_id": 1,
+                        "url": null,
+                        "path": "add",
+                        "name": "增加资产",
+                        "type": "page",
+                        "enable": 1
+                    },
+                    {
+                        "id": 11,
+                        "parent_id": 1,
+                        "url": null,
+                        "path": "system",
+                        "name": "系统",
+                        "type": "page",
+                        "enable": 1,
+                        <!-- meta元素中的import、outpu对应不同按钮的权限 -->
+                        "meta": {
+                            "import": true,
+                            "output": true
+                        }
+                    }
+                ]
+            },
+            {
+                "id": 3,
+                "component":  "Layout",
+                "parent_id": null,
+                "url": null,
+                "path": "/system",
+                "name": "系统管理",
+                "type": "page",
+                "enable": 1,
+                "children": [
+                    {
+                        "id": 4,
+                        "parent_id": 3,
+                        "url": null,
+                        "path": "user",
+                        "name": "用户管理",
+                        "type": "page",
+                        "enable": 1
+                    },
+                    {
+                        "id": 6,
+                        "parent_id": 3,
+                        "url": null,
+                        "path": "roles",
+                        "name": "角色管理",
+                        "type": "page",
+                        "enable": 1
+                    },
+                    {
+                        "id": 7,
+                        "parent_id": 3,
+                        "url": null,
+                        "path": "menus",
+                        "name": "菜单管理",
+                        "type": "page",
+                        "enable": 1
+                    }
+                ]
+            }
+        ]
+    ```
