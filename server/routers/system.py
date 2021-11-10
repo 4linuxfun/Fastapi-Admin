@@ -109,4 +109,4 @@ def output_data(system: SearchForm, session:Session=Depends(get_session) ):
     print(select_data)
     with NamedTemporaryFile('w+b', suffix='.xlsx', delete=False) as f:
         select_data.to_excel(f)
-        return FileResponse(f.name, filename='导出.xlsx', background=BackgroundTask(utils.remove_tmp_file, f.name))
+        return FileResponse(f.name, filename='output.xlsx', background=BackgroundTask(utils.remove_tmp_file, f.name))
