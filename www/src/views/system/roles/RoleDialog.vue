@@ -14,7 +14,7 @@
 					</el-radio-group>
 				</el-form-item>
 				<el-form-item label="菜单">
-					<el-tree ref="tree" :data="menus" :props="defaultProps" show-checkbox node-key="id" :default-checked-keys="enables" check-strictly></el-tree>
+					<el-tree ref="tree" :data="menus" :props="defaultProps" show-checkbox node-key="id" :default-checked-keys="enables"></el-tree>
 				</el-form-item>
 				<el-form-item>
 					<el-button @click="$emit('update:visible',false)">取消</el-button>
