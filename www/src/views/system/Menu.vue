@@ -3,7 +3,14 @@
 	<div>
 		<el-table :data="menuData" style="width: 100%; margin-bottom: 20px;" row-key="id" border default-expand-all>
 			<el-table-column prop="id" label="主键" width="180" />
-			<el-table-column prop="name" label="菜单名称" width="180" />
+			<el-table-column prop="name" label="名称" width="180"/>			
+			<el-table-column prop="type" label="类型" width="80">
+				<template #default="scope">
+					<el-tag effect="dark" v-if="(scope.row.type === 'page') && (scope.row.component === 'Layout')" type='info'>父菜单</el-tag>
+					<el-tag effect="dark" v-else-if="scope.row.type === 'page' && scope.row.component !== 'Layout'" type='info'>子菜单</el-tag>
+					<el-tag effect="dark" v-else type="success">按钮</el-tag>
+				</template>
+			</el-table-column>
 			<el-table-column prop="path" label="路径" width="180" />
 			<el-table-column prop="component" label="组件" width="180" />
 			<el-table-column prop="enable" label="状态" width="80">
@@ -18,7 +25,8 @@
 				<template #default="scope">
 					<el-button type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
 					<el-button type="danger" size="small" @click="handleDelete(scope.row.id,scope.row.name)">删除</el-button>
-					<el-button v-if="scope.row.component == 'Layout'" size="small"  @click="handleAdd(scope.row.id)">添加子菜单</el-button>
+					<el-button v-if="scope.row.component == 'Layout'" size="small"  @click="handleAdd(scope.row.id,'page')">添加子菜单</el-button>
+					<el-button v-else-if="scope.row.component !== 'Layout' && scope.row.type === 'page'"  @click="handleAdd(scope.row.id,'btn')">添加按钮</el-button>
 				</template>
 			</el-table-column>>
 		</el-table>
@@ -74,9 +82,9 @@
 					this.getMenuInfo()
 				}).catch()
 			},
-			handleAdd(id){
+			handleAdd(id,type=null){
 				this.dialogVisible = true
-				if(id===null){
+				if(id===null && type === null){
 					console.log('添加父级菜单')
 					this.selectData = {
 						id:null,
@@ -88,7 +96,7 @@
 						type:'page'
 						
 					}
-				}else{
+				}else if(id!== null && type === 'page'){
 					this.selectData = {
 						id:null,
 						parent_id:id,
@@ -99,12 +107,22 @@
 						type:'page'
 						
 					}
+				} else if (id !== null && type === 'btn'){
+					this.selectData = {
+						id:null,
+						parent_id:id,
+						name:'',
+						path:'',
+						component:'',
+						enable:'',
+						type:'button'
+					}	
 				}
-				
 			},
 			updateMenu(data) {
 				console.log(data)
 				this.dialogVisible = false
+				this.selectData = ''
 				requestUpdateMenu(data)
 				this.getMenuInfo()
 			},

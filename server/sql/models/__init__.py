@@ -12,12 +12,13 @@ class RoleMenu(SQLModel, table=True):
 
 class Menu(SQLModel, table=True):
     id: Optional[int] = Field(primary_key=True)
-    name: str
-    path: str
-    component: str
+    name: Optional[str]
+    path: Optional[str]
+    component: Optional[str]
     type: Optional[str]
     parent_id: Optional[int]
     enable: int
+    url:Optional[str]
     roles: List["Role"] = Relationship(back_populates="menus", link_model=RoleMenu)
 
 

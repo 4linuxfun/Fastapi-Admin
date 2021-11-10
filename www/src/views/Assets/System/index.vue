@@ -19,10 +19,10 @@
 			<el-form-item>
 				<el-button type="primary" @click="handleSearch">搜索</el-button>
 			</el-form-item>
-			<el-form-item>
+			<el-form-item v-if="$route.meta.import === true">
 				<el-button type="primary" @click="importDialog=true">导入</el-button>				
 			</el-form-item>
-			<el-form-item>
+			<el-form-item v-if="$route.meta.output === true">
 				<el-button type="primary" @click="handleOutput">导出</el-button>
 			</el-form-item>
 		</el-form>
@@ -30,7 +30,7 @@
 	</el-row>
 	
 	<el-table :data="systemData" :border="true">
-		<el-table-column prop="id" label="ID" width="50"></el-table-column>
+		<el-table-column type="index" label="ID" width="50"></el-table-column>
 		<el-table-column prop="host" label="主机名"></el-table-column>
 		<el-table-column prop="ip" label="IP地址"></el-table-column>
 		<el-table-column prop="system" label="操作系统"></el-table-column>

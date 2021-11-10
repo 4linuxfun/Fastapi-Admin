@@ -14,7 +14,7 @@
 					</el-radio-group>
 				</el-form-item>
 				<el-form-item label="菜单">
-					<el-tree ref="tree" :data="menus" :props="defaultProps" show-checkbox node-key="id" :default-checked-keys="enables"></el-tree>
+					<el-tree ref="tree" :data="menus" :props="defaultProps" show-checkbox node-key="id" :default-checked-keys="enables" check-strictly></el-tree>
 				</el-form-item>
 				<el-form-item>
 					<el-button @click="$emit('update:visible',false)">取消</el-button>
@@ -50,7 +50,6 @@
 			// },
 			getMenus(){
 				console.log('请求menus信息')
-				
 				requestRoleMenus(this.role.id).then((response)=>{
 					console.log(response)
 					this.menus = response.menus
@@ -60,8 +59,9 @@
 				
 			},
 			handleUpdate(){
-				
-				this.$emit('update:role',this.selectData,this.$refs.tree.getCheckedKeys())
+				let checkedKeys = this.$refs.tree.getCheckedKeys().concat(this.$refs.tree.getHalfCheckedKeys())
+				console.log(checkedKeys)
+				this.$emit('update:role',this.selectData,checkedKeys)
 				this.$emit('update:visible',false)
 			}
 			

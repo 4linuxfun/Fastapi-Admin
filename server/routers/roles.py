@@ -28,7 +28,7 @@ async def get_roles(session: Session = Depends(get_session)):
 async def get_role_menus(id: Optional[int] = None, session: Session = Depends(get_session)):
     # 所有角色，进行权限分配的时候，都是返回所有菜单列表,enable=True:只查询启用的菜单
     menu_list: List[Menu] = crud.get_menu_list('admin', session, enable=True)
-    user_menus = menu_convert(menu_list)
+    user_menus = menu_convert(menu_list, 'role')
     if id is not None:
         sql = select(RoleMenu).where(RoleMenu.role_id == id)
         result = session.exec(sql)
