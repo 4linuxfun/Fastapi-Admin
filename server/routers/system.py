@@ -1,4 +1,5 @@
 from typing import Optional
+import sqlalchemy.exc
 from fastapi import APIRouter, Depends, File, UploadFile
 from starlette.background import BackgroundTask
 from fastapi.responses import FileResponse
@@ -6,7 +7,8 @@ from sqlmodel import Session, select, text
 from sqlalchemy import func
 from ..dependencies import get_session, check_token
 from ..sql.models import assets
-from typing import List
+from typing import List, Union
+from pydantic import BaseModel
 from ..sql.schemas import ApiResponse
 import pandas as pd
 from ..sql.database import engine
@@ -20,6 +22,11 @@ router = APIRouter(prefix='/api/assets', dependencies=[Depends(check_token), ])
 class SearchForm(assets.Assets):
     limit: Optional[int]
     offset: Optional[int]
+
+
+class UpdateCategory(BaseModel):
+    category: assets.Category
+    fields: List[assets.CategoryField]
 
 
 @router.post('/system/search_total')
@@ -137,12 +144,12 @@ async def download_tmpfile():
 @router.get('/category-list')
 async def get_category_list(session: Session = Depends(get_session)):
     categories = session.exec(select(assets.Category)).all()
-    category_list = [cate.dict(exclude={'alias': True, 'desc': True}) for cate in categories]
-    print(category_list)
+    # category_list = [cate.dict(exclude={'alias': True, 'desc': True}) for cate in categories]
+    # print(category_list)
     return ApiResponse(
         code=0,
         message="success",
-        data=category_list
+        data=categories
     )
 
 
@@ -154,6 +161,47 @@ async def get_category_field(id: int, session: Session = Depends(get_session)):
         code=0,
         message="success",
         data=fields
+    )
+
+
+@router.get('/category_detail/{id}')
+async def get_category_detail(id: int, session: Session = Depends(get_session)):
+    category: assets.Category = session.exec(select(assets.Category).where(assets.Category.id == id)).one()
+    print(category)
+    return ApiResponse(
+        code=0,
+        message="success",
+        data={
+            'category': category,
+            'fields': category.fields
+        }
+    )
+
+
+@router.post('/update_category')
+async def add_category(category_info: UpdateCategory, session: Session = Depends(get_session)):
+    try:
+        old_category = session.exec(
+            select(assets.Category).where(assets.Category.name == category_info.category.name)).one()
+        new_category = utils.update_model(old_category, category_info.category)
+    except sqlalchemy.exc.NoResultFound:
+        new_category = category_info.category
+    session.add(new_category)
+    session.commit()
+    session.refresh(new_category)
+    for field in category_info.fields:
+        print(field)
+        try:
+            old_field = session.exec(select(assets.CategoryField).where(assets.CategoryField.id == field.id)).one()
+            new_field = utils.update_model(old_field, field)
+        except sqlalchemy.exc.NoResultFound:
+            new_field = field
+            new_field.category_id = new_category.id
+        session.add(new_field)
+    session.commit()
+    return ApiResponse(
+        code=0,
+        message="success",
     )
 
 
