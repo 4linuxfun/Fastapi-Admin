@@ -1,5 +1,6 @@
 from typing import Optional, Dict, Any, List
 from sqlmodel import SQLModel, Field, JSON, Column, Relationship
+from sqlalchemy.ext.mutable import MutableDict
 
 
 # 资产相关的表定义
@@ -33,6 +34,7 @@ class CategoryField(SQLModel, table=True):
     __tablename__ = 'category_field'
     id: Optional[int] = Field(default=None, primary_key=True)
     name: Optional[str]
+    alias: Optional[str]
     desc: Optional[str]
     type: Optional[str]
     need: Optional[int]
@@ -49,4 +51,5 @@ class Assets(SQLModel, table=True):
     user: Optional[str]
     manager: Optional[str]
     area: Optional[str]
-    info: Optional[Dict[Any, Any]] = Field(default=None, sa_column=Column(JSON))
+    info: Optional[Dict[Any, Any]] = Field(default=None, sa_column=Column(MutableDict.as_mutable(JSON)))
+    deleted: Optional[int] = 0

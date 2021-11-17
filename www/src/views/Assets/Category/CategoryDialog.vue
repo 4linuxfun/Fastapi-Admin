@@ -1,5 +1,5 @@
 <template>
-	<el-dialog :model-value="visible" title="资产添加" width="50%" @close="$emit('update:visible',false)" destroy-on-close>
+	<el-dialog :model-value="visible" title="资产添加" width="70%" @close="$emit('update:visible',false)" destroy-on-close>
 		<el-form v-model="categoryInfo" label-width="80px">
 			<el-row>
 				<el-col :span="8">
@@ -18,12 +18,17 @@
 			</el-form-item>
 			<template v-for="field in categoryInfo.fields" :key="field.id">
 				<el-row>
-					<el-col :span="6">
+					<el-col :span="4">
 						<el-form-item label="字段">
 							<el-input v-model="field.name"></el-input>
 						</el-form-item>
 					</el-col>
-					<el-col :span="8">
+					<el-col :span="3">
+						<el-form-item :label-width="0">
+							<el-input v-model="field.alias" placeholder="别名"></el-input>
+						</el-form-item>
+					</el-col>
+					<el-col :span="6">
 						<el-form-item label-width='0'>
 							<el-radio-group v-model="field.type">
 								<el-radio-button label="str">字符串</el-radio-button>
@@ -42,14 +47,19 @@
 							多值 <el-switch v-model="field.multi" inline-prompt :active-value='1' :inactive-value="0" />
 						</el-form-item>
 					</el-col>
-					<el-col :span="4">
+					<el-col :span="2">
+						<el-form-item label-width='0'>
+							显示<el-switch v-model="field.show" inline-prompt :active-value='1' :inactive-value="0" @change="switchChange"/>
+						</el-form-item>
+					</el-col>
+					<el-col :span="3">
 						<el-form-item label-width='0'>
 							<el-input v-model="field.desc" placeholder="描述"></el-input>
 						</el-form-item>
 					</el-col>
-					<el-col :span="2">
+					<el-col :span="1">
 						<el-form-item label-width='0'>
-							<el-button type="danger">删除</el-button>
+							<el-button type="danger" >删除</el-button>
 						</el-form-item>
 					</el-col>
 				</el-row>

@@ -7,7 +7,7 @@ from sqlmodel import Session, select, text
 from sqlalchemy import func
 from ..dependencies import get_session, check_token
 from ..sql.models import assets
-from typing import List, Union
+from typing import List, Union, Dict, Any
 from pydantic import BaseModel
 from ..sql.schemas import ApiResponse
 import pandas as pd
@@ -27,6 +27,12 @@ class SearchForm(assets.Assets):
 class UpdateCategory(BaseModel):
     category: assets.Category
     fields: List[assets.CategoryField]
+
+
+class UpdateAssets(BaseModel):
+    # 批量更新资产信息提交内容
+    assets: List[int]
+    update: List[Dict[str, Any]]
 
 
 @router.post('/system/search_total')
@@ -178,8 +184,91 @@ async def get_category_detail(id: int, session: Session = Depends(get_session)):
     )
 
 
+@router.get('/asset_field/{id}', description='获取对应资产的定义字段')
+async def get_asset_fields(id: int, session: Session = Depends(get_session)):
+    fields = session.exec(select(assets.CategoryField).where(assets.CategoryField.category_id == id)).all()
+    info_fields = []
+    for field in fields:
+        info_fields.append({'label': field.desc, 'value': field.name})
+    return ApiResponse(
+        code=0,
+        message="success",
+        data=[
+            {
+                'label': '通用字段',
+                'options': [
+                    {
+                        'label': '资产类别',
+                        'value': 'category'
+                    },
+                    {
+                        'label': '使用人',
+                        'value': 'user'
+                    },
+                    {
+                        'label': '管理员',
+                        'value': 'manager'
+                    },
+                    {
+                        'label': '区域',
+                        'value': 'area'
+                    }
+                ]
+            },
+            {
+                'label': '专用字段',
+                'options': info_fields
+            }
+        ]
+    )
+
+
+@router.post('/update_assets', description="批量更新资产信息")
+async def update_assets(update: UpdateAssets, session: Session = Depends(get_session)):
+    print(update)
+    assets_result = session.exec(select(assets.Assets).where(assets.Assets.id.in_(update.assets)))
+    print(assets_result)
+    for asset in assets_result:
+        print(asset)
+        for new in update.update:
+            if new['name'] == 'category':
+                asset.category = new['value']
+            elif new['name'] == 'manager':
+                asset.manager = new['value']
+            elif new['name'] == 'user':
+                asset.user = new['value']
+            elif new['name'] == 'area':
+                asset.area = new['value']
+            else:
+                asset.info[new['name']] = new['value']
+        session.add(asset)
+    session.commit()
+    return ApiResponse(
+        code=0,
+        message="success",
+    )
+
+
+@router.post('/update_category_detail')
+async def update_category_detail(update_category: assets.Assets, session: Session = Depends(get_session)):
+    category = session.exec(select(assets.Assets).where(assets.Assets.id == update_category.id)).one()
+    category = utils.update_model(category, update_category)
+    session.add(category)
+    session.commit()
+    return ApiResponse(
+        code=0,
+        message="success",
+    )
+
+
 @router.post('/update_category')
 async def add_category(category_info: UpdateCategory, session: Session = Depends(get_session)):
+    """
+    新建资产、更新资产信息
+    :param category_info:
+    :param session:
+    :return:
+    """
     try:
         old_category = session.exec(
             select(assets.Category).where(assets.Category.name == category_info.category.name)).one()
