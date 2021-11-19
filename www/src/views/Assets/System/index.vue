@@ -70,8 +70,8 @@
 	<detail-dialog v-if="detailDialog.show" :data="showData" v-model:visible="detailDialog.show" @reload="handleSearch" :disabled="detailDialog.disabled"
 			:title="detailDialog.title"></detail-dialog>
 	<multi-dialog v-if="multiDialog" v-model:data="showData" v-model:visible="multiDialog" :category="searchForm.id" @reload="handleSearch"></multi-dialog>
-	<add-dialog v-if="detailDialog.show" :data="showData" v-model:visible="detailDialog.show" @reload="handleSearch" :disabled="detailDialog.disabled"
-			:title="detailDialog.title"></add-dialog>
+	<add-dialog v-if="addDialog.show" v-model:visible="addDialog.show" @reload="handleSearch"
+			:title="addDialog.title"></add-dialog>
 
 </template>
 
@@ -114,6 +114,10 @@
 					show:false,
 					title:'',
 					disabled:false,
+				},
+				addDialog: {
+					show:false,
+					title:'',
 				},
 				showData: '',
 				fields: '',
@@ -233,10 +237,8 @@
 			
 			handleAddOne(){
 				// 处理手动录入按钮事件
-				this.detailDialog.show = true
-				this.detailDialog.title = "数据录入"
-				this.detailDialog.disabled = false
-				this.showData = {}
+				this.addDialog.show = true
+				this.addDialog.title = "数据添加"
 			}
 
 		},

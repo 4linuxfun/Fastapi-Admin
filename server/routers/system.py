@@ -232,6 +232,17 @@ async def get_asset_fields(id: int, session: Session = Depends(get_session)):
     )
 
 
+@router.post('/add', description="手动添加资产")
+async def add_asset(asset: assets.Assets, session: Session = Depends(get_session)):
+    print(asset)
+    session.add(asset)
+    session.commit()
+    return ApiResponse(
+        code=0,
+        message="success",
+    )
+
+
 @router.post('/update_assets', description="批量更新资产信息")
 async def update_assets(update: UpdateAssets, session: Session = Depends(get_session)):
     print(update)
