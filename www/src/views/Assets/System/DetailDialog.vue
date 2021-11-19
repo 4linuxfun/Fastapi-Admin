@@ -15,7 +15,7 @@
 				<el-input v-model="formData.user"></el-input>
 			</el-form-item>
 			<template v-for="(value,name) in formData.info" :key="name">
-				<el-form-item :label="fieldMap[name]">
+				<el-form-item :label="name">
 					<el-input v-model="formData.info[name]"></el-input>
 				</el-form-item>
 			</template>
@@ -32,7 +32,7 @@
 <script>
 	import request from '@/utils/request'
 	export default {
-		props: ['data','fieldMap','visible',"title","disabled"],
+		props: ['data','visible',"title","disabled"],
 		emits: ['update:data', 'reload', 'update:visible'],
 		// created() {
 		// 	console.log(this.data)

@@ -3,9 +3,10 @@
 		<el-form :model="searchForm">
 			<el-row>
 				<el-form-item label="资产类型">
-					<el-autocomplete v-model="searchForm.category" :fetch-suggestions="querySearchAsync"
+					<category-select v-model:category="searchForm.category" placeholder="资产类型" @handleSelect="handleSelect"></category-select>
+					<!-- <el-autocomplete v-model="searchForm.category" :fetch-suggestions="querySearchAsync"
 						placeholder="资产类型" value-key="name" @select="handleSelect">
-					</el-autocomplete>
+					</el-autocomplete> -->
 				</el-form-item>
 				<el-form-item label="管理员">
 					<el-input v-model="searchForm.manager"></el-input>
@@ -22,7 +23,7 @@
 			</el-row>
 			<el-row>
 				<template v-for="field in fields" :key="field.id">
-					<el-form-item :label="field.alias">
+					<el-form-item :label="field.name">
 						<el-input v-model="searchForm.info[[field.name]]"></el-input>
 					</el-form-item>
 				</template>
@@ -48,7 +49,7 @@
 		<el-table-column prop="user" label="使用人"></el-table-column>
 		<template v-for="field in fields" :key="field.id">
 			<!-- <span>{{field}}</span> -->
-			<el-table-column :label="field.alias" v-if="field.show">
+			<el-table-column :label="field.name" v-if="field.show">
 				<template #default="scope">
 					{{scope.row.info[field.name]}}
 				</template>
@@ -66,10 +67,11 @@
 
 
 	<import-dialog v-if="importDialog" v-model:visible="importDialog" @upload="uploadResponse"></import-dialog>
-	<detail-dialog v-if="detailDialog.show" :data="showData" :fieldMap="aliasMap" v-model:visible="detailDialog.show" @reload="handleSearch" :disabled="detailDialog.disabled"
+	<detail-dialog v-if="detailDialog.show" :data="showData" v-model:visible="detailDialog.show" @reload="handleSearch" :disabled="detailDialog.disabled"
 			:title="detailDialog.title"></detail-dialog>
-	<multi-dialog v-if="multiDialog" v-model:data="showData" v-model:visible="multiDialog" :category="categoryId" @reload="handleSearch"></multi-dialog>
-	
+	<multi-dialog v-if="multiDialog" v-model:data="showData" v-model:visible="multiDialog" :category="searchForm.id" @reload="handleSearch"></multi-dialog>
+	<add-dialog v-if="detailDialog.show" :data="showData" v-model:visible="detailDialog.show" @reload="handleSearch" :disabled="detailDialog.disabled"
+			:title="detailDialog.title"></add-dialog>
 
 </template>
 
@@ -78,6 +80,8 @@
 	import ImportDialog from './ImportDialog'
 	import DetailDialog from './DetailDialog'
 	import MultiDialog from './MultiDialog'
+	import AddDialog from './AddDialog'
+	import CategorySelect from '@/components/CategorySelect'
 	import {
 		downloadFile
 	} from '@/api/file'
@@ -85,11 +89,14 @@
 		components: {
 			'import-dialog': ImportDialog,
 			'detail-dialog': DetailDialog,
-			'multi-dialog': MultiDialog
+			'multi-dialog': MultiDialog,
+			'add-dialog': AddDialog,
+			'category-select': CategorySelect,
 		},
 		data() {
 			return {
 				searchForm: {
+					id:null,
 					category: null,
 					manager: null,
 					area: null,
@@ -98,7 +105,7 @@
 					limit: 10,
 					offset: 0,
 				},
-				categoryId:'',
+				// categoryId:'',
 				systemData: "",
 				total: 0,
 				currentPage: 1,
@@ -110,8 +117,6 @@
 				},
 				showData: '',
 				fields: '',
-				// 中、英文对应关系
-				aliasMap:{},
 				selected: [],
 				multiDialog:false
 			}
@@ -129,20 +134,11 @@
 				})
 
 			},
-			async querySearchAsync(query, callback) {
-				console.log('query:'+query)
-				request({
-					url: '/api/assets/category-list',
-					method: 'get',
-					params:{search:query}
-				}).then((response) => {
-					callback(response)
-				})
-			},
 			handleSelect(item) {
 				// 选择后，就需要去后台捞取对应资产的动态字段，并进行列出选择
 				console.log(item)
-				this.categoryId = item.id
+				this.searchForm.id = item.id
+				this.searchForm.info = {}
 				request({
 					url: '/api/assets/category_field/' + item.id,
 					method: 'get',
@@ -151,7 +147,6 @@
 					for (let field of fieldList) {
 						let fieldName = field.name
 						this.searchForm.info[fieldName] = ''
-						this.aliasMap[fieldName] = field.alias
 					}
 					this.systemData = null
 				})

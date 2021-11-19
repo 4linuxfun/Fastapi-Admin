@@ -34,7 +34,6 @@ class CategoryField(SQLModel, table=True):
     __tablename__ = 'category_field'
     id: Optional[int] = Field(default=None, primary_key=True)
     name: Optional[str]
-    alias: Optional[str]
     desc: Optional[str]
     type: Optional[str]
     need: Optional[int]

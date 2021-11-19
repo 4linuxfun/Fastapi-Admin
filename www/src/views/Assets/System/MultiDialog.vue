@@ -22,7 +22,7 @@
 					<el-button style="width: 100%;" @click="addField">增加</el-button>
 				</el-row>
 				<el-form-item>
-					<el-button type="danger">取消</el-button>
+					<el-button type="danger" @click="$emit('update:visible',false)">取消</el-button>
 					<el-button type="primary" @click='handleUpdate'>更新</el-button>
 				</el-form-item>
 			</el-form>
