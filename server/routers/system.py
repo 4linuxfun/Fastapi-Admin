@@ -78,6 +78,12 @@ async def search_total(system: SearchForm, session: Session = Depends(get_sessio
 @router.post('/system/search')
 async def search_system(system: SearchForm, session: Session = Depends(get_session)):
     print(system)
+    if not system.category:
+        return ApiResponse(
+            code=1,
+            message="error",
+            data='请选择资产类型'
+        )
     sql = select(assets.Assets)
     if system.category:
         sql = sql.where(assets.Assets.category.like('%' + system.category + '%'))
@@ -148,8 +154,11 @@ async def download_tmpfile():
 
 
 @router.get('/category-list')
-async def get_category_list(session: Session = Depends(get_session)):
-    categories = session.exec(select(assets.Category)).all()
+async def get_category_list(search: Optional[str] = None, session: Session = Depends(get_session)):
+    sql = select(assets.Category)
+    if search is not None:
+        sql = sql.where(assets.Category.name.like('%' + search + '%'))
+    categories: List[assets.Category] = session.exec(sql).all()
     # category_list = [cate.dict(exclude={'alias': True, 'desc': True}) for cate in categories]
     # print(category_list)
     return ApiResponse(

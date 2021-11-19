@@ -1,17 +1,20 @@
 <template>
 	<!-- 导入模板Dialog -->
-	<el-dialog :model-value="visible" title="数据导入" width="30%" @close="$emit('update:visible',false)" destroy-on-close>
-		<el-space size="large">
-			<el-button type="info" size="medium" @click="downloadTemp">模板下载</el-button>
-			<el-upload ref="upload" action="" :file-list="fileList" :on-change="handleChange" :http-request="uploadFiles" :auto-upload="false" multiple>
-				<template #trigger>
-					<el-button type="primary" size="medium">添加文件</el-button>
-				</template>
-				<el-button type="success" size="medium" @click="handleUpload">上传</el-button>
-			</el-upload>
-		</el-space>
-		
-	</el-dialog>
+	<div>
+		<el-dialog :model-value="visible" title="数据导入" width="30%" @close="$emit('update:visible',false)" destroy-on-close>
+			<el-space size="large">
+				<el-button type="info" size="medium" @click="downloadTemp">模板下载</el-button>
+				<el-upload ref="upload" action="" :file-list="fileList" :on-change="handleChange" :http-request="uploadFiles" :auto-upload="false" multiple>
+					<template #trigger>
+						<el-button type="primary" size="medium">添加文件</el-button>
+					</template>
+					<el-button type="success" size="medium" @click="handleUpload">上传</el-button>
+				</el-upload>
+			</el-space>
+			
+		</el-dialog>
+	</div>
+	
 </template>
 
 <script>

@@ -1,32 +1,35 @@
 <!-- 多选状态的批量修改对话框 -->
 <template>
-	<el-dialog :model-value="visible" title="批量修改" width="30%" @close="$emit('update:visible',false)" destroy-on-close>
-		<el-form model="updateAssets">
-			<template v-for="asset in updateAssets" :key="asset">
+	<div>
+		<el-dialog :model-value="visible" title="批量修改" width="30%" @close="$emit('update:visible',false)" destroy-on-close>
+			<el-form model="updateAssets">
+				<template v-for="asset in updateAssets" :key="asset">
+					<el-form-item>
+						<template #label>
+							<el-select v-model="asset.name" placeholder="Select">
+								<el-option-group v-for="group in categoryDetail" :key="group.label" :label="group.label">
+									<el-option v-for="item in group.options" :key="item.value" :label="item.label"
+										:value="item.value">
+									</el-option>
+								</el-option-group>
+							</el-select>
+						</template>
+						<el-input v-model="asset.value" placeholder="新值"></el-input>
+					</el-form-item>
+				</template>
+		
+				<el-row>
+					<el-button style="width: 100%;" @click="addField">增加</el-button>
+				</el-row>
 				<el-form-item>
-					<template #label>
-						<el-select v-model="asset.name" placeholder="Select">
-							<el-option-group v-for="group in categoryDetail" :key="group.label" :label="group.label">
-								<el-option v-for="item in group.options" :key="item.value" :label="item.label"
-									:value="item.value">
-								</el-option>
-							</el-option-group>
-						</el-select>
-					</template>
-					<el-input v-model="asset.value" placeholder="新值"></el-input>
+					<el-button type="danger">取消</el-button>
+					<el-button type="primary" @click='handleUpdate'>更新</el-button>
 				</el-form-item>
-			</template>
-
-			<el-row>
-				<el-button style="width: 100%;" @click="addField">增加</el-button>
-			</el-row>
-			<el-form-item>
-				<el-button type="danger">取消</el-button>
-				<el-button type="primary" @click='handleUpdate'>更新</el-button>
-			</el-form-item>
-		</el-form>
-
-	</el-dialog>
+			</el-form>
+		
+		</el-dialog>
+	</div>
+	
 
 </template>
 
@@ -43,7 +46,12 @@
 			}).then((response) => {
 				console.log(response)
 				this.categoryDetail = response
-				console.log('detail:' + this.categoryDetail)
+			}).catch((error)=>{
+				this.notify({
+					message:error,
+					title:'ERROR',
+					type:'warning'
+				})
 			})
 
 		},
@@ -61,6 +69,7 @@
 			},
 			handleUpdate() {
 				let assetsIdList = []
+				console.log(this.selectAssets)
 				for (let asset of this.selectAssets) {
 					console.log(asset)
 					assetsIdList.push(asset.id)
@@ -70,8 +79,6 @@
 					update: this.updateAssets
 				}
 				console.log(updateInfo)
-				this.$emit('update:visible', false)
-				this.$emit('reload')
 				request({
 					url: '/api/assets/update_assets',
 					method: 'post',
@@ -89,6 +96,8 @@
 						type: 'success'
 					})
 				})
+				this.$emit('update:visible', false)
+				this.$emit('reload')
 			}
 		},
 	}

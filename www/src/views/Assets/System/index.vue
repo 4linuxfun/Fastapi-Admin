@@ -1,6 +1,6 @@
 <template>
 	<el-row>
-		<el-form :model="searchForm" inline="true">
+		<el-form :model="searchForm">
 			<el-row>
 				<el-form-item label="资产类型">
 					<el-autocomplete v-model="searchForm.category" :fetch-suggestions="querySearchAsync"
@@ -62,18 +62,14 @@
 		</el-table-column>
 	</el-table>
 	<el-pagination background layout="prev,pager,next" :total="total" :current-page="currentPage"
-		@update:current-page="handlePage" hide-on-single-page="true" prev-text="上一页" next-text="下一页"></el-pagination>
+		@update:current-page="handlePage" :hide-on-single-page="true" prev-text="上一页" next-text="下一页"></el-pagination>
 
-	<div v-if="importDialog">
-		<import-dialog v-model:visible="importDialog" @upload="uploadResponse"></import-dialog>
-	</div>
-	<div v-if="detailDialog.show">
-		<detail-dialog v-model:data="showData" v-model:visible="detailDialog.show" @upload="updateFields" :disabled="detailDialog.disabled"
+
+	<import-dialog v-if="importDialog" v-model:visible="importDialog" @upload="uploadResponse"></import-dialog>
+	<detail-dialog v-if="detailDialog.show" :data="showData" :fieldMap="aliasMap" v-model:visible="detailDialog.show" @reload="handleSearch" :disabled="detailDialog.disabled"
 			:title="detailDialog.title"></detail-dialog>
-	</div>
-	<div v-if="multiDialog">
-		<multi-dialog v-model:data="showData" v-model:visible="multiDialog" :category="categoryId" @reload="handleSearch"></multi-dialog>
-	</div>
+	<multi-dialog v-if="multiDialog" v-model:data="showData" v-model:visible="multiDialog" :category="categoryId" @reload="handleSearch"></multi-dialog>
+	
 
 </template>
 
@@ -114,6 +110,8 @@
 				},
 				showData: '',
 				fields: '',
+				// 中、英文对应关系
+				aliasMap:{},
 				selected: [],
 				multiDialog:false
 			}
@@ -132,9 +130,11 @@
 
 			},
 			async querySearchAsync(query, callback) {
+				console.log('query:'+query)
 				request({
 					url: '/api/assets/category-list',
-					method: 'get'
+					method: 'get',
+					params:{search:query}
 				}).then((response) => {
 					callback(response)
 				})
@@ -150,14 +150,21 @@
 					this.fields = fieldList
 					for (let field of fieldList) {
 						let fieldName = field.name
-						console.log(fieldName)
 						this.searchForm.info[fieldName] = ''
+						this.aliasMap[fieldName] = field.alias
 					}
 					this.systemData = null
 				})
 			},
 			handleSearch() {
 				console.log(this.searchForm)
+				if (this.searchForm.category == null ){
+					this.$message({
+						message:'未选择资产',
+						type:'warning'
+					})
+					return false
+				}
 				request({
 					url: '/api/assets/system/search_total',
 					method: 'post',
@@ -181,7 +188,7 @@
 				console.log('显示详情')
 				console.log(info)
 				this.detailDialog.show = true
-				this.detailDialog.title = "数据更新"
+				this.detailDialog.title = "数据详情"
 				this.detailDialog.disabled = true
 				this.showData = info
 			},
@@ -210,10 +217,11 @@
 				console.log(this.detailDialog)
 				if (this.selected.length == 1) {
 					console.log('单选')
-					this.detailDialog.show = true
 					this.detailDialog.title = "数据更新"
 					this.detailDialog.disabled = false
 					this.showData = this.selected[0]
+					this.detailDialog.show = true
+					console.log(this.showData)
 				} else if (this.selected.length >= 2) {
 					console.log('多选')
 					this.multiDialog = true
@@ -223,19 +231,11 @@
 						message:'未选择资产',
 						type:'warning'
 					})
+					// return false
 				}
+				this.requestData()
 			},
-			updateFields(fields){
-				console.log(fields)
-				request({
-					url:"/api/assets/update_category_detail",
-					method:"post",
-					data:fields
-				}).then(()=>{
-					console.log('更新成功')
-					this.requestData()
-				})
-			},
+			
 			handleAddOne(){
 				// 处理手动录入按钮事件
 				this.detailDialog.show = true
