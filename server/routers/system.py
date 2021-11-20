@@ -110,7 +110,7 @@ async def search_system(system: SearchForm, session: Session = Depends(get_sessi
 
 
 @router.post('/system/import')
-async def data_import(files: List[UploadFile] = File(...), session: Session = Depends(get_session)):
+def data_import(files: List[UploadFile] = File(...), session: Session = Depends(get_session)):
     """
     每个导入的文件，都存在静态字段、动态字段，需要对动态字段转换成json格式的字符串，然后才能进行插入
     :param files: files参数是前后端统一规定的名字，如果需要修改，同意修改
@@ -119,38 +119,52 @@ async def data_import(files: List[UploadFile] = File(...), session: Session = De
     """
     for file in files:
         print(file.filename)
-        contents = await file.read()
-        excel_data = pd.read_excel(contents, engine='openpyxl')
-        col_list = excel_data.columns.values.tolist()
+        contents = file.file.read()
+        df = pd.read_excel(contents, engine='openpyxl')
+        print(df)
+        df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+        print(df)
+        col_list = df.columns.values.tolist()
         print(col_list)
-        static_dict = {"主机名": "host", "IP地址": "ip", "操作系统": "system", "CPU数量": "cpu", "空间": "storage", "内存": "memory",
-                       "管理员": "admin", "环境": "env", "类型": "type", "项目": "project", "三线开发": "developer"}
+        # 需要做一次中英文翻转
+        static_dict = {value: key for key, value in assets.ShareFields.share_names().items()}
+        # static_dict = {"主机名": "host", "IP地址": "ip", "操作系统": "system", "CPU数量": "cpu", "空间": "storage", "内存": "memory",
+        #                "管理员": "admin", "环境": "env", "类型": "type", "项目": "project", "三线开发": "developer"}
         static_list = static_dict.keys()
         dynamic_list = list(set(col_list) - set(static_list))
         print(dynamic_list)
-        dynamic_data = excel_data[dynamic_list]
+        dynamic_data = df[dynamic_list]
         print(dynamic_data)
         # 静态字段统一修改中文为英文（数据库表字段为英文）
-        excel_data.rename(
-            columns={"主机名": "host", "IP地址": "ip", "操作系统": "system", "CPU数量": "cpu", "空间": "storage", "内存": "memory",
-                     "管理员": "admin", "环境": "env", "类型": "type", "项目": "project", "三线开发": "developer"}, inplace=True)
+        df.rename(
+            columns=static_dict, inplace=True)
 
-        print(excel_data)
-        excel_data['info'] = excel_data.apply(to_json, axis=1, args=(dynamic_list,))
+        print(df)
+        df['info'] = df.apply(to_json, axis=1, args=(dynamic_list,))
 
-        excel_data.drop(columns=dynamic_list, inplace=True)
-        print(excel_data)
-        excel_data.to_sql('system', engine, if_exists='append', index=False, method='multi')
+        df.drop(columns=dynamic_list, inplace=True)
+        print(df)
+        df.to_sql('assets', engine, if_exists='append', index=False, method='multi')
     return ApiResponse(
         code=0,
         message="success",
     )
 
 
-@router.get('/system/down_temp')
-async def download_tmpfile():
-    print('down temp file')
-    return FileResponse('server/static/template/system.xlsx', filename='system.xlsx')
+@router.get('/system/down_temp/{id}', description="导入模板下载")
+def download_tmpfile(id: int, session: Session = Depends(get_session)):
+    category = session.exec(select(assets.Category).where(assets.Category.id == id)).one()
+    print(assets.ShareFields.share_names().values())
+    excel_title = []
+    excel_title.extend(assets.ShareFields.share_names().values())
+    for field in category.fields:
+        excel_title.append(field.name)
+    output_data = pd.DataFrame(columns=[excel_title])
+    # return FileResponse('server/static/template/system.xlsx', filename='system.xlsx')
+    with NamedTemporaryFile('w+b', suffix='.xlsx', delete=False) as f:
+        # output_data.set_index('资产类型', inplace=True)
+        output_data.to_excel(f, index=False)
+        return FileResponse(f.name, filename='template.xlsx', background=BackgroundTask(utils.remove_tmp_file, f.name))
 
 
 @router.get('/category-list')
