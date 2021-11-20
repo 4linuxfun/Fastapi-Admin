@@ -75,6 +75,7 @@
 			downloadTemp(){
 				console.log('下载模板')
 				downloadFile("/api/assets/system/down_temp/"+this.category,"get")
+				this.importDialog = false
 			},
 			handleSelect(item){
 				this.category = item.id
