@@ -43,12 +43,29 @@ class CategoryField(SQLModel, table=True):
     category: List[Category] = Relationship(back_populates="fields")
 
 
-class Assets(SQLModel, table=True):
-    # 资产表
-    id: Optional[int] = Field(default=None, primary_key=True)
+class ShareFields(SQLModel):
+    """
+    资产列表的固定通用字段统一设定
+    """
     category: Optional[str]
     user: Optional[str]
     manager: Optional[str]
     area: Optional[str]
+
+    @classmethod
+    def share_names(cls, ):
+        """
+        需要维护一个共用字段的映射关系
+        :return:
+        """
+        return {'category': '资产类型',
+                'user': '使用人',
+                'manager': '管理员',
+                'area': "区域"}
+
+
+class Assets(ShareFields, table=True):
+    # 资产表
+    id: Optional[int] = Field(default=None, primary_key=True)
     info: Optional[Dict[Any, Any]] = Field(default=None, sa_column=Column(MutableDict.as_mutable(JSON)))
     deleted: Optional[int] = 0
