@@ -1,6 +1,6 @@
 <template>
 	<el-autocomplete v-model="selectCategory" :fetch-suggestions="querySearchAsync"
-		:placeholder="placeholder" value-key="name" @select="handleSelect">
+		:placeholder="placeholder" value-key="name" @select="handleSelect" clearable>
 	</el-autocomplete>
 </template>
 
