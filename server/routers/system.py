@@ -122,6 +122,7 @@ def data_import(files: List[UploadFile] = File(...), session: Session = Depends(
         contents = file.file.read()
         df = pd.read_excel(contents, engine='openpyxl')
         print(df)
+        # 使用此种方式去过滤掉未设置列名的列
         df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
         print(df)
         col_list = df.columns.values.tolist()
@@ -330,27 +331,42 @@ async def add_category(category_info: UpdateCategory, session: Session = Depends
 
 @router.post("/system/output")
 def output_data(system: SearchForm, session: Session = Depends(get_session)):
-    sql = select(assets.System)
-    if system.type:
-        sql = sql.where(assets.System.type.like('%' + system.type + '%'))
-    if system.ip:
-        sql = sql.where(assets.System.ip.like('%' + system.ip + '%'))
-    if system.project:
-        sql = sql.where(assets.System.project.like('%' + system.project + '%'))
-    if system.host:
-        sql = sql.where(assets.System.host.like('%' + system.host + '%'))
-    select_data = pd.read_sql_query(sql, session.bind)
-    select_data.rename(
-        columns={"host": "主机名", "ip": "IP地址", "system": "操作系统", "cpu": "CPU数量", "storage": "空间", "memory": "内存",
-                 "admin": "管理员", "env": "环境", "type": "类型", "project": "项目", "developer": "三线开发"}, inplace=True)
-    select_data.drop(columns=['id'], inplace=True)
-    print(select_data)
+    sql = select(assets.Assets)
+    if system.category:
+        sql = sql.where(assets.Assets.category.like('%' + system.category + '%'))
+    if system.manager:
+        sql = sql.where(assets.Assets.manager.like('%' + system.manager + '%'))
+    if system.area:
+        sql = sql.where(assets.Assets.area.like('%' + system.area + '%'))
+    if system.user:
+        sql = sql.where(assets.Assets.user.like('%' + system.user + '%'))
+    for key, value in system.info.items():
+        if value:
+            sql = sql.where(assets.Assets.info[key].like('%' + value + '%'))
+    df = pd.read_sql_query(sql, session.bind)
+    static_dict = assets.ShareFields.share_names()
+    # 静态字段统一修改中文为英文（数据库表字段为英文）
+    df.rename(
+        columns=static_dict, inplace=True)
+    df.drop(columns=['id'], inplace=True)
+    # df['info'] = df.apply(to_column, axis=1, args=(dynamic_list,))
+    info = pd.json_normalize(df['info'])
+    print(info)
+    result = pd.concat([df, info], axis=1)
+    result.drop(columns=['info', 'deleted'], inplace=True)
+    print(result)
     with NamedTemporaryFile('w+b', suffix='.xlsx', delete=False) as f:
-        select_data.to_excel(f)
+        result.to_excel(f, index=False)
         return FileResponse(f.name, filename='output.xlsx', background=BackgroundTask(utils.remove_tmp_file, f.name))
 
 
 def to_json(x, dynamic_list):
+    """
+    dataframe的column合并成json字段
+    :param x:
+    :param dynamic_list:
+    :return:
+    """
     print(x)
     info = {}
     for value in dynamic_list:

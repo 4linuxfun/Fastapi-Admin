@@ -203,6 +203,13 @@
 				})
 			},
 			handleOutput() {
+				if(this.searchForm.category === null){
+					this.$message({
+						message:'请选择资产类型',
+						type:'warning'
+					})
+					return false
+				}
 				downloadFile("/api/assets/system/output", "post", this.searchForm)
 			},
 			handleSelectionChange(val) {
