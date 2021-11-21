@@ -84,7 +84,7 @@ async def search_system(system: SearchForm, session: Session = Depends(get_sessi
     )
 
 
-@router.post('/system/import')
+@router.post('/system/import', description="批量数据的导入")
 def data_import(files: List[UploadFile] = File(...), session: Session = Depends(get_session)):
     """
     每个导入的文件，都存在静态字段、动态字段，需要对动态字段转换成json格式的字符串，然后才能进行插入
@@ -95,7 +95,7 @@ def data_import(files: List[UploadFile] = File(...), session: Session = Depends(
     for file in files:
         print(file.filename)
         contents = file.file.read()
-        df = pd.read_excel(contents, engine='openpyxl')
+        df = pd.read_excel(contents, engine='openpyxl', keep_default_na=False)
         print(df)
         # 使用此种方式去过滤掉未设置列名的列
         df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
@@ -104,8 +104,6 @@ def data_import(files: List[UploadFile] = File(...), session: Session = Depends(
         print(col_list)
         # 需要做一次中英文翻转
         static_dict = {value: key for key, value in assets.ShareFields.share_names().items()}
-        # static_dict = {"主机名": "host", "IP地址": "ip", "操作系统": "system", "CPU数量": "cpu", "空间": "storage", "内存": "memory",
-        #                "管理员": "admin", "环境": "env", "类型": "type", "项目": "project", "三线开发": "developer"}
         static_list = static_dict.keys()
         dynamic_list = list(set(col_list) - set(static_list))
         print(dynamic_list)
@@ -114,7 +112,18 @@ def data_import(files: List[UploadFile] = File(...), session: Session = Depends(
         # 静态字段统一修改中文为英文（数据库表字段为英文）
         df.rename(
             columns=static_dict, inplace=True)
-
+        category = df['category'].iloc[0]
+        category = session.exec(select(assets.Category).where(assets.Category.name == category)).one()
+        datetime_fields = session.exec(
+            select(assets.CategoryField).where(assets.CategoryField.category_id == category.id).where(
+                assets.CategoryField.type.like('date%'))).all()
+        for field in datetime_fields:
+            if field.type == 'date':
+                date_format = '%Y-%m-%d'
+            elif field.type == 'datetime':
+                date_format = '%Y-%m-%d HH:MM:SS'
+            df[field.name] = df[field.name].dt.strftime(date_format)
+        print(category)
         print(df)
         df['info'] = df.apply(to_json, axis=1, args=(dynamic_list,))
 
