@@ -37,20 +37,7 @@ class UpdateAssets(BaseModel):
 
 @router.post('/system/search_total')
 async def search_total(system: SearchForm, session: Session = Depends(get_session)):
-    sql = select(func.count(assets.Assets.id))
-    print(sql)
-    if system.category:
-        sql = sql.where(assets.Assets.category.like('%' + system.category + '%'))
-    if system.manager:
-        sql = sql.where(assets.Assets.manager.like('%' + system.manager + '%'))
-    if system.area:
-        sql = sql.where(assets.Assets.area.like('%' + system.area + '%'))
-    if system.user:
-        sql = sql.where(assets.Assets.user.like('%' + system.user + '%'))
-    for key, value in system.info.items():
-        if value:
-            sql = sql.where(assets.Assets.info[key].like('%' + value + '%'))
-        print(f'{key}:{value}')
+    sql = make_search_sql(system, model='count')
     print(sql)
     total = session.execute(sql).scalar()
     # print(system)
@@ -84,19 +71,7 @@ async def search_system(system: SearchForm, session: Session = Depends(get_sessi
             message="error",
             data='请选择资产类型'
         )
-    sql = select(assets.Assets)
-    if system.category:
-        sql = sql.where(assets.Assets.category.like('%' + system.category + '%'))
-    if system.manager:
-        sql = sql.where(assets.Assets.manager.like('%' + system.manager + '%'))
-    if system.area:
-        sql = sql.where(assets.Assets.area.like('%' + system.area + '%'))
-    if system.user:
-        sql = sql.where(assets.Assets.user.like('%' + system.user + '%'))
-    for key, value in system.info.items():
-        if value:
-            sql = sql.where(assets.Assets.info[key].like('%' + value + '%'))
-        print(f'{key}:{value}')
+    sql = make_search_sql(system)
     sql = sql.offset(system.offset).limit(system.limit)
     print(str(sql))
     results = session.exec(sql).all()
@@ -331,18 +306,7 @@ async def add_category(category_info: UpdateCategory, session: Session = Depends
 
 @router.post("/system/output")
 def output_data(system: SearchForm, session: Session = Depends(get_session)):
-    sql = select(assets.Assets)
-    if system.category:
-        sql = sql.where(assets.Assets.category.like('%' + system.category + '%'))
-    if system.manager:
-        sql = sql.where(assets.Assets.manager.like('%' + system.manager + '%'))
-    if system.area:
-        sql = sql.where(assets.Assets.area.like('%' + system.area + '%'))
-    if system.user:
-        sql = sql.where(assets.Assets.user.like('%' + system.user + '%'))
-    for key, value in system.info.items():
-        if value:
-            sql = sql.where(assets.Assets.info[key].like('%' + value + '%'))
+    sql = make_search_sql(system)
     df = pd.read_sql_query(sql, session.bind)
     static_dict = assets.ShareFields.share_names()
     # 静态字段统一修改中文为英文（数据库表字段为英文）
@@ -372,3 +336,28 @@ def to_json(x, dynamic_list):
     for value in dynamic_list:
         info[value] = x[value]
     return json.dumps(info)
+
+
+def make_search_sql(search: SearchForm, model='all'):
+    """
+    searchForm生成对应的查询sql
+    :param search:
+    :param model: 'all':代表查询所有，'count':表示返回count
+    :return:
+    """
+    if model == 'all':
+        sql = select(assets.Assets)
+    elif model == 'count':
+        sql = select(func.count(assets.Assets.id))
+    if search.category:
+        sql = sql.where(assets.Assets.category.like('%' + search.category + '%'))
+    if search.manager:
+        sql = sql.where(assets.Assets.manager.like('%' + search.manager + '%'))
+    if search.area:
+        sql = sql.where(assets.Assets.area.like('%' + search.area + '%'))
+    if search.user:
+        sql = sql.where(assets.Assets.user.like('%' + search.user + '%'))
+    for key, value in search.info.items():
+        if value:
+            sql = sql.where(assets.Assets.info[key].like('%' + value + '%'))
+    return sql
