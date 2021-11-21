@@ -23,17 +23,13 @@
 							<el-input v-model="field.name"></el-input>
 						</el-form-item>
 					</el-col>
-					<el-col :span="3">
-						<el-form-item :label-width="0">
-							<el-input v-model="field.alias" placeholder="别名"></el-input>
-						</el-form-item>
-					</el-col>
 					<el-col :span="6">
 						<el-form-item label-width='0'>
 							<el-radio-group v-model="field.type">
-								<el-radio-button label="str">字符串</el-radio-button>
-								<el-radio-button label="int">数值</el-radio-button>
-								<el-radio-button label="datetime">日期</el-radio-button>
+								<el-radio-button label="text">字符串</el-radio-button>
+								<el-radio-button label="number">数值</el-radio-button>
+								<el-radio-button label="date">日期</el-radio-button>
+								<el-radio-button label="datetime">日期时间</el-radio-button>
 							</el-radio-group>
 						</el-form-item>
 					</el-col>
