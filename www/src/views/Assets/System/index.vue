@@ -30,7 +30,7 @@
 			</el-form-item>
 		</template> -->
 		<template v-for="(filter,index) in searchForm.filters" :key="index">
-			<search-select  :category_id="searchForm.id" v-model:filter="searchForm.filters[index]"></search-select>
+			<search-select  :category_id="searchForm.id" v-model:filter="searchForm.filters[index]" @delete="deleteFilter(index)"></search-select>
 		</template>
 		<el-button type="info" size="small" @click="addFilterSelect">增加条件</el-button>
 	</el-row>
@@ -94,7 +94,7 @@
 			'multi-dialog': MultiDialog,
 			'add-dialog': AddDialog,
 			'category-select': CategorySelect,
-			'search-select' : SearchSelect
+			'search-select' : SearchSelect,
 		},
 		data() {
 			return {
@@ -272,6 +272,9 @@
 					type:null,
 					value:null
 				})
+			},
+			deleteFilter(index){
+				this.searchForm.filters.splice(index,1)
 			}
 
 		},

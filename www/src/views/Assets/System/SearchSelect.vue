@@ -25,15 +25,20 @@
 		<el-col :span="8">
 			<el-input v-model="select.value" placeholder="请输入条件" @change="returnFilter" :type="select.type"></el-input>
 		</el-col>
+		<el-button type="danger" size="medium" circle @click="$emit('delete')"><el-icon><minus /></el-icon></el-button>
 
 	</el-row>
 
 </template>
 
 <script>
+	import {Minus} from '@element-plus/icons'
 	export default {
+		components: {
+			Minus,
+		},
 		props:['category_id','filter'],
-		emits:['add','update:filter'],
+		emits:['add','update:filter','delete'],
 		data() {
 			return {
 				select: this.filter,
