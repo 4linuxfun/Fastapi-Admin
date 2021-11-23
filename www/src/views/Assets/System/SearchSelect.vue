@@ -2,7 +2,7 @@
 	<el-row>
 		<el-col :span="8">
 			<el-select v-model="selectField" filterable remote reserve-keyword placeholder="选择字段"
-				:remote-method="searchFields" :loading="loading">
+				:remote-method="searchFields" :loading="loading" value-key="name">
 				<el-option v-for="field in fields" :key="field.name" :label="field.name" :value="field"></el-option>
 			</el-select>
 		</el-col>
@@ -23,7 +23,7 @@
 			</el-select>
 		</el-col>
 		<el-col :span="8">
-			<el-input v-model="select.value" placeholder="请输入条件" @change="returnFilter"></el-input>
+			<el-input v-model="select.value" placeholder="请输入条件" @change="returnFilter" :type="select.type"></el-input>
 		</el-col>
 
 	</el-row>
@@ -37,10 +37,7 @@
 		data() {
 			return {
 				select: this.filter,
-				selectField:{
-					name:null,
-					type:null,
-				},
+				selectField:{},
 				fields: [],
 				loading: false,
 			}
@@ -69,6 +66,9 @@
 				console.log(this.selectField)
 				
 				this.select.field = this.selectField.name
+				if(this.selectField.type === 'number'){
+					this.select.value = Number(this.select.value)
+				}
 				console.log(this.select)
 				this.$emit('update:filter',this.select)
 			}
