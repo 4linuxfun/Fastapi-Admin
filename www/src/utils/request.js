@@ -43,15 +43,15 @@ service.interceptors.response.use(
 		// 内部服务状态码
 		console.log('拦截器')
 		// 需要添加下载类型是否为文件，文件不走通用的返回类型
-		console.log(response.headers)
+		// console.log(response.headers)
 		if ("content-disposition" in response.headers){
 			let filename = ""
 			let disposition = response.headers['content-disposition']
 			// 下载文件名的几种获取方式，暂时不够完美，而且中文没有解码
 			let result = disposition.match(/filename="(.*)"/)
 			let result2 = disposition.match(/filename\*=(.*?)''(.*$)/)
-			console.log('result:'+result)
-			console.log('result2:'+ result2)
+			// console.log('result:'+result)
+			// console.log('result2:'+ result2)
 			if (result !== null){
 				
 				filename = result[1]	
