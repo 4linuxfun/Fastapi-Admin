@@ -19,46 +19,48 @@
 					<el-option value="lt" label="小于"></el-option>
 					<el-option value="le" label="小于等于"></el-option>
 				</template>
-				
+
 			</el-select>
 		</el-col>
 		<el-col :span="8">
 			<el-input v-model="select.value" placeholder="请输入条件" @change="returnFilter" :type="select.type"></el-input>
 		</el-col>
-		<el-button type="danger" size="mini" circle @click="$emit('delete')"><el-icon><minus /></el-icon></el-button>
+		<el-button type="danger" size="mini" circle @click="$emit('delete')">
+			<el-icon>
+				<minus />
+			</el-icon>
+		</el-button>
 
 	</el-row>
 
 </template>
 
 <script>
-	import {Minus} from '@element-plus/icons'
+	import {
+		Minus
+	} from '@element-plus/icons'
+	import {
+		requestCategoryField
+	} from '@/api/assets'
 	export default {
 		components: {
 			Minus,
 		},
-		props:['category_id','filter'],
-		emits:['add','update:filter','delete'],
+		props: ['category_id', 'filter'],
+		emits: ['add', 'update:filter', 'delete'],
 		data() {
 			return {
 				select: this.filter,
-				selectField:{},
+				selectField: {},
 				fields: [],
 				loading: false,
 			}
 		},
 		methods: {
 			searchFields(query) {
-				if (query !== ''){
+				if (query !== '') {
 					this.loading = true
-					this.$request({
-						url:'/api/assets/category_field',
-						method: 'get',
-						params:{
-							category_id:this.category_id,
-							query:query
-						}
-					}).then((response)=>{
+					requestCategoryField(this.category_id, query).then((response) => {
 						console.log(response)
 						this.fields = response
 						this.loading = false
@@ -67,15 +69,15 @@
 					this.fields = []
 				}
 			},
-			returnFilter(){
+			returnFilter() {
 				console.log(this.selectField)
-				
+
 				this.select.field = this.selectField.name
-				if(this.selectField.type === 'number'){
+				if (this.selectField.type === 'number') {
 					this.select.value = Number(this.select.value)
 				}
 				console.log(this.select)
-				this.$emit('update:filter',this.select)
+				this.$emit('update:filter', this.select)
 			}
 		},
 	}

@@ -109,15 +109,6 @@
 					})
 					return false
 				}
-				console.log(this.searchForm)
-				request({
-					url: '/api/assets/category_field/'+this.searchForm.id,
-					method: 'get',
-				}).then((response) => {
-					this.systemData = response
-				})
-	
-	
 			},
 			updateCategory(category){
 				console.log(category)
