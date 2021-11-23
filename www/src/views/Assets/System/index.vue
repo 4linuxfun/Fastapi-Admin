@@ -21,17 +21,18 @@
 					<el-button type="primary" @click="handleSearch">搜索</el-button>
 				</el-form-item>
 			</el-row>
-			<el-row>
-				<template v-for="field in fields" :key="field.id">
-					<el-form-item :label="field.name">
-						<el-input v-model="searchForm.info[[field.name]]"></el-input>
-					</el-form-item>
-				</template>
-
-			</el-row>
-
 		</el-form>
-
+	</el-row>
+	<el-row>
+		<!-- <template v-for="field in fields" :key="field.id">
+			<el-form-item :label="field.name">
+				<el-input v-model="searchForm.info[[field.name]]"></el-input>
+			</el-form-item>
+		</template> -->
+		<template v-for="(filter,index) in searchForm.filters" :key="index">
+			<search-select  :category_id="searchForm.id" v-model:filter="searchForm.filters[index]"></search-select>
+		</template>
+		<el-button type="info" size="small" @click="addFilterSelect">增加条件</el-button>
 	</el-row>
 	<el-row>
 		<el-button type="primary" @click="updateAssets">修改</el-button>
@@ -82,6 +83,7 @@
 	import MultiDialog from './MultiDialog'
 	import AddDialog from './AddDialog'
 	import CategorySelect from '@/components/CategorySelect'
+	import SearchSelect from './SearchSelect'
 	import {
 		downloadFile
 	} from '@/api/file'
@@ -92,6 +94,7 @@
 			'multi-dialog': MultiDialog,
 			'add-dialog': AddDialog,
 			'category-select': CategorySelect,
+			'search-select' : SearchSelect
 		},
 		data() {
 			return {
@@ -101,9 +104,11 @@
 					manager: null,
 					area: null,
 					user: null,
+					// info中存放的时
 					info: {},
 					limit: 10,
 					offset: 0,
+					filters: [],
 				},
 				// categoryId:'',
 				systemData: "",
@@ -144,8 +149,11 @@
 				this.searchForm.id = item.id
 				this.searchForm.info = {}
 				request({
-					url: '/api/assets/category_field/' + item.id,
+					url: '/api/assets/category_field',
 					method: 'get',
+					params:{
+						category_id:item.id,
+					}
 				}).then((fieldList) => {
 					this.fields = fieldList
 					for (let field of fieldList) {
@@ -246,6 +254,24 @@
 				// 处理手动录入按钮事件
 				this.addDialog.show = true
 				this.addDialog.title = "数据添加"
+			},
+			addFilter(filter){
+				console.log(filter)
+				if(filter.field !== null){
+					console.log('add filter to filters')
+					console.log(this.searchForm.filters)
+					this.searchForm.filters.push(filter)
+					console.log(this.searchForm.filters)
+				}
+				
+			},
+			addFilterSelect(){
+				console.log('click add filter button')
+				this.searchForm.filters.push({
+					field:null,
+					type:null,
+					value:null
+				})
 			}
 
 		},

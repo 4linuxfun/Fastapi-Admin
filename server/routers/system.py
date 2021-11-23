@@ -22,6 +22,7 @@ router = APIRouter(prefix='/api/assets', dependencies=[Depends(check_token), ])
 class SearchForm(assets.Assets):
     limit: Optional[int]
     offset: Optional[int]
+    filters: Optional[list]
 
 
 class UpdateCategory(BaseModel):
@@ -167,9 +168,13 @@ async def get_category_list(search: Optional[str] = None, session: Session = Dep
     )
 
 
-@router.get('/category_field/{id}')
-async def get_category_field(id: int, session: Session = Depends(get_session)):
-    fields = session.exec(select(assets.CategoryField).where(assets.CategoryField.category_id == id)).all()
+@router.get('/category_field')
+async def get_category_field(category_id: int, query: Optional[str] = None, session: Session = Depends(get_session)):
+    search = select(assets.CategoryField).where(assets.CategoryField.category_id == category_id)
+    if query is not None:
+        print('query is not none' + query)
+        search = search.where(assets.CategoryField.name.like('%' + query + '%'))
+    fields = session.exec(search).all()
     print(fields)
     return ApiResponse(
         code=0,
@@ -369,4 +374,23 @@ def make_search_sql(search: SearchForm, model='all'):
     for key, value in search.info.items():
         if value:
             sql = sql.where(assets.Assets.info[key].like('%' + value + '%'))
+    if search.filters is not None:
+        for filter in search.filters:
+            print(filter)
+            if filter['field'] is None:
+                continue
+            if filter['type'] == 'like':
+                sql = sql.where(assets.Assets.info[filter['field']].like('%' + filter['value'] + '%'))
+            if filter['type'] == 'eq':
+                sql = sql.where(assets.Assets.info[filter['field']] == int(filter['value']))
+            if filter['type'] == 'lt':
+                sql = sql.where(assets.Assets.info[filter['field']] < int(filter['value']))
+            if filter['type'] == 'le':
+                sql = sql.where(assets.Assets.info[filter['field']] <= int(filter['value']))
+            if filter['type'] == 'gt':
+                sql = sql.where(assets.Assets.info[filter['field']] > int(filter['value']))
+            if filter['type'] == 'ge':
+                sql = sql.where(assets.Assets.info[filter['field']] >= int(filter['value']))
+            if filter['type'] == 'ne':
+                sql = sql.where(assets.Assets.info[filter['field']] != int(filter['value']))
     return sql
