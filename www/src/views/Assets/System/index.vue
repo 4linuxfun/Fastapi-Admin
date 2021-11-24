@@ -1,47 +1,50 @@
 <template>
-	<el-row>
-		<el-form :model="searchForm">
-			<el-row>
-				<el-form-item label="资产类型">
-					<category-select v-model:category="searchForm.category" placeholder="资产类型"
-						@handleSelect="handleSelect"></category-select>
-					<!-- <el-autocomplete v-model="searchForm.category" :fetch-suggestions="querySearchAsync"
-						placeholder="资产类型" value-key="name" @select="handleSelect">
-					</el-autocomplete> -->
+	<div style="background-color: papayawhip;padding: 10px;">
+		<el-row>
+			<el-form :model="searchForm">
+				<el-row>
+					<el-form-item label="资产类型">
+						<category-select v-model:category="searchForm.category" placeholder="资产类型"
+							@handleSelect="handleSelect"></category-select>
+						<!-- <el-autocomplete v-model="searchForm.category" :fetch-suggestions="querySearchAsync"
+							placeholder="资产类型" value-key="name" @select="handleSelect">
+						</el-autocomplete> -->
+					</el-form-item>
+					<el-form-item label="管理员">
+						<el-input v-model="searchForm.manager"></el-input>
+					</el-form-item>
+					<el-form-item label="区域">
+						<el-input v-model="searchForm.area"></el-input>
+					</el-form-item>
+					<el-form-item label="使用人">
+						<el-input v-model="searchForm.user"></el-input>
+					</el-form-item>
+					<el-form-item>
+						<el-button type="primary" @click="handleSearch">搜索</el-button>
+					</el-form-item>
+				</el-row>
+			</el-form>
+		</el-row>
+		<el-row>
+			<!-- <template v-for="field in fields" :key="field.id">
+				<el-form-item :label="field.name">
+					<el-input v-model="searchForm.info[[field.name]]"></el-input>
 				</el-form-item>
-				<el-form-item label="管理员">
-					<el-input v-model="searchForm.manager"></el-input>
-				</el-form-item>
-				<el-form-item label="区域">
-					<el-input v-model="searchForm.area"></el-input>
-				</el-form-item>
-				<el-form-item label="使用人">
-					<el-input v-model="searchForm.user"></el-input>
-				</el-form-item>
-				<el-form-item>
-					<el-button type="primary" @click="handleSearch">搜索</el-button>
-				</el-form-item>
-			</el-row>
-		</el-form>
-	</el-row>
-	<el-row>
-		<!-- <template v-for="field in fields" :key="field.id">
-			<el-form-item :label="field.name">
-				<el-input v-model="searchForm.info[[field.name]]"></el-input>
-			</el-form-item>
-		</template> -->
-		<template v-for="(filter,index) in searchForm.filters" :key="index">
-			<search-select :category_id="searchForm.id" v-model:filter="searchForm.filters[index]"
-				@delete="deleteFilter(index)"></search-select>
-		</template>
-		<el-button type="info" size="small" @click="addFilterSelect">增加条件</el-button>
-	</el-row>
-	<el-row>
-		<el-button type="primary" @click="updateAssets">修改</el-button>
-		<el-button type="primary" @click="handleAddOne">手动录入</el-button>
-		<el-button v-if="$route.meta.import === true" type="primary" @click="importDialog=true">批量导入</el-button>
-		<el-button v-if="$route.meta.output === true" type="primary" @click="handleOutput">批量导出</el-button>
-	</el-row>
+			</template> -->
+			<template v-for="(filter,index) in searchForm.filters" :key="index">
+				<search-select :category_id="searchForm.id" v-model:filter="searchForm.filters[index]"
+					@delete="deleteFilter(index)"></search-select>
+			</template>
+			<el-button type="info" size="small" @click="addFilterSelect">增加条件</el-button>
+		</el-row>
+		<el-row>
+			<el-button type="primary" @click="updateAssets">修改</el-button>
+			<el-button type="primary" @click="handleAddOne">手动录入</el-button>
+			<el-button v-if="$route.meta.import === true" type="primary" @click="importDialog=true">批量导入</el-button>
+			<el-button v-if="$route.meta.output === true" type="primary" @click="handleOutput">批量导出</el-button>
+		</el-row>
+	</div>
+	
 
 	<el-table :data="systemData" :border="true" highlight-current-row @selection-change="handleSelectionChange">
 		<el-table-column type="selection" width="55" />
@@ -282,4 +285,12 @@
 </script>
 
 <style>
+	.el-form-item{
+		margin-bottom: 0;
+		margin-left: 10px;
+	}
+	.el-row{
+		padding: 2px;
+	}
+
 </style>

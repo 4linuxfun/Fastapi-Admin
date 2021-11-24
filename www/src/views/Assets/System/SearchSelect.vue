@@ -25,12 +25,11 @@
 		<el-col :span="8">
 			<el-input v-model="select.value" placeholder="请输入条件" @change="returnFilter" :type="select.type"></el-input>
 		</el-col>
-		<el-button type="danger" size="mini" circle @click="$emit('delete')">
+		<el-button class="mini-button" type="danger" size="mini" circle @click="$emit('delete')">
 			<el-icon>
 				<minus />
 			</el-icon>
 		</el-button>
-
 	</el-row>
 
 </template>
@@ -84,4 +83,8 @@
 </script>
 
 <style>
+	.mini-button{
+		height: 5px;
+		margin-top: 5px;
+	}
 </style>
