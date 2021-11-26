@@ -1,45 +1,50 @@
 <template>
-	<el-row>
-		<el-form :model="searchForm">
-			<el-row>
-				<el-form-item label="资产类型">
-					<category-select v-model:category="searchForm.category" placeholder="资产类型" @handleSelect="handleSelect"></category-select>
-					<!-- <el-autocomplete v-model="searchForm.category" :fetch-suggestions="querySearchAsync"
-						placeholder="资产类型" value-key="name" @select="handleSelect">
-					</el-autocomplete> -->
+	<div style="background-color: papayawhip;padding: 10px;">
+		<el-row>
+			<el-form :model="searchForm">
+				<el-row>
+					<el-form-item label="资产类型">
+						<category-select v-model:category="searchForm.category" placeholder="资产类型"
+							@handleSelect="handleSelect"></category-select>
+						<!-- <el-autocomplete v-model="searchForm.category" :fetch-suggestions="querySearchAsync"
+							placeholder="资产类型" value-key="name" @select="handleSelect">
+						</el-autocomplete> -->
+					</el-form-item>
+					<el-form-item label="管理员">
+						<el-input v-model="searchForm.manager"></el-input>
+					</el-form-item>
+					<el-form-item label="区域">
+						<el-input v-model="searchForm.area"></el-input>
+					</el-form-item>
+					<el-form-item label="使用人">
+						<el-input v-model="searchForm.user"></el-input>
+					</el-form-item>
+					<el-form-item>
+						<el-button type="primary" @click="handleSearch">搜索</el-button>
+					</el-form-item>
+				</el-row>
+			</el-form>
+		</el-row>
+		<el-row>
+			<!-- <template v-for="field in fields" :key="field.id">
+				<el-form-item :label="field.name">
+					<el-input v-model="searchForm.info[[field.name]]"></el-input>
 				</el-form-item>
-				<el-form-item label="管理员">
-					<el-input v-model="searchForm.manager"></el-input>
-				</el-form-item>
-				<el-form-item label="区域">
-					<el-input v-model="searchForm.area"></el-input>
-				</el-form-item>
-				<el-form-item label="使用人">
-					<el-input v-model="searchForm.user"></el-input>
-				</el-form-item>
-				<el-form-item>
-					<el-button type="primary" @click="handleSearch">搜索</el-button>
-				</el-form-item>
-			</el-row>
-		</el-form>
-	</el-row>
-	<el-row>
-		<!-- <template v-for="field in fields" :key="field.id">
-			<el-form-item :label="field.name">
-				<el-input v-model="searchForm.info[[field.name]]"></el-input>
-			</el-form-item>
-		</template> -->
-		<template v-for="(filter,index) in searchForm.filters" :key="index">
-			<search-select  :category_id="searchForm.id" v-model:filter="searchForm.filters[index]"></search-select>
-		</template>
-		<el-button type="info" size="small" @click="addFilterSelect">增加条件</el-button>
-	</el-row>
-	<el-row>
-		<el-button type="primary" @click="updateAssets">修改</el-button>
-		<el-button type="primary" @click="handleAddOne">手动录入</el-button>
-		<el-button v-if="$route.meta.import === true" type="primary" @click="importDialog=true">批量导入</el-button>
-		<el-button v-if="$route.meta.output === true" type="primary" @click="handleOutput">批量导出</el-button>
-	</el-row>
+			</template> -->
+			<template v-for="(filter,index) in searchForm.filters" :key="filter.field">
+				<search-select :category_id="searchForm.id" v-model:filter="searchForm.filters[index]" @delete="deleteFilter(index)">
+				</search-select>
+			</template>
+			<el-button type="info" size="small" @click="addFilterSelect">增加条件</el-button>
+		</el-row>
+		<el-row>
+			<el-button type="primary" @click="updateAssets">修改</el-button>
+			<el-button type="primary" @click="handleAddOne">手动录入</el-button>
+			<el-button v-if="$route.meta.import === true" type="primary" @click="importDialog=true">批量导入</el-button>
+			<el-button v-if="$route.meta.output === true" type="primary" @click="handleOutput">批量导出</el-button>
+		</el-row>
+	</div>
+
 
 	<el-table :data="systemData" :border="true" highlight-current-row @selection-change="handleSelectionChange">
 		<el-table-column type="selection" width="55" />
@@ -68,16 +73,20 @@
 
 
 	<import-dialog v-if="importDialog" v-model:visible="importDialog" @upload="uploadResponse"></import-dialog>
-	<detail-dialog v-if="detailDialog.show" :data="showData" v-model:visible="detailDialog.show" @reload="handleSearch" :disabled="detailDialog.disabled"
-			:title="detailDialog.title"></detail-dialog>
-	<multi-dialog v-if="multiDialog" v-model:data="showData" v-model:visible="multiDialog" :category="searchForm.id" @reload="handleSearch"></multi-dialog>
-	<add-dialog v-if="addDialog.show" v-model:visible="addDialog.show" @reload="handleSearch"
-			:title="addDialog.title"></add-dialog>
+	<detail-dialog v-if="detailDialog.show" :data="showData" v-model:visible="detailDialog.show" @reload="handleSearch"
+		:disabled="detailDialog.disabled" :title="detailDialog.title"></detail-dialog>
+	<multi-dialog v-if="multiDialog" v-model:data="showData" v-model:visible="multiDialog" :category="searchForm.id"
+		@reload="handleSearch"></multi-dialog>
+	<add-dialog v-if="addDialog.show" v-model:visible="addDialog.show" @reload="handleSearch" :title="addDialog.title">
+	</add-dialog>
 
 </template>
 
 <script>
 	import request from '@/utils/request'
+	import {
+		requestCategoryField
+	} from '@/api/assets'
 	import ImportDialog from './ImportDialog'
 	import DetailDialog from './DetailDialog'
 	import MultiDialog from './MultiDialog'
@@ -94,12 +103,12 @@
 			'multi-dialog': MultiDialog,
 			'add-dialog': AddDialog,
 			'category-select': CategorySelect,
-			'search-select' : SearchSelect
+			'search-select': SearchSelect,
 		},
 		data() {
 			return {
 				searchForm: {
-					id:null,
+					id: null,
 					category: null,
 					manager: null,
 					area: null,
@@ -108,7 +117,12 @@
 					info: {},
 					limit: 10,
 					offset: 0,
-					filters: [],
+					filters: [{
+						field: null,
+						type: null,
+						mode: null,
+						value: null
+					}],
 				},
 				// categoryId:'',
 				systemData: "",
@@ -116,18 +130,18 @@
 				currentPage: 1,
 				importDialog: false,
 				detailDialog: {
-					show:false,
-					title:'',
-					disabled:false,
+					show: false,
+					title: '',
+					disabled: false,
 				},
 				addDialog: {
-					show:false,
-					title:'',
+					show: false,
+					title: '',
 				},
 				showData: '',
 				fields: '',
 				selected: [],
-				multiDialog:false
+				multiDialog: false
 			}
 		},
 		methods: {
@@ -148,13 +162,7 @@
 				console.log(item)
 				this.searchForm.id = item.id
 				this.searchForm.info = {}
-				request({
-					url: '/api/assets/category_field',
-					method: 'get',
-					params:{
-						category_id:item.id,
-					}
-				}).then((fieldList) => {
+				requestCategoryField(item.id).then((fieldList) => {
 					this.fields = fieldList
 					for (let field of fieldList) {
 						let fieldName = field.name
@@ -165,10 +173,10 @@
 			},
 			handleSearch() {
 				console.log(this.searchForm)
-				if (this.searchForm.category == null ){
+				if (this.searchForm.category == null) {
 					this.$message({
-						message:'未选择资产',
-						type:'warning'
+						message: '未选择资产',
+						type: 'warning'
 					})
 					return false
 				}
@@ -211,10 +219,10 @@
 				})
 			},
 			handleOutput() {
-				if(this.searchForm.category === null){
+				if (this.searchForm.category === null) {
 					this.$message({
-						message:'请选择资产类型',
-						type:'warning'
+						message: '请选择资产类型',
+						type: 'warning'
 					})
 					return false
 				}
@@ -242,36 +250,42 @@
 					this.showData = this.selected
 				} else {
 					this.$message({
-						message:'未选择资产',
-						type:'warning'
+						message: '未选择资产',
+						type: 'warning'
 					})
 					// return false
 				}
 				this.requestData()
 			},
-			
-			handleAddOne(){
+
+			handleAddOne() {
 				// 处理手动录入按钮事件
 				this.addDialog.show = true
 				this.addDialog.title = "数据添加"
 			},
-			addFilter(filter){
+			addFilter(filter) {
 				console.log(filter)
-				if(filter.field !== null){
+				if (filter.field !== null) {
 					console.log('add filter to filters')
 					console.log(this.searchForm.filters)
 					this.searchForm.filters.push(filter)
 					console.log(this.searchForm.filters)
 				}
-				
+
 			},
-			addFilterSelect(){
+			addFilterSelect() {
 				console.log('click add filter button')
 				this.searchForm.filters.push({
-					field:null,
-					type:null,
-					value:null
+					field: null,
+					type: null,
+					value: null
 				})
+			},
+			deleteFilter(index) {
+				console.log('delete index:' + index)
+				this.searchForm.filters.splice(index, 1)
+				// this.searchForm.filters[index] = null
+				console.log(this.searchForm)
 			}
 
 		},
@@ -279,4 +293,12 @@
 </script>
 
 <style>
+	.el-form-item {
+		margin-bottom: 0;
+		margin-left: 10px;
+	}
+
+	.el-row {
+		padding: 2px;
+	}
 </style>

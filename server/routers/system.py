@@ -379,18 +379,18 @@ def make_search_sql(search: SearchForm, model='all'):
             print(filter)
             if filter['field'] is None:
                 continue
-            if filter['type'] == 'like':
+            if filter['mode'] == 'like':
                 sql = sql.where(assets.Assets.info[filter['field']].like('%' + filter['value'] + '%'))
-            if filter['type'] == 'eq':
-                sql = sql.where(assets.Assets.info[filter['field']] == int(filter['value']))
-            if filter['type'] == 'lt':
-                sql = sql.where(assets.Assets.info[filter['field']] < int(filter['value']))
-            if filter['type'] == 'le':
-                sql = sql.where(assets.Assets.info[filter['field']] <= int(filter['value']))
-            if filter['type'] == 'gt':
-                sql = sql.where(assets.Assets.info[filter['field']] > int(filter['value']))
-            if filter['type'] == 'ge':
-                sql = sql.where(assets.Assets.info[filter['field']] >= int(filter['value']))
-            if filter['type'] == 'ne':
-                sql = sql.where(assets.Assets.info[filter['field']] != int(filter['value']))
+            if filter['mode'] == 'eq':
+                sql = sql.where(assets.Assets.info[filter['field']] == filter['value'])
+            if filter['mode'] == 'lt':
+                sql = sql.where(assets.Assets.info[filter['field']] < filter['value'])
+            if filter['mode'] == 'le':
+                sql = sql.where(assets.Assets.info[filter['field']] <= filter['value'])
+            if filter['mode'] == 'gt':
+                sql = sql.where(assets.Assets.info[filter['field']] > filter['value'])
+            if filter['mode'] == 'ge':
+                sql = sql.where(assets.Assets.info[filter['field']] >= filter['value'])
+            if filter['mode'] == 'ne':
+                sql = sql.where(assets.Assets.info[filter['field']] != filter['value'])
     return sql
