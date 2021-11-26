@@ -31,9 +31,9 @@
 					<el-input v-model="searchForm.info[[field.name]]"></el-input>
 				</el-form-item>
 			</template> -->
-			<template v-for="(filter,index) in searchForm.filters" :key="index">
-				<search-select :category_id="searchForm.id" v-model:filter="searchForm.filters[index]"
-					@delete="deleteFilter(index)"></search-select>
+			<template v-for="(filter,index) in searchForm.filters" :key="filter.field">
+				<search-select :category_id="searchForm.id" v-model:filter="searchForm.filters[index]" @delete="deleteFilter(index)">
+				</search-select>
 			</template>
 			<el-button type="info" size="small" @click="addFilterSelect">增加条件</el-button>
 		</el-row>
@@ -44,7 +44,7 @@
 			<el-button v-if="$route.meta.output === true" type="primary" @click="handleOutput">批量导出</el-button>
 		</el-row>
 	</div>
-	
+
 
 	<el-table :data="systemData" :border="true" highlight-current-row @selection-change="handleSelectionChange">
 		<el-table-column type="selection" width="55" />
@@ -117,7 +117,12 @@
 					info: {},
 					limit: 10,
 					offset: 0,
-					filters: [],
+					filters: [{
+						field: null,
+						type: null,
+						mode: null,
+						value: null
+					}],
 				},
 				// categoryId:'',
 				systemData: "",
@@ -277,7 +282,10 @@
 				})
 			},
 			deleteFilter(index) {
+				console.log('delete index:' + index)
 				this.searchForm.filters.splice(index, 1)
+				// this.searchForm.filters[index] = null
+				console.log(this.searchForm)
 			}
 
 		},
@@ -285,12 +293,12 @@
 </script>
 
 <style>
-	.el-form-item{
+	.el-form-item {
 		margin-bottom: 0;
 		margin-left: 10px;
 	}
-	.el-row{
+
+	.el-row {
 		padding: 2px;
 	}
-
 </style>
