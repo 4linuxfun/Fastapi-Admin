@@ -85,14 +85,6 @@
 				}
 				console.log('update type:'+this.filterInfo.type)
 			},
-			returnFilter() {
-				if (this.filterInfo.type === 'number') {
-					this.filterInfo['value'] = Number(this.filterInfo['value'])
-				}
-				console.log('filter info')
-				console.log(this.filterInfo)
-				this.$emit('update:filter', this.filterInfo)
-			}
 		},
 	}
 </script>
