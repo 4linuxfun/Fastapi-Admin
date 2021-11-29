@@ -34,3 +34,4 @@ def check_roles(token: dict = Depends(check_token)):
     roles = token['roles']
     if 'admin' in roles:
         print('admin roles')
+    return roles

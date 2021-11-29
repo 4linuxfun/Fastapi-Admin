@@ -60,9 +60,9 @@ export default {
 			console.log(this.selectRole)
 			this.dialogVisible = true
 		},
-		handleUpdate(role,menuList){
-			console.log(role,menuList)
-			requestUpdateRoles(role,menuList).then(()=>{
+		handleUpdate(role,menuList,category){
+			console.log(role,menuList,category)
+			requestUpdateRoles(role,menuList,category).then(()=>{
 				this.$notify({
 					title:'success',
 					message:"菜单权限更新成功",

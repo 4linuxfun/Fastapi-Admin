@@ -1,6 +1,6 @@
 from typing import List, Union
 from sqlmodel import Session, select
-from .models import *
+from .models import RoleMenu, Menu, Role
 from ..common import utils
 
 
@@ -23,8 +23,8 @@ def get_menu_list(roles: Union[List[int], str], session: Session, enable=False) 
     # 普通用户才需要过滤菜单，admin对于所有菜单都开放，不需要过滤
     if enable:
         sql = sql.where(Menu.enable == 1)
-    results = session.exec(sql)
-    return [menu for menu in results]
+    results = session.exec(sql).all()
+    return results
 
 
 def update_menu(menu: Menu, session: Session):

@@ -5,8 +5,8 @@ from starlette.background import BackgroundTask
 from fastapi.responses import FileResponse
 from sqlmodel import Session, select, text
 from sqlalchemy import func
-from ..dependencies import get_session, check_token
-from ..sql.models import assets
+from ..dependencies import get_session, check_token, check_roles
+from ..sql.models import Assets, Category, CategoryField, RoleCategory, ShareFields, Role
 from typing import List, Union, Dict, Any
 from pydantic import BaseModel
 from ..sql.schemas import ApiResponse
@@ -19,15 +19,15 @@ import json
 router = APIRouter(prefix='/api/assets', dependencies=[Depends(check_token), ])
 
 
-class SearchForm(assets.Assets):
+class SearchForm(Assets):
     limit: Optional[int]
     offset: Optional[int]
     filters: Optional[list]
 
 
 class UpdateCategory(BaseModel):
-    category: assets.Category
-    fields: List[assets.CategoryField]
+    category: Category
+    fields: List[CategoryField]
 
 
 class UpdateAssets(BaseModel):
@@ -104,7 +104,7 @@ def data_import(files: List[UploadFile] = File(...), session: Session = Depends(
         col_list = df.columns.values.tolist()
         print(col_list)
         # 需要做一次中英文翻转
-        static_dict = {value: key for key, value in assets.ShareFields.share_names().items()}
+        static_dict = {value: key for key, value in ShareFields.share_names().items()}
         static_list = static_dict.keys()
         dynamic_list = list(set(col_list) - set(static_list))
         print(dynamic_list)
@@ -114,10 +114,10 @@ def data_import(files: List[UploadFile] = File(...), session: Session = Depends(
         df.rename(
             columns=static_dict, inplace=True)
         category = df['category'].iloc[0]
-        category = session.exec(select(assets.Category).where(assets.Category.name == category)).one()
+        category = session.exec(select(Category).where(Category.name == category)).one()
         datetime_fields = session.exec(
-            select(assets.CategoryField).where(assets.CategoryField.category_id == category.id).where(
-                assets.CategoryField.type.like('date%'))).all()
+            select(CategoryField).where(CategoryField.category_id == category.id).where(
+                CategoryField.type.like('date%'))).all()
         for field in datetime_fields:
             if field.type == 'date':
                 date_format = '%Y-%m-%d'
@@ -139,10 +139,10 @@ def data_import(files: List[UploadFile] = File(...), session: Session = Depends(
 
 @router.get('/system/down_temp/{id}', description="导入模板下载")
 def download_tmpfile(id: int, session: Session = Depends(get_session)):
-    category = session.exec(select(assets.Category).where(assets.Category.id == id)).one()
-    print(assets.ShareFields.share_names().values())
+    category = session.exec(select(Category).where(Category.id == id)).one()
+    print(ShareFields.share_names().values())
     excel_title = []
-    excel_title.extend(assets.ShareFields.share_names().values())
+    excel_title.extend(ShareFields.share_names().values())
     for field in category.fields:
         excel_title.append(field.name)
     output_data = pd.DataFrame(columns=[excel_title])
@@ -154,11 +154,19 @@ def download_tmpfile(id: int, session: Session = Depends(get_session)):
 
 
 @router.get('/category-list')
-async def get_category_list(search: Optional[str] = None, session: Session = Depends(get_session)):
-    sql = select(assets.Category)
+async def get_category_list(search: Optional[str] = None, session: Session = Depends(get_session),
+                            roles: List[str] = Depends(check_roles)):
+    role_list = session.exec(select(Role).where(Role.id.in_(roles))).all()
+    role_category = []
+    for role in role_list:
+        role_category.extend([category.id for category in role.category])
+    role_category = set(role_category)
+    print('role category')
+    print(role_category)
+    sql = select(Category).where(Category.id.in_(role_category))
     if search is not None:
-        sql = sql.where(assets.Category.name.like('%' + search + '%'))
-    categories: List[assets.Category] = session.exec(sql).all()
+        sql = sql.where(Category.name.like('%' + search + '%'))
+    categories: List[Category] = session.exec(sql).all()
     # category_list = [cate.dict(exclude={'alias': True, 'desc': True}) for cate in categories]
     # print(category_list)
     return ApiResponse(
@@ -170,10 +178,10 @@ async def get_category_list(search: Optional[str] = None, session: Session = Dep
 
 @router.get('/category_field')
 async def get_category_field(category_id: int, query: Optional[str] = None, session: Session = Depends(get_session)):
-    search = select(assets.CategoryField).where(assets.CategoryField.category_id == category_id)
+    search = select(CategoryField).where(CategoryField.category_id == category_id)
     if query is not None:
         print('query is not none' + query)
-        search = search.where(assets.CategoryField.name.like('%' + query + '%'))
+        search = search.where(CategoryField.name.like('%' + query + '%'))
     fields = session.exec(search).all()
     print(fields)
     return ApiResponse(
@@ -185,7 +193,7 @@ async def get_category_field(category_id: int, query: Optional[str] = None, sess
 
 @router.get('/category_detail/{id}')
 async def get_category_detail(id: int, session: Session = Depends(get_session)):
-    category: assets.Category = session.exec(select(assets.Category).where(assets.Category.id == id)).one()
+    category: Category = session.exec(select(Category).where(Category.id == id)).one()
     print(category)
     return ApiResponse(
         code=0,
@@ -199,7 +207,7 @@ async def get_category_detail(id: int, session: Session = Depends(get_session)):
 
 @router.get('/asset_field/{id}', description='获取对应资产的定义字段')
 async def get_asset_fields(id: int, session: Session = Depends(get_session)):
-    fields = session.exec(select(assets.CategoryField).where(assets.CategoryField.category_id == id)).all()
+    fields = session.exec(select(CategoryField).where(CategoryField.category_id == id)).all()
     info_fields = []
     for field in fields:
         info_fields.append({'label': field.desc, 'value': field.name})
@@ -237,7 +245,7 @@ async def get_asset_fields(id: int, session: Session = Depends(get_session)):
 
 
 @router.post('/add', description="手动添加资产")
-async def add_asset(asset: assets.Assets, session: Session = Depends(get_session)):
+async def add_asset(asset: Assets, session: Session = Depends(get_session)):
     print(asset)
     session.add(asset)
     session.commit()
@@ -250,7 +258,7 @@ async def add_asset(asset: assets.Assets, session: Session = Depends(get_session
 @router.post('/update_assets', description="批量更新资产信息")
 async def update_assets(update: UpdateAssets, session: Session = Depends(get_session)):
     print(update)
-    assets_result = session.exec(select(assets.Assets).where(assets.Assets.id.in_(update.assets)))
+    assets_result = session.exec(select(Assets).where(Assets.id.in_(update.assets)))
     print(assets_result)
     for asset in assets_result:
         print(asset)
@@ -274,8 +282,8 @@ async def update_assets(update: UpdateAssets, session: Session = Depends(get_ses
 
 
 @router.post('/update_category_detail')
-async def update_category_detail(update_category: assets.Assets, session: Session = Depends(get_session)):
-    category = session.exec(select(assets.Assets).where(assets.Assets.id == update_category.id)).one()
+async def update_category_detail(update_category: Assets, session: Session = Depends(get_session)):
+    category = session.exec(select(Assets).where(Assets.id == update_category.id)).one()
     category = utils.update_model(category, update_category)
     session.add(category)
     session.commit()
@@ -295,7 +303,7 @@ async def add_category(category_info: UpdateCategory, session: Session = Depends
     """
     try:
         old_category = session.exec(
-            select(assets.Category).where(assets.Category.name == category_info.category.name)).one()
+            select(Category).where(Category.name == category_info.category.name)).one()
         new_category = utils.update_model(old_category, category_info.category)
     except sqlalchemy.exc.NoResultFound:
         new_category = category_info.category
@@ -305,7 +313,7 @@ async def add_category(category_info: UpdateCategory, session: Session = Depends
     for field in category_info.fields:
         print(field)
         try:
-            old_field = session.exec(select(assets.CategoryField).where(assets.CategoryField.id == field.id)).one()
+            old_field = session.exec(select(CategoryField).where(CategoryField.id == field.id)).one()
             new_field = utils.update_model(old_field, field)
         except sqlalchemy.exc.NoResultFound:
             new_field = field
@@ -322,7 +330,7 @@ async def add_category(category_info: UpdateCategory, session: Session = Depends
 def output_data(system: SearchForm, session: Session = Depends(get_session)):
     sql = make_search_sql(system)
     df = pd.read_sql_query(sql, session.bind)
-    static_dict = assets.ShareFields.share_names()
+    static_dict = ShareFields.share_names()
     # 静态字段统一修改中文为英文（数据库表字段为英文）
     df.rename(
         columns=static_dict, inplace=True)
@@ -360,37 +368,37 @@ def make_search_sql(search: SearchForm, model='all'):
     :return:
     """
     if model == 'all':
-        sql = select(assets.Assets)
+        sql = select(Assets)
     elif model == 'count':
-        sql = select(func.count(assets.Assets.id))
+        sql = select(func.count(Assets.id))
     if search.category:
-        sql = sql.where(assets.Assets.category.like('%' + search.category + '%'))
+        sql = sql.where(Assets.category.like('%' + search.category + '%'))
     if search.manager:
-        sql = sql.where(assets.Assets.manager.like('%' + search.manager + '%'))
+        sql = sql.where(Assets.manager.like('%' + search.manager + '%'))
     if search.area:
-        sql = sql.where(assets.Assets.area.like('%' + search.area + '%'))
+        sql = sql.where(Assets.area.like('%' + search.area + '%'))
     if search.user:
-        sql = sql.where(assets.Assets.user.like('%' + search.user + '%'))
+        sql = sql.where(Assets.user.like('%' + search.user + '%'))
     for key, value in search.info.items():
         if value:
-            sql = sql.where(assets.Assets.info[key].like('%' + value + '%'))
+            sql = sql.where(Assets.info[key].like('%' + value + '%'))
     if search.filters is not None:
         for filter in search.filters:
             print(filter)
             if filter['field'] is None:
                 continue
             if filter['mode'] == 'like':
-                sql = sql.where(assets.Assets.info[filter['field']].like('%' + filter['value'] + '%'))
+                sql = sql.where(Assets.info[filter['field']].like('%' + filter['value'] + '%'))
             if filter['mode'] == 'eq':
-                sql = sql.where(assets.Assets.info[filter['field']] == filter['value'])
+                sql = sql.where(Assets.info[filter['field']] == filter['value'])
             if filter['mode'] == 'lt':
-                sql = sql.where(assets.Assets.info[filter['field']] < filter['value'])
+                sql = sql.where(Assets.info[filter['field']] < filter['value'])
             if filter['mode'] == 'le':
-                sql = sql.where(assets.Assets.info[filter['field']] <= filter['value'])
+                sql = sql.where(Assets.info[filter['field']] <= filter['value'])
             if filter['mode'] == 'gt':
-                sql = sql.where(assets.Assets.info[filter['field']] > filter['value'])
+                sql = sql.where(Assets.info[filter['field']] > filter['value'])
             if filter['mode'] == 'ge':
-                sql = sql.where(assets.Assets.info[filter['field']] >= filter['value'])
+                sql = sql.where(Assets.info[filter['field']] >= filter['value'])
             if filter['mode'] == 'ne':
-                sql = sql.where(assets.Assets.info[filter['field']] != filter['value'])
+                sql = sql.where(Assets.info[filter['field']] != filter['value'])
     return sql
