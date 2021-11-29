@@ -167,6 +167,13 @@ async def get_category_list(search: Optional[str] = None, session: Session = Dep
     if search is not None:
         sql = sql.where(Category.name.like('%' + search + '%'))
     categories: List[Category] = session.exec(sql).all()
+    print(categories)
+    if not categories:
+        return ApiResponse(
+            code=1,
+            message="error",
+            data="无权限访问或无此资产"
+        )
     # category_list = [cate.dict(exclude={'alias': True, 'desc': True}) for cate in categories]
     # print(category_list)
     return ApiResponse(

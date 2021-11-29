@@ -46,7 +46,7 @@
 	</div>
 
 
-	<el-table :data="systemData" :border="true" highlight-current-row @selection-change="handleSelectionChange">
+	<el-table :data="systemData" :border="true" highlight-current-row @selection-change="handleSelectionChange" style="margin-top: 10px;">
 		<el-table-column type="selection" width="55" />
 		<el-table-column type="index" label="ID" width="50"></el-table-column>
 		<el-table-column prop="category" label="资产类型"></el-table-column>
@@ -119,7 +119,7 @@
 					offset: 0,
 					filters: [{
 						field: null,
-						type: null,
+						type: 'text',
 						mode: null,
 						value: null
 					}],
