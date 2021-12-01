@@ -10,17 +10,16 @@
 					<el-tag effect="dark" :type="scope.row.enable === 1?'success':'danger'">{{scope.row.enable === 1?'启用':'禁用'}}</el-tag>
 				</template>
 			</el-table-column>
-			<el-table-column label="操作">
-				<template #default="scope">
-					<template v-if="scope.row.name=='admin'">
-						<el-button  type="primary" size="small" @click="handleAdd">添加新用户</el-button>
-					</template>
-					<template v-else>
-						<el-button type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
-						<el-button type="danger" size="small" @click="handleDel(scope.row.id,scope.row.name)">删除</el-button>
-					</template>
-					
+			<el-table-column>
+				<template #header>
+					<el-button  type="primary" size="small" @click="handleAdd">添加新用户</el-button>
 				</template>
+				<template #default="scope">
+					<el-button type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
+					<el-button type="danger" size="small" @click="handleDel(scope.row.id,scope.row.name)">删除</el-button>
+				</template>
+					
+				
 			</el-table-column>
 		</el-table>
 	</div>
@@ -76,6 +75,13 @@
 				this.dialogVisible=true
 			},
 			handleDel(userId,userName){
+				if (userName === 'admin'){
+					this.$message({
+						message:"admin用户无法删除",
+						type:'warning'
+					})
+					return false
+				}
 				this.$confirm("是否确定要删除用户："+userName, "Warnning").then(()=>{
 					requestDelUser(userId).then(()=>{
 						this.$notify({

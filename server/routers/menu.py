@@ -14,7 +14,7 @@ router = APIRouter(prefix='/api/menu', dependencies=[Depends(check_token), ])
 @router.get('/all')
 async def get_all_menu(session: Session = Depends(get_session)):
     # 复用crud.get_menu_list,默认role为admin就是返回所有的菜单列表
-    menu_list: List[Menu] = crud.get_menu_list('admin', session)
+    menu_list: List[Menu] = crud.get_menu_list(session)
     user_menus = utils.menu_convert(menu_list, "all")
 
     print(user_menus)

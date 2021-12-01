@@ -1,20 +1,20 @@
-from typing import List, Union
+from typing import List, Optional
 from sqlmodel import Session, select
 from .models import RoleMenu, Menu, Role
 from ..common import utils
 
 
-def get_menu_list(roles: Union[List[int], str], session: Session, enable=False) -> List[Menu]:
+def get_menu_list(session: Session, roles: Optional[List[int]] = None, enable=False) -> List[Menu]:
     """
     通过role_id，获取对应的menu清单
-    :param roles:
+    :param roles: None表示返回所有菜单列表
     :param session:
     :param enable:True则过滤，只显示enable的菜单
     :return:
     """
-    if isinstance(roles, str):
-        if roles == 'admin':
-            sql = select(Menu)
+    if roles is None:
+        print('roles is None')
+        sql = select(Menu)
     else:
         sql = select(RoleMenu).where(RoleMenu.role_id.in_(roles))
         result = session.exec(sql)
