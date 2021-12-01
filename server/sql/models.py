@@ -1,9 +1,65 @@
+# coding: utf-8
 from typing import Optional, Dict, Any, List
 from sqlmodel import SQLModel, Field, JSON, Column, Relationship
 from sqlalchemy.ext.mutable import MutableDict
 
 
+# 这些是权限验证的基础表，单独放置
+class RoleMenu(SQLModel, table=True):
+    __tablename__ = "role_menu"
+    role_id: int = Field(foreign_key="roles.id", primary_key=True)
+    menu_id: int = Field(foreign_key="menu.id", primary_key=True)
+
+
+class RoleCategory(SQLModel, table=True):
+    __tablename__ = 'role_category'
+    role_id: int = Field(foreign_key="roles.id", primary_key=True)
+    category_id: int = Field(foreign_key="category.id", primary_key=True)
+
+
+class Menu(SQLModel, table=True):
+    id: Optional[int] = Field(primary_key=True)
+    name: Optional[str]
+    path: Optional[str]
+    component: Optional[str]
+    type: Optional[str]
+    parent_id: Optional[int]
+    enable: int
+    url: Optional[str]
+    roles: List["Role"] = Relationship(back_populates="menus", link_model=RoleMenu)
+
+
+class UserRole(SQLModel, table=True):
+    __tablename__ = 'user_roles'
+
+    user_id: int = Field(foreign_key="user.id", primary_key=True)
+    role_id: int = Field(foreign_key="roles.id", primary_key=True)
+
+
+class Role(SQLModel, table=True):
+    __tablename__ = "roles"
+    id: int = Field(default=None, primary_key=True)
+    name: str
+    description: str
+    enable: int
+    menus: List["Menu"] = Relationship(back_populates="roles", link_model=RoleMenu)
+    users: List["User"] = Relationship(back_populates="roles", link_model=UserRole)
+    category: List["Category"] = Relationship(back_populates="roles", link_model=RoleCategory)
+
+
+class User(SQLModel, table=True):
+    id: int = Field(default=None, primary_key=True)
+    name: Optional[str]
+    password: Optional[str]
+    enable: int
+    avatar: Optional[str]
+    email: Optional[str]
+    roles: List['Role'] = Relationship(back_populates="users", link_model=UserRole)
+
+
 # 资产相关的表定义
+
+
 class System(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     host: Optional[str]
@@ -27,6 +83,7 @@ class Category(SQLModel, table=True):
     alias: Optional[str]
     desc: Optional[str]
     fields: List["CategoryField"] = Relationship(back_populates="category")
+    roles: List[Role] = Relationship(back_populates="category", link_model=RoleCategory)
 
 
 class CategoryField(SQLModel, table=True):

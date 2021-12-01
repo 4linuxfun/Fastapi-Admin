@@ -23,7 +23,7 @@
 			</el-select>
 		</el-col>
 		<el-col :span="8">
-			<el-input v-model="filterInfo.value" placeholder="请输入条件" @input="returnFilter" :type="filterInfo.type"></el-input>
+			<input-plus :type="filterInfo.type" v-model:data="filterInfo.value"></input-plus>
 		</el-col>
 		<el-button class="mini-button" type="danger" size="mini" circle @click="$emit('delete')">
 			<el-icon>
@@ -38,12 +38,14 @@
 	import {
 		Minus
 	} from '@element-plus/icons'
+	import InputPlus from '@/components/InputPlus'
 	import {
 		requestCategoryField
 	} from '@/api/assets'
 	export default {
 		components: {
 			Minus,
+			'input-plus': InputPlus,
 		},
 		props: ['category_id', 'filter'],
 		emits: ['update:filter', 'delete'],
@@ -76,20 +78,13 @@
 				for (let field of this.fields){
 					console.log(field)
 					if (field.name == value){
+						this.filterInfo.mode = null
 						this.filterInfo.type = field.type
 						break
 					}
 				}
 				console.log('update type:'+this.filterInfo.type)
 			},
-			returnFilter() {
-				if (this.filterInfo.type === 'number') {
-					this.filterInfo['value'] = Number(this.filterInfo['value'])
-				}
-				console.log('filter info')
-				console.log(this.filterInfo)
-				this.$emit('update:filter', this.filterInfo)
-			}
 		},
 	}
 </script>

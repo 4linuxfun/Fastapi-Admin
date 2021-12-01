@@ -10,16 +10,12 @@
 			</template>
 		</el-table-column>
 		<el-table-column label="操作">
+			<template #header>
+				<el-button type="primary" size="small" @click="addRole">添加新角色</el-button>
+			</template>
 			<template #default="scope">
-				<template v-if="scope.row.name!='admin'">
-					<el-button type="primary" size="small" @click="handleEdit(scope.row)">编辑权限</el-button>
-					<el-button type="danger" size="small" @click="handleDel(scope.row.id,scope.row.name)">删除</el-button>
-				</template>
-				<template v-else>
-					<el-button type="primary" size="small" @click="addRole">添加新角色</el-button>
-				</template>
-				
-				
+				<el-button type="primary" size="small" @click="handleEdit(scope.row)">编辑权限</el-button>
+				<el-button type="danger" size="small" @click="handleDel(scope.row.id,scope.row.name)">删除</el-button>
 			</template>
 		</el-table-column>
 	</el-table>
@@ -60,9 +56,9 @@ export default {
 			console.log(this.selectRole)
 			this.dialogVisible = true
 		},
-		handleUpdate(role,menuList){
-			console.log(role,menuList)
-			requestUpdateRoles(role,menuList).then(()=>{
+		handleUpdate(role,menuList,category){
+			console.log(role,menuList,category)
+			requestUpdateRoles(role,menuList,category).then(()=>{
 				this.$notify({
 					title:'success',
 					message:"菜单权限更新成功",
@@ -72,7 +68,13 @@ export default {
 			})
 		},
 		handleDel(roleId,roleName){
-			
+			if (roleName === 'admin'){
+				this.$message({
+					message:"admin角色无法删除",
+					type:"warning"
+				})
+				return false
+			}
 			this.$confirm("是否确定要删除角色："+roleName, "Warnning").then(()=>{
 				requestDelRole(roleId).then(()=>{
 					this.$notify({

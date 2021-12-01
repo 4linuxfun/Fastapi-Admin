@@ -46,7 +46,7 @@
 	</div>
 
 
-	<el-table :data="systemData" :border="true" highlight-current-row @selection-change="handleSelectionChange">
+	<el-table :data="systemData" :border="true" highlight-current-row @selection-change="handleSelectionChange" style="margin-top: 10px;">
 		<el-table-column type="selection" width="55" />
 		<el-table-column type="index" label="ID" width="50"></el-table-column>
 		<el-table-column prop="category" label="资产类型"></el-table-column>
@@ -73,8 +73,8 @@
 
 
 	<import-dialog v-if="importDialog" v-model:visible="importDialog" @upload="uploadResponse"></import-dialog>
-	<detail-dialog v-if="detailDialog.show" :data="showData" v-model:visible="detailDialog.show" @reload="handleSearch"
-		:disabled="detailDialog.disabled" :title="detailDialog.title"></detail-dialog>
+	<detail-dialog v-if="detailDialog" :data="showData" v-model:visible="detailDialog"></detail-dialog>
+	<update-dialog v-if="updateDialog" :data="showData" :fieldsInfo="fields" v-model:visible="updateDialog" @reload="handleSearch"></update-dialog>
 	<multi-dialog v-if="multiDialog" v-model:data="showData" v-model:visible="multiDialog" :category="searchForm.id"
 		@reload="handleSearch"></multi-dialog>
 	<add-dialog v-if="addDialog.show" v-model:visible="addDialog.show" @reload="handleSearch" :title="addDialog.title">
@@ -91,6 +91,7 @@
 	import DetailDialog from './DetailDialog'
 	import MultiDialog from './MultiDialog'
 	import AddDialog from './AddDialog'
+	import UpdateDialog from './UpdateDialog'
 	import CategorySelect from '@/components/CategorySelect'
 	import SearchSelect from './SearchSelect'
 	import {
@@ -104,6 +105,7 @@
 			'add-dialog': AddDialog,
 			'category-select': CategorySelect,
 			'search-select': SearchSelect,
+			'update-dialog': UpdateDialog
 		},
 		data() {
 			return {
@@ -119,7 +121,7 @@
 					offset: 0,
 					filters: [{
 						field: null,
-						type: null,
+						type: 'text',
 						mode: null,
 						value: null
 					}],
@@ -129,11 +131,8 @@
 				total: 0,
 				currentPage: 1,
 				importDialog: false,
-				detailDialog: {
-					show: false,
-					title: '',
-					disabled: false,
-				},
+				detailDialog: false,
+				updateDialog: false,
 				addDialog: {
 					show: false,
 					title: '',
@@ -202,9 +201,7 @@
 			handleDetail(info) {
 				console.log('显示详情')
 				console.log(info)
-				this.detailDialog.show = true
-				this.detailDialog.title = "数据详情"
-				this.detailDialog.disabled = true
+				this.detailDialog = true
 				this.showData = info
 			},
 			uploadResponse(request) {
@@ -239,10 +236,8 @@
 				console.log(this.detailDialog)
 				if (this.selected.length == 1) {
 					console.log('单选')
-					this.detailDialog.title = "数据更新"
-					this.detailDialog.disabled = false
 					this.showData = this.selected[0]
-					this.detailDialog.show = true
+					this.updateDialog = true
 					console.log(this.showData)
 				} else if (this.selected.length >= 2) {
 					console.log('多选')

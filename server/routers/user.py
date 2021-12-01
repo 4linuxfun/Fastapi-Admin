@@ -44,12 +44,10 @@ async def login(login_form: UserLogin, session: Session = Depends(get_session)):
             message='error',
             data="用户名或密码错误"
         )
-    sql = select(UserRole).where(UserRole.user_id == user.id)
-    roles = session.exec(sql)
-    user_roles = [role.role_id for role in roles]
+    user_roles = [role.id for role in user.roles]
     # 把roles封装再token里，每次只需要depends检查对应的roles是否有权限即可
     access_token = create_access_token(
-        data={"username": user.name,
+        data={"uid": user.id,
               "roles": user_roles}
     )
     return ApiResponse(
@@ -62,8 +60,8 @@ async def login(login_form: UserLogin, session: Session = Depends(get_session)):
 @router.get('/user_info',
             description='获取用户信息')
 async def get_user_info(session: Session = Depends(get_session), token: dict = Depends(check_token)):
-    username = token['username']
-    sql = select(User).where(User.name == username)
+    user_id = token['uid']
+    sql = select(User).where(User.id == user_id)
     user: User = session.exec(sql).one()
     return ApiResponse(
         code=0,
@@ -98,15 +96,6 @@ async def update_user(user_info: UserInfo, session: Session = Depends(get_sessio
     )
 
 
-@router.post('/change_password',
-             description='修改密码')
-async def update_password(password: str = Form(...), token: dict = Depends(check_token)):
-    username = token['username']
-    new_password = hash_password(password)
-    user_collection.change_password(username, new_password)
-    return {'code': 0, 'message': 'success'}
-
-
 @router.get('/permission', description='获取用户角色对应的菜单列表')
 async def get_permission(session: Session = Depends(get_session), token: dict = Depends(check_token)):
     """
@@ -115,12 +104,9 @@ async def get_permission(session: Session = Depends(get_session), token: dict = 
     :param token:
     :return:
     """
-    if token['username'] == 'admin':
-        roles: Union[str, List[int]] = 'admin'
-    else:
-        roles: Union[str, List[int]] = token['roles']
+    roles: List[int] = token['roles']
     print(f"rolse is:{roles}")
-    menu_list: List[Menu] = crud.get_menu_list(roles, session, enable=True)
+    menu_list: List[Menu] = crud.get_menu_list(session, roles=roles, enable=True)
     print('menulist')
     print(menu_list)
     user_menus = menu_convert(menu_list)

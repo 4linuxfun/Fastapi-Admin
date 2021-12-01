@@ -27,14 +27,15 @@ export function requestRoleMenus(roleId) {
 	})
 }
 
-export function requestUpdateRoles(role, menuList) {
+export function requestUpdateRoles(role, menuList,category) {
 	// 更新角色的权限
 	return request({
 		url: 'api/role/update',
 		method: 'post',
 		data: {
 			role: role,
-			menus: menuList
+			menus: menuList,
+			category: category
 		}
 	})
 }

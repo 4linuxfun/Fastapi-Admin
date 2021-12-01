@@ -23,6 +23,12 @@
 					params:{search:query}
 				}).then((response) => {
 					callback(response)
+				}).catch((error)=>{
+					this.$notify({
+						title: 'error',
+						message: error,
+						type: 'error'
+					})
 				})
 			},
 			handleSelect(item) {
