@@ -23,7 +23,7 @@
 							<el-input v-model="field.name"></el-input>
 						</el-form-item>
 					</el-col>
-					<el-col :span="6">
+					<el-col :span="8">
 						<el-form-item label-width='0'>
 							<el-radio-group v-model="field.type">
 								<el-radio-button label="text">字符串</el-radio-button>
