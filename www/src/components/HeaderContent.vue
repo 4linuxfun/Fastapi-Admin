@@ -22,7 +22,7 @@
 		ElMessage,
 		ElMessageBox
 	} from 'element-plus';
-
+	import {useStore} from '@/stores'
 	export default {
 		name: "HeaderContent",
 		methods: {
@@ -32,13 +32,14 @@
 				}
 			},
 			logOut() {
+				const store = useStore()
 				console.log("click logout button");
 				ElMessageBox.confirm('确定退出系统吗？', '提示', {
 					confirmButtonText: '是',
 					cancelButtonText: '否',
 					type: 'warning'
 				}).then(() => {
-					this.$store.dispatch('logOut');
+					store.logOut();
 					this.$router.push('/login');
 					ElMessage({
 						type: 'success',

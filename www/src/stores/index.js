@@ -1,6 +1,4 @@
-import {
-	createStore
-} from 'vuex'
+import {defineStore} from 'pinia'
 import {
 	requestLogin,
 	requestGetInfo,
@@ -12,46 +10,40 @@ import {
 	removeToken
 } from '@/utils/auth'
 
-const store = createStore({
-	state: {
-		token: getToken(),
-		name: "",
-		email: '',
-		avatar: '',
-		roles: [],
-		asyncRoutes: [],
-	},
-	getters: {
-		asyncRoutes(state) {
-			return state.asyncRoutes;
-		},
-	},
-	mutations: {
-		setToken(state, token) {
-			state.token = token
-		},
-		setName(state, name) {
-			state.name = name
-		},
-		setAvatar(state, avatar) {
-			state.avatar = avatar
-		},
-		setRoles(state, roles) {
-			state.roles = roles
-		},
-		setEmail(state, email) {
-			state.email = email
-		},
-		setRouter(state, routers) {
-			state.asyncRoutes = routers
-		},
+export const useStore = defineStore('user',{
+	state:()=> {
+		return {
+			token: getToken(),
+			name: "",
+			email: '',
+			avatar: '',
+			roles: [],
+			asyncRoutes: [],
+		}
+		
 	},
 
 	actions: {
+		setToken(token) {
+			this.token = token
+		},
+		setName(name) {
+			this.name = name
+		},
+		setAvatar(avatar) {
+			this.avatar = avatar
+		},
+		setRoles(roles) {
+			this.roles = roles
+		},
+		setEmail(email) {
+			this.email = email
+		},
+		setRouter(routers) {
+			this.asyncRoutes = routers
+		},
 		//执行登录请求，获取token
-		logIn({
-			commit
-		}, userInfo) {
+		logIn(userInfo) {
 			const username = userInfo.username
 			const password = userInfo.password
 			const rememberMe = userInfo.rememberMe
@@ -60,7 +52,7 @@ const store = createStore({
 				requestLogin(username, password).then((response) => {
 					console.log(response)
 					setToken(response.token, rememberMe)
-					commit('setToken', response.token)
+					this.setToken(response.token)
 					resolve()
 				}).catch((error) => {
 					reject(error)
@@ -68,42 +60,36 @@ const store = createStore({
 			})
 		},
 		// 获取用户状态信息
-		getInfo({
-			commit
-		}) {
+		getInfo() {
 			return new Promise((resolve, reject) => {
 				console.log('get user info')
 				requestGetInfo().then(response => {
-					commit('setRoles', response.roles)
-					commit('setName', response.username)
-					commit('setAvatar', response.avatar)
-					commit('setEmail', response.email)
+					this.setRoles(response.roles)
+					this.setName(response.username)
+					this.setAvatar(response.avatar)
+					this.setEmail(response.email)
 					resolve(response)
 				}).catch(error => {
 					reject(error)
 				})
 			})
 		},
-		logOut({
-			commit
-		}) {
+		logOut() {
 			return new Promise((resolve) => {
-				commit('setToken', '')
-				commit('setRoles', '')
-				commit('setRouter', [])
+				this.setToken('')
+				this.setRoles('')
+				this.setRouter([])
 				removeToken()
 				resolve()
 			})
 		},
 		// 获取用户权限列表
-		getPermission({
-			commit
-		}) {
+		getPermission() {
 			return new Promise((resolve, reject) => {
 				requestPermission().then(response => {
 					console.log('permission response is:')
 					console.log(response)
-					commit('setRouter', response)
+					this.setRouter(response)
 					resolve(response)
 				}).catch(error => {
 					reject(error)
@@ -111,6 +97,5 @@ const store = createStore({
 			})
 		}
 	}
-})
-
-export default store;
+}
+)

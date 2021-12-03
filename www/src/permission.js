@@ -1,5 +1,5 @@
 import router from './router';
-import store from './stores';
+import {useStore} from './stores';
 import {
 	getToken
 } from '@/utils/auth';
@@ -11,6 +11,7 @@ import {
 const whiteList = ['/login'] // no redirect whitelist
 
 router.beforeEach((to) => {
+	const store = useStore()
 	console.log('start before each')
 
 	if (getToken()) {
@@ -22,11 +23,11 @@ router.beforeEach((to) => {
 			console.log('已经登录成功')
 			//登录成功，需要判断router是不是已经按照权限要求构建好，并且菜单是否按照权限要求生成，如没有，则生成
 			// router.push('/')
-			if (store.getters.asyncRoutes.length === 0) {
+			if (store.asyncRoutes.length === 0) {
 				console.log('asyncroutes is not set')
-				store.dispatch('getInfo').then(() => {
-					store.dispatch('getPermission').then(() => {
-						let asyncRoutes = makeRouter(store.getters.asyncRoutes)
+				store.getInfo().then(() => {
+					store.getPermission().then(() => {
+						let asyncRoutes = makeRouter(store.asyncRoutes)
 						for (let route of asyncRoutes) {
 							console.log('add route:')
 							console.log(route)
@@ -38,7 +39,7 @@ router.beforeEach((to) => {
 
 				}).catch((err) => {
 					console.log('用户权限拉取失败' + err);
-					store.dispatch('logOut').then(() => {
+					store.logOut.then(() => {
 						location.reload()
 					})
 				})

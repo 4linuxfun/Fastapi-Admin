@@ -27,11 +27,13 @@
 </template>
 
 <script>
+	import {useStore} from '@/stores'
+	import {mapState} from 'pinia'
     export default {
         computed: {
-            menuList() {
-                return this.$store.getters.asyncRoutes;
-            }
+			...mapState(useStore,{
+				menuList:'asyncRoutes'
+			})
         },
         methods: {
             handleOpen(key, keyPath) {
