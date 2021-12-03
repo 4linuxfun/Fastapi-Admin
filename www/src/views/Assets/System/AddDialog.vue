@@ -20,16 +20,7 @@
 			<template v-for="(value,name) in formData.info" :key="name">
 				<!-- <span>{{fields[name][type]}}</span> -->
 				<el-form-item :label="name">
-					<el-input v-if="fields[name].type=='text'" v-model="formData.info[name]" placeholder="请输入">
-					</el-input>
-					<el-input-number v-else-if="fields[name].type=='number'" v-model="formData.info[name]"
-						placeholder="请输入" style="width: 100%;"></el-input-number>
-					<el-date-picker v-else-if="fields[name].type=='date'" :type="fields[name].type"
-						v-model="formData.info[name]" placeholder="选择日期" value-format="YYYY-MM-DD" style="width: 100%;">
-					</el-date-picker>
-					<el-date-picker v-else-if="fields[name].type=='datetime'" :type="fields[name].type"
-						v-model="formData.info[name]" placeholder="选择日期" value-format="YYYY-MM-DD HH:mm:ss"
-						style="width: 100%;"></el-date-picker>
+					<input-plus :type="fields[name].type" v-model:data="formData.info[name]"></input-plus>
 				</el-form-item>
 			</template>
 
@@ -45,6 +36,7 @@
 
 <script>
 	import request from '@/utils/request'
+	import InputPlus from '@/components/InputPlus'
 	import {
 		requestCategoryField
 	} from '@/api/assets'
@@ -54,6 +46,7 @@
 		emits: ['reload', 'update:visible'],
 		components: {
 			'category-select': CategorySelect,
+			'input-plus': InputPlus,
 		},
 		data() {
 			return {
