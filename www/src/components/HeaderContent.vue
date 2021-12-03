@@ -4,7 +4,7 @@
 			<el-col :span="4">
 				<div style="padding-top: 10px;">
 					<el-dropdown trigger="click" @command="handleCommand">
-						<el-avatar shape="circle" :size="50">Admin</el-avatar>
+						<el-avatar shape="circle" :size="50">{{userName}}</el-avatar>
 						<template #dropdown>
 							<el-dropdown-menu>
 								<el-dropdown-item>个人中心</el-dropdown-item>
@@ -22,16 +22,29 @@
 		ElMessage,
 		ElMessageBox
 	} from 'element-plus';
-	import {useStore} from '@/stores'
+	import {
+		useStore
+	} from '@/stores'
+	import {
+		computed 
+	} from 'vue'
 	export default {
 		name: "HeaderContent",
+		setup() {
+			const store = useStore()
+			const userName = computed(()=>store.name)
+			
+			return {
+				userName,
+			}
+		},
 		methods: {
-			handleCommand(command){
-				if(command==='logout'){
+			handleCommand(command) {
+				if (command === 'logout') {
 					this.logOut()
 				}
 			},
-			logOut() {
+			logOut(){
 				const store = useStore()
 				console.log("click logout button");
 				ElMessageBox.confirm('确定退出系统吗？', '提示', {
@@ -51,9 +64,10 @@
 						message: '取消退出'
 					});
 				});
-
-			},
+			
+			}
 		},
+
 	};
 </script>
 <style lang="">

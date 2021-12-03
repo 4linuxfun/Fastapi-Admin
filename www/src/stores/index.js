@@ -5,7 +5,6 @@ import {
 	requestPermission
 } from '@/api/login'
 import {
-	getToken,
 	setToken,
 	removeToken
 } from '@/utils/auth'
@@ -13,35 +12,15 @@ import {
 export const useStore = defineStore('user',{
 	state:()=> {
 		return {
-			token: getToken(),
+			token: '',
 			name: "",
-			email: '',
 			avatar: '',
-			roles: [],
 			asyncRoutes: [],
 		}
 		
 	},
 
 	actions: {
-		setToken(token) {
-			this.token = token
-		},
-		setName(name) {
-			this.name = name
-		},
-		setAvatar(avatar) {
-			this.avatar = avatar
-		},
-		setRoles(roles) {
-			this.roles = roles
-		},
-		setEmail(email) {
-			this.email = email
-		},
-		setRouter(routers) {
-			this.asyncRoutes = routers
-		},
 		//执行登录请求，获取token
 		logIn(userInfo) {
 			const username = userInfo.username
@@ -52,7 +31,7 @@ export const useStore = defineStore('user',{
 				requestLogin(username, password).then((response) => {
 					console.log(response)
 					setToken(response.token, rememberMe)
-					this.setToken(response.token)
+					this.token = response.token
 					resolve()
 				}).catch((error) => {
 					reject(error)
@@ -64,10 +43,8 @@ export const useStore = defineStore('user',{
 			return new Promise((resolve, reject) => {
 				console.log('get user info')
 				requestGetInfo().then(response => {
-					this.setRoles(response.roles)
-					this.setName(response.username)
-					this.setAvatar(response.avatar)
-					this.setEmail(response.email)
+					this.name = response.name
+					this.avatar = response.avatar
 					resolve(response)
 				}).catch(error => {
 					reject(error)
@@ -76,9 +53,7 @@ export const useStore = defineStore('user',{
 		},
 		logOut() {
 			return new Promise((resolve) => {
-				this.setToken('')
-				this.setRoles('')
-				this.setRouter([])
+				this.$reset()
 				removeToken()
 				resolve()
 			})
@@ -89,7 +64,7 @@ export const useStore = defineStore('user',{
 				requestPermission().then(response => {
 					console.log('permission response is:')
 					console.log(response)
-					this.setRouter(response)
+					this.asyncRoutes = response
 					resolve(response)
 				}).catch(error => {
 					reject(error)
