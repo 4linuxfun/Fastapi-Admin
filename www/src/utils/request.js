@@ -96,7 +96,7 @@ service.interceptors.response.use(
                     message: '登录超时，需要重新登录',
                     type: 'error',
                   })
-			store.logOut.then(() => {
+			store.logOut().then(() => {
 				window.location.reload(); // 为了重新实例化vue-router对象 避免bug
 			})
         } else if (code === 403) {
