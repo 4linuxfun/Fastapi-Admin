@@ -1,5 +1,5 @@
 import router from './router';
-import {useStore} from './stores';
+import { useStore } from './stores';
 import {
 	getToken
 } from '@/utils/auth';
@@ -26,20 +26,20 @@ router.beforeEach((to) => {
 			if (store.asyncRoutes.length === 0) {
 				console.log('asyncroutes is not set')
 				store.getInfo().then(() => {
-					store.getPermission().then(() => {
-						let asyncRoutes = makeRouter(store.asyncRoutes)
-						for (let route of asyncRoutes) {
-							console.log('add route:')
-							console.log(route)
-							router.addRoute(route)
-						}
+					store.getPermission()
+				}).then(() => {
+					let asyncRoutes = makeRouter(store.asyncRoutes)
+					for (let route of asyncRoutes) {
+						console.log('add route:')
+						console.log(route)
+						router.addRoute(route)
+					}
 
-						router.push({path:to.fullPath,replace:true})
-					}).catch()
+					router.push({ path: to.fullPath, replace: true })
 
 				}).catch((err) => {
 					console.log('用户权限拉取失败' + err);
-					store.logOut.then(() => {
+					store.logOut().then(() => {
 						location.reload()
 					})
 				})
