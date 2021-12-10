@@ -1,7 +1,7 @@
 import axios from 'axios'
 import router from '@/router'
 // import { Notification, detailBox } from 'element-ui'
-import store from '../stores'
+import {useStore} from '../stores'
 import {getToken} from '@/utils/auth'
 import { ElNotification } from 'element-plus'
 
@@ -90,12 +90,13 @@ service.interceptors.response.use(
         }
 		console.log('error code:'+code)
         if (code === 401) {
+			const store = useStore()
             ElNotification({
                     title: 'Error',
                     message: '登录超时，需要重新登录',
                     type: 'error',
                   })
-			store.dispatch('logOut').then(() => {
+			store.logOut().then(() => {
 				window.location.reload(); // 为了重新实例化vue-router对象 避免bug
 			})
         } else if (code === 403) {

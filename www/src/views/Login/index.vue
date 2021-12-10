@@ -29,7 +29,8 @@
 	import md5 from 'js-md5';
 	import {
 		mapActions
-	} from "vuex"
+	} from "pinia"
+	import {useStore} from '@/stores'
 	export default {
 		name: "Login",
 		data() {
@@ -69,7 +70,7 @@
 		},
 		methods: {
 			// 映射actions到本地
-			...mapActions(['logIn']),
+			...mapActions(useStore,['logIn']),
 			getCookie() {
 				const username = Cookies.get("username");
 				const rememberMe = Cookies.get("rememberMe");

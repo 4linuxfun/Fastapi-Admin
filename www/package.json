@@ -11,11 +11,13 @@
     "@element-plus/icons": "0.0.11",
     "axios": "^0.24.0",
     "core-js": "^3.19.1",
-    "element-plus": "^1.2.0-beta.3",
+    "echarts": "^5.2.2",
+    "element-plus": "^1.2.0-beta.5",
     "js-cookie": "^3.0.1",
-    "vue": "^3.0.0",
-    "vue-router": "^4.0.11",
-    "vuex": "^4.0.2"
+    "pinia": "^2.0.5",
+    "vue": "^3.2.23",
+    "vue-echarts": "^6.0.0",
+    "vue-router": "^4.0.11"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.15",
