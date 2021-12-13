@@ -31,8 +31,8 @@
 
 <script>
 	import {
-		requestUserRoles
-	} from '@/api/login'
+		GetUserRoles
+	} from '@/api/index'
 	import md5 from 'js-md5'
 	export default {
 		props: ['user', 'visible'],
@@ -53,7 +53,7 @@
 			// 	this.$emit('cancel')
 			// },
 			getRoles(userId) {
-				requestUserRoles(userId).then((response) => {
+				GetUserRoles(userId).then((response) => {
 					this.roleList = response.roles
 					this.enableRoleList = response.enable
 				})

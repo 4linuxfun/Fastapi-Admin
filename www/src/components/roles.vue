@@ -18,7 +18,7 @@
 	</el-table>
 </template>
 <script>
-	import {requestRoles,requestRoleInfo} from '@/api/roles'
+	import {GetRoles,GetRoleInfo} from '@/api/index'
 export default {
 	created() {
 		this.getRoles()
@@ -31,10 +31,10 @@ export default {
 	},
 	methods: {
 		getRoles() {
-			this.roles =await requestRoles()
+			this.roles =await GetRoles()
 		},
 		handleEdit(roleId){
-			roleInfo = await requestRoleInfo(roleId)
+			roleInfo = await GetRoleInfo(roleId)
 		}
 	},
 	

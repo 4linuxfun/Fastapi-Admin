@@ -40,8 +40,8 @@
 	} from '@element-plus/icons'
 	import InputPlus from '@/components/InputPlus'
 	import {
-		requestCategoryField
-	} from '@/api/assets'
+		SearchCategoryFields
+	} from '@/api/index'
 	export default {
 		components: {
 			Minus,
@@ -64,7 +64,7 @@
 			searchFields(query) {
 				if (query !== '') {
 					this.loading = true
-					requestCategoryField(this.category_id, query).then((response) => {
+					SearchCategoryFields(this.category_id, query).then((response) => {
 						console.log(response)
 						this.fields = response
 						this.loading = false

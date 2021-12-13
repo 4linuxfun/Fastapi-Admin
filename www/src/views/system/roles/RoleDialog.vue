@@ -30,7 +30,7 @@
 </template>
 
 <script>
-	import {requestRoleMenus} from '@/api/roles.js'
+	import {GetRoleEnableMenus} from '@/api/index'
 	export default {
 		props:['role','visible'],
 		emits:['update:role','update:visible'],
@@ -68,7 +68,7 @@
 			// },
 			getInfo(){
 				console.log('请求menus信息')
-				requestRoleMenus(this.role.id).then((response)=>{
+				GetRoleEnableMenus(this.role.id).then((response)=>{
 					console.log(response)
 					this.menus = response.menus
 					this.enables = response.enable

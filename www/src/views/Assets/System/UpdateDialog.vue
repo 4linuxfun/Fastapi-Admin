@@ -46,7 +46,7 @@
 </template>
 
 <script>
-	import request from '@/utils/request'
+	import {PutAssets} from '@/api/index'
 	import InputPlus from '@/components/InputPlus'
 	export default {
 		props: ['data', 'visible', 'fieldsInfo'],
@@ -87,11 +87,7 @@
 				console.log(fields)
 				this.$emit('update:visible', false)
 				this.$emit('reload')
-				request({
-					url: "/api/assets/update_category_detail",
-					method: "post",
-					data: fields
-				}).then(() => {
+				PutAssets(fields).then(() => {
 					console.log('更新成功')
 				})
 			},

@@ -35,11 +35,10 @@
 </template>
 
 <script>
-	import request from '@/utils/request'
 	import InputPlus from '@/components/InputPlus'
 	import {
-		requestCategoryField
-	} from '@/api/assets'
+		GetCategoryFields,PostAssets
+	} from '@/api/index'
 	import CategorySelect from '@/components/CategorySelect'
 	export default {
 		props: ['visible', "title"],
@@ -73,7 +72,7 @@
 		methods: {
 			handleSelect(item) {
 				this.formData.info = {}
-				requestCategoryField(item.id).then((fieldList) => {
+				GetCategoryFields(item.id).then((fieldList) => {
 					for (let field of fieldList) {
 						let fieldName = field.name
 						this.fields[fieldName] = field
@@ -85,11 +84,7 @@
 			handleAdd() {
 				console.log(this.formData)
 				this.$emit('update:visible', false)
-				request({
-					url: '/api/assets/add',
-					method: 'post',
-					data: this.formData
-				}).then(() => {
+				PostAssets(this.formData).then(() => {
 					this.$message({
 						message: '资产添加成功',
 						type: 'success'

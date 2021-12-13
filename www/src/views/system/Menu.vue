@@ -39,10 +39,11 @@
 </template>
 <script>
 	import {
-		requestUpdateMenu,
-		requestDelMenu,
-		requestGetAllMenu
-	} from '@/api/menu'
+		PostNewMenu,
+		PutMenu,
+		DeleteMenu,
+		GetAllMenus
+	} from '@/api/index'
 	import MenuDialog from '@/components/MenuDialog'
 	export default {
 		components: {
@@ -78,7 +79,7 @@
 				this.$confirm('是否删除菜单：'+id + ': ' +name,'删除菜单',{
 					type:'warning'
 				}).then(()=>{
-					requestDelMenu(id)
+					DeleteMenu(id)
 					this.getMenuInfo()
 				}).catch()
 			},
@@ -123,13 +124,18 @@
 				console.log(data)
 				this.dialogVisible = false
 				this.selectData = ''
-				requestUpdateMenu(data)
+				if(data.id === null){
+					console.log('新建菜单')
+					PostNewMenu(data)
+				} else{
+					PutMenu(data)
+				}	
 				this.getMenuInfo()
 			},
 			
 			getMenuInfo() {
 				console.log('get menu info')
-				requestGetAllMenu().then(response => {
+				GetAllMenus().then(response => {
 					console.log(response)
 					this.menuData = response
 				}).catch(error => {

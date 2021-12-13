@@ -38,6 +38,7 @@
 
 <script>
 	import request from '@/utils/request'
+	import {GetAssets,PostCategory} from '@/api/index'
 	import CategoryDialog from './CategoryDialog'
 	export default {
 		components:{
@@ -64,7 +65,7 @@
 		methods: {
 			init(){
 				request({
-					url:'/api/assets/category-list',
+					url:'/api/categories',
 					method:'get'
 				}).then((response)=>{
 					this.categoryList = response
@@ -72,24 +73,13 @@
 			},
 			requestData() {
 				console.log(this.searchForm)
-				request({
-						url: '/api/assets/system/search',
-						method: 'post',
-						data: this.searchForm
-					}).then((response) => {
+				GetAssets(this.searchForm).then((response) => {
 						console.log(response)
 						this.systemData = response
 				})
 				
 			},
-			async querySearchAsync(query,callback){
-				request({
-					url:'/api/assets/category-list',
-					method:'get'
-				}).then((response)=>{
-					callback(response)
-				})
-			},
+
 			handleEdit(id){
 				// 详情按钮，只读权限
 				this.categoryDialog = true
@@ -112,11 +102,7 @@
 			},
 			updateCategory(category){
 				console.log(category)
-				request({
-					url:'/api/assets/update_category',
-					method:'post',
-					data:category
-				}).then(()=>{
+				PostCategory(category).then(()=>{
 					this.$notify({
 								title:'success',
 								message:"资产创建成功",

@@ -23,7 +23,7 @@ class UserInfo(BaseModel):
     roles: List[str]
 
 
-router = APIRouter(prefix='/api/user')
+router = APIRouter(prefix='/api')
 
 
 @router.post('/login', description="用户登录验证模块")
@@ -53,46 +53,9 @@ async def login(login_form: UserLogin, session: Session = Depends(get_session)):
     return ApiResponse(
         code=0,
         message='success',
-        data={"token": access_token}
-    )
-
-
-@router.get('/user_info',
-            description='获取用户信息')
-async def get_user_info(session: Session = Depends(get_session), token: dict = Depends(check_token)):
-    user_id = token['uid']
-    sql = select(User).where(User.id == user_id)
-    user: User = session.exec(sql).one()
-    return ApiResponse(
-        code=0,
-        message="success",
-        data=user.dict(exclude={'password': True})
-    )
-
-
-@router.post('/update',
-             description='更新用户信息')
-async def update_user(user_info: UserInfo, session: Session = Depends(get_session), token: dict = Depends(check_token)):
-    """
-    更新用户信息的所有操作，可涉及更新用户名、密码、角色等
-    :param user_info:
-    :param session:
-    :param token:
-    :return:
-    """
-    print(user_info)
-    if user_info.user.id is None:
-        updated_user = User(name=user_info.user.name, password=user_info.user.password, enable=user_info.user.enable)
-    else:
-        user = session.exec(select(User).where(User.id == user_info.user.id)).one()
-        updated_user = update_model(user, user_info.user)
-    user_roles = session.exec(select(Role).where(Role.name.in_(user_info.roles))).all()
-    updated_user.roles = user_roles
-    session.add(updated_user)
-    session.commit()
-    return ApiResponse(
-        code=0,
-        message="success",
+        data={
+            "uid": user.id,
+            "token": access_token}
     )
 
 
@@ -119,25 +82,7 @@ async def get_permission(session: Session = Depends(get_session), token: dict = 
     )
 
 
-@router.get('/all')
-async def get_all_user(session: Session = Depends(get_session), token: dict = Depends(check_token)):
-    """
-    获取“用户管理”页面的用户列表清单
-    :param session:
-    :param token:
-    :return:
-    """
-    users = session.exec(select(User))
-    users_list = [user.dict(exclude={"password": True}) for user in users]
-    print(users_list)
-    return ApiResponse(
-        code=0,
-        message="success",
-        data=users_list
-    )
-
-
-@router.get('/role_list/')
+@router.get('/users/roles')
 async def get_roles(id: Optional[int] = None, session: Session = Depends(get_session, ),
                     token: dict = Depends(check_token)):
     if id is None:
@@ -158,11 +103,88 @@ async def get_roles(id: Optional[int] = None, session: Session = Depends(get_ses
     )
 
 
-@router.get('/del/{user_id}')
-async def delete_user(user_id: int, session: Session = Depends(get_session),
+@router.delete('/users/{uid}')
+async def delete_user(uid: int, session: Session = Depends(get_session),
                       token: dict = Depends(check_token)):
-    user = session.exec(select(User).where(User.id == user_id)).one()
+    user = session.exec(select(User).where(User.id == uid)).one()
     session.delete(user)
+    session.commit()
+    return ApiResponse(
+        code=0,
+        message="success",
+    )
+
+
+@router.get('/users/{uid}',
+            description='获取用户信息')
+async def get_user_info(uid: int, session: Session = Depends(get_session), token: dict = Depends(check_token)):
+    sql = select(User).where(User.id == uid)
+    user: User = session.exec(sql).one()
+    return ApiResponse(
+        code=0,
+        message="success",
+        data=user.dict(exclude={'password': True})
+    )
+
+
+@router.put('/users/{uid}',
+            description='更新用户信息')
+async def update_user(uid: int, user_info: UserInfo, session: Session = Depends(get_session),
+                      token: dict = Depends(check_token)):
+    """
+    更新用户信息的所有操作，可涉及更新用户名、密码、角色等
+    :param uid:
+    :param user_info:
+    :param session:
+    :param token:
+    :return:
+    """
+    print(user_info)
+    user = session.exec(select(User).where(User.id == uid)).one()
+    updated_user = update_model(user, user_info.user)
+    user_roles = session.exec(select(Role).where(Role.name.in_(user_info.roles))).all()
+    updated_user.roles = user_roles
+    session.add(updated_user)
+    session.commit()
+    return ApiResponse(
+        code=0,
+        message="success",
+    )
+
+
+@router.get('/users')
+async def get_all_user(session: Session = Depends(get_session), token: dict = Depends(check_token)):
+    """
+    获取“用户管理”页面的用户列表清单
+    :param session:
+    :param token:
+    :return:
+    """
+    users = session.exec(select(User))
+    users_list = [user.dict(exclude={"password": True}) for user in users]
+    print(users_list)
+    return ApiResponse(
+        code=0,
+        message="success",
+        data=users_list
+    )
+
+
+@router.post('/users',
+             description='新建用户')
+async def update_user(user_info: UserInfo, session: Session = Depends(get_session), token: dict = Depends(check_token)):
+    """
+    更新用户信息的所有操作，可涉及更新用户名、密码、角色等
+    :param user_info:
+    :param session:
+    :param token:
+    :return:
+    """
+    print(user_info)
+    updated_user = User(name=user_info.user.name, password=user_info.user.password, enable=user_info.user.enable)
+    user_roles = session.exec(select(Role).where(Role.name.in_(user_info.roles))).all()
+    updated_user.roles = user_roles
+    session.add(updated_user)
     session.commit()
     return ApiResponse(
         code=0,

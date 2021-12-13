@@ -1,9 +1,9 @@
 import {defineStore} from 'pinia'
 import {
 	requestLogin,
-	requestGetInfo,
-	requestPermission
-} from '@/api/login'
+	GetUserInfo,
+	GetUserPermission
+} from '@/api/index'
 import {
 	setToken,
 	removeToken
@@ -12,6 +12,7 @@ import {
 export const useStore = defineStore('user',{
 	state:()=> {
 		return {
+			uid:'',
 			token: '',
 			name: "",
 			avatar: '',
@@ -32,6 +33,7 @@ export const useStore = defineStore('user',{
 					console.log(response)
 					setToken(response.token, rememberMe)
 					this.token = response.token
+					this.uid = response.uid
 					resolve()
 				}).catch((error) => {
 					reject(error)
@@ -42,7 +44,7 @@ export const useStore = defineStore('user',{
 		getInfo() {
 			return new Promise((resolve, reject) => {
 				console.log('get user info')
-				requestGetInfo().then(response => {
+				GetUserInfo(this.uid).then(response => {
 					this.name = response.name
 					this.avatar = response.avatar
 					resolve(response)
@@ -61,7 +63,7 @@ export const useStore = defineStore('user',{
 		// 获取用户权限列表
 		getPermission() {
 			return new Promise((resolve, reject) => {
-				requestPermission().then(response => {
+				GetUserPermission().then(response => {
 					console.log('permission response is:')
 					console.log(response)
 					this.asyncRoutes = response

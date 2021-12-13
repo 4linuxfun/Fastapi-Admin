@@ -1,8 +1,8 @@
 import axios from 'axios'
 import router from '@/router'
 // import { Notification, detailBox } from 'element-ui'
-import {useStore} from '../stores'
-import {getToken} from '@/utils/auth'
+import { useStore } from '../stores'
+import { getToken } from '@/utils/auth'
 import { ElNotification } from 'element-plus'
 
 // 创建axios实例
@@ -40,42 +40,42 @@ service.interceptors.request.use(
 // response 拦截器
 service.interceptors.response.use(
     response => {
-		// 内部服务状态码
-		console.log('拦截器')
-		// 需要添加下载类型是否为文件，文件不走通用的返回类型
-		// console.log(response.headers)
-		if ("content-disposition" in response.headers){
-			let filename = ""
-			let disposition = response.headers['content-disposition']
-			// 下载文件名的几种获取方式，暂时不够完美，而且中文没有解码
-			let result = disposition.match(/filename="(.*)"/)
-			let result2 = disposition.match(/filename\*=(.*?)''(.*$)/)
-			// console.log('result:'+result)
-			// console.log('result2:'+ result2)
-			if (result !== null){
-				
-				filename = result[1]	
-			}
-			if (result2 !== null){
-				
-				filename = result2[2]
-			}
-			console.log('filename:'+filename)
-			return {
-				data:response.data,
-				filename
-			}
-		}
-		const code = response.data.code
-		if(code != 0){
-			return Promise.reject(response.data.data)
-		} else {
+        // 内部服务状态码
+        console.log('拦截器')
+        // 需要添加下载类型是否为文件，文件不走通用的返回类型
+        // console.log(response.headers)
+        if ("content-disposition" in response.headers) {
+            let filename = ""
+            let disposition = response.headers['content-disposition']
+            // 下载文件名的几种获取方式，暂时不够完美，而且中文没有解码
+            let result = disposition.match(/filename="(.*)"/)
+            let result2 = disposition.match(/filename\*=(.*?)''(.*$)/)
+            // console.log('result:'+result)
+            // console.log('result2:'+ result2)
+            if (result !== null) {
+
+                filename = result[1]
+            }
+            if (result2 !== null) {
+
+                filename = result2[2]
+            }
+            console.log('filename:' + filename)
+            return {
+                data: response.data,
+                filename
+            }
+        }
+        const code = response.data.code
+        if (code != 0) {
+            return Promise.reject(response.data.data)
+        } else {
             return response.data.data
         }
     },
     error => {
         let code = 0
-        console.log('返回错误：'+error)
+        console.log('返回错误：' + error)
         try {
             code = error.response.status
         } catch (e) {
@@ -83,24 +83,24 @@ service.interceptors.response.use(
                 ElNotification({
                     title: '错误',
                     message: '请求超时!',
-					type:'error'
+                    type: 'error'
                 })
                 return Promise.reject(error)
             }
         }
-		console.log('error code:'+code)
+        console.log('error code:' + code)
         if (code === 401) {
-			const store = useStore()
+            const store = useStore()
             ElNotification({
-                    title: 'Error',
-                    message: '登录超时，需要重新登录',
-                    type: 'error',
-                  })
-			store.logOut().then(() => {
-				window.location.reload(); // 为了重新实例化vue-router对象 避免bug
-			})
+                title: 'Error',
+                message: '登录超时，需要重新登录',
+                type: 'error',
+            })
+            store.logOut().then(() => {
+                window.location.reload(); // 为了重新实例化vue-router对象 避免bug
+            })
         } else if (code === 403) {
-            router.push({path: '/401'})
+            router.push({ path: '/401' })
         } else if (code === 502) {
             ElNotification({
                 title: '错误',
@@ -121,4 +121,37 @@ service.interceptors.response.use(
         return Promise.reject(error)
     }
 )
+
+export function GET(url, params) {
+    return service({
+        url,
+        params,
+        method:'get'
+    })
+}
+
+export function POST(url, data) {
+    return service({
+        url,
+        data,
+        method:'post'
+    })
+}
+
+
+export function PUT(url, data) {
+    return service({
+        url,
+        data,
+        method:'put'
+    })
+}
+
+export function DELETE(url, params) {
+    return service({
+        url,
+        params,
+        method:'delete'
+    })
+}
 export default service
