@@ -25,7 +25,7 @@
 	
 </template>
 <script>
-	import {requestRoles,requestUpdateRoles,requestDelRole} from '@/api/roles'
+	import {GetRoles,PutRoles,DeleteRole} from '@/api/index'
 	import RoleDialog from './RoleDialog.vue' 
 export default {
 	components:{
@@ -45,7 +45,7 @@ export default {
 	methods: {
 		// 更新数据后，可以执行此调用，重新获取新的数据，达到刷新效果
 		getRoles() {
-			requestRoles().then((response)=>{
+			GetRoles().then((response)=>{
 				this.roles = response
 			})
 			
@@ -58,7 +58,7 @@ export default {
 		},
 		handleUpdate(role,menuList,category){
 			console.log(role,menuList,category)
-			requestUpdateRoles(role,menuList,category).then(()=>{
+			PutRoles(role,menuList,category).then(()=>{
 				this.$notify({
 					title:'success',
 					message:"菜单权限更新成功",
@@ -76,7 +76,7 @@ export default {
 				return false
 			}
 			this.$confirm("是否确定要删除角色："+roleName, "Warnning").then(()=>{
-				requestDelRole(roleId).then(()=>{
+				DeleteRole(roleId).then(()=>{
 					this.$notify({
 						title:'success',
 						message:"角色删除成功",

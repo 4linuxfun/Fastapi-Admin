@@ -112,10 +112,9 @@
 </template>
 
 <script>
-import request from '@/utils/request'
 import {
-	requestCategoryField
-} from '@/api/assets'
+	GetCategoryFields,GetAssetsCount,GetAssets
+} from '@/api/index'
 import ImportDialog from './ImportDialog'
 import DetailDialog from './DetailDialog'
 import MultiDialog from './MultiDialog'
@@ -178,11 +177,7 @@ export default {
 		}
 		const requestData = () => {
 			console.log(searchForm)
-			request({
-				url: '/api/assets/system/search',
-				method: 'post',
-				data: searchForm
-			}).then((response) => {
+			GetAssets(searchForm).then((response) => {
 				console.log(response)
 				systemData.value = response
 				console.log('显示数据')
@@ -196,7 +191,7 @@ export default {
 			console.log(item)
 			searchForm.id = item.id
 			searchForm.info = {}
-			requestCategoryField(item.id).then((fieldList) => {
+			GetCategoryFields(item.id).then((fieldList) => {
 				fields.value = fieldList
 				for (let field of fieldList) {
 					let fieldName = field.name
@@ -215,11 +210,7 @@ export default {
 				})
 				return false
 			}
-			request({
-				url: '/api/assets/system/search_total',
-				method: 'post',
-				data: searchForm
-			}).then((response) => {
+			GetAssetsCount(searchForm).then((response) => {
 				total.value = response
 				currentPage.value = 1
 				searchForm.offset = 0

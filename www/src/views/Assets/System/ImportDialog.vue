@@ -23,7 +23,7 @@
 </template>
 
 <script>
-	import request from '@/utils/request'
+	import {ImportFile} from '@/api/index'
 	import {downloadFile} from '@/api/file'
 	import CategorySelect from '@/components/CategorySelect'
 	export default {
@@ -64,11 +64,7 @@
 				// 通过点击按钮手动调用上传函数 handleUpload ，创建一个 FormData, 调用 upload 组件的 submit 方法的时候会循环调用 http-request 配置的方法，从而往 FormData 里存放文件。
 				this.formData = new FormData()
 				this.$refs.upload.submit()
-				const post = request({
-					url:"/api/assets/system/import",
-					method:"post",
-					data:this.formData
-				})
+				const post = ImportFile(this.formData)
 				this.$emit('upload',post)
 				this.$emit('update:visible',false)
 			},

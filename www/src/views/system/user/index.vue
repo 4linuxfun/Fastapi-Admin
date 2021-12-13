@@ -28,79 +28,91 @@
 	</div>
 </template>
 <script>
-	import UserDialog from './UserDialog.vue'
-	import {requestUsers,requestUpdateUser,requestDelUser} from '@/api/login'
-	export default {
-		components:{
-			'user-dialog':UserDialog,
+import UserDialog from './UserDialog.vue'
+import { GetUsers, PutNewUser, PostAddUser, DeleteUser } from '@/api/index'
+export default {
+	components: {
+		'user-dialog': UserDialog,
+	},
+	created() {
+		this.getUsers()
+	},
+	data() {
+		return {
+			dialogVisible: false,
+			userInfo: '',
+			selectUser: '',
+		};
+	},
+	methods: {
+		getUsers() {
+			GetUsers().then((response) => {
+				this.userInfo = response
+			})
+
 		},
-		created() {
-			this.getUsers()
+		handleEdit(user) {
+			this.dialogVisible = true
+			this.selectUser = Object.assign({}, user)
 		},
-		data() {
-			return {
-				dialogVisible:false,
-				userInfo: '',
-				selectUser:'',
-			};
-		},
-		methods: {
-			getUsers() {
-				requestUsers().then((response)=>{
-					this.userInfo = response
-				})
-				
-			},
-			handleEdit(user){
-				this.dialogVisible=true
-				this.selectUser = Object.assign({}, user)
-			},
-			handleUpdate(user,roleList){
-				requestUpdateUser(user,roleList).then(()=>{
+		handleUpdate(user, roleList) {
+			if (user.id === null) {
+				PostAddUser(user, roleList).then(() => {
 					this.$notify({
-						title:'success',
-						message:"用户更新成功",
-						type:'success'
+						title: 'success',
+						message: "用户新建成功",
+						type: 'success'
 					})
 					this.getUsers()
 				})
-			},
-			handleAdd(){
-				this.selectUser = {
-					id:null,
-					name:'',
-					password:'',
-					enable:'',
-				}
-				this.dialogVisible=true
-			},
-			handleDel(userId,userName){
-				if (userName === 'admin'){
-					this.$message({
-						message:"admin用户无法删除",
-						type:'warning'
-					})
-					return false
-				}
-				this.$confirm("是否确定要删除用户："+userName, "Warnning").then(()=>{
-					requestDelUser(userId).then(()=>{
-						this.$notify({
-							title:'success',
-							message:"角色删除成功",
-							type:'success'
-						})
-						this.getUsers()
-					})
-				}).catch(()=>{
+			} else {
+				PutNewUser(user, roleList).then(() => {
 					this.$notify({
-						title:'success',
-						message:"取消删除操作",
-						type:'success'
+						title: 'success',
+						message: "用户更新成功",
+						type: 'success'
 					})
+					this.getUsers()
 				})
 			}
+
 		},
-	};
+		handleAdd() {
+			this.selectUser = {
+				id: null,
+				name: '',
+				password: '',
+				enable: '',
+			}
+			this.dialogVisible = true
+		},
+		handleDel(userId, userName) {
+			if (userName === 'admin') {
+				this.$message({
+					message: "admin用户无法删除",
+					type: 'warning'
+				})
+				return false
+			}
+			this.$confirm("是否确定要删除用户：" + userName, "Warnning").then(() => {
+				DeleteUser(userId).then(() => {
+					this.$notify({
+						title: 'success',
+						message: "角色删除成功",
+						type: 'success'
+					})
+					this.getUsers()
+				})
+			}).catch(() => {
+				this.$notify({
+					title: 'success',
+					message: "取消删除操作",
+					type: 'success'
+				})
+			})
+		}
+	},
+};
 </script>
 
 <style>
