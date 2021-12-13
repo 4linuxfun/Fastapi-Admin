@@ -26,6 +26,7 @@ export const GetRoleEnableMenus = (roleId) =>GET('api/roles/enable-menus/',{id:r
 export const PostNewRoles = (role, menuList,category)=>POST('api/roles',{role,menus:menuList,category})
 export const PutRoles = (role, menuList,category)=>PUT('api/roles',{role,menus:menuList,category}) 
 export const DeleteRole = (roleId)=>DELETE('api/roles/'+roleId)
+export const GetRoleCategories = (id)=>GET('api/roles/categories',{id})
 
 // 资产类别接口
 export const GetCategories = (search) =>GET('api/categories',{search})
