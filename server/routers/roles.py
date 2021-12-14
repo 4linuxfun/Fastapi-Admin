@@ -88,7 +88,7 @@ class RoleInfo(BaseModel):
 async def add_roles(role_info: RoleInfo, session: Session = Depends(get_session)):
     print(role_info)
     role = role_info.role
-    session.add(role_info)
+    session.add(role)
     session.commit()
     session.refresh(role)
     crud.update_role_menus(role.id, role_info.menus, session)
@@ -109,7 +109,7 @@ async def update_roles(role_info: RoleInfo, session: Session = Depends(get_sessi
     sql = select(Role).where(Role.id == role_info.role.id)
     role = session.exec(sql).one()
     role = update_model(role, role_info.role)
-    session.add(role_info)
+    session.add(role)
     session.commit()
     session.refresh(role)
     crud.update_role_menus(role.id, role_info.menus, session)
