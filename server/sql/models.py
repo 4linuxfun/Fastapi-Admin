@@ -17,6 +17,12 @@ class RoleCategory(SQLModel, table=True):
     category_id: int = Field(foreign_key="category.id", primary_key=True)
 
 
+class MenuApi(SQLModel, table=True):
+    __tablename__ = "menu_api"
+    menu_id: Optional[int] = Field(default=None, foreign_key="menu.id", primary_key=True)
+    api_id: Optional[int] = Field(default=None, foreign_key="sys_api.id", primary_key=True)
+
+
 class Menu(SQLModel, table=True):
     id: Optional[int] = Field(primary_key=True)
     name: Optional[str]
@@ -27,6 +33,7 @@ class Menu(SQLModel, table=True):
     enable: int
     url: Optional[str]
     roles: List["Role"] = Relationship(back_populates="menus", link_model=RoleMenu)
+    apis: List['Api'] = Relationship(back_populates="menus", link_model=MenuApi)
 
 
 class UserRole(SQLModel, table=True):
@@ -55,6 +62,15 @@ class User(SQLModel, table=True):
     avatar: Optional[str]
     email: Optional[str]
     roles: List['Role'] = Relationship(back_populates="users", link_model=UserRole)
+
+
+class Api(SQLModel, table=True):
+    __tablename__ = "sys_api"
+    id: int = Field(default=None, primary_key=True)
+    name: Optional[str]
+    path: Optional[str]
+    enable: int
+    menus: List[Menu] = Relationship(back_populates="apis", link_model=MenuApi)
 
 
 # 资产相关的表定义

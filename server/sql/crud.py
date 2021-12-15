@@ -23,7 +23,7 @@ def get_menu_list(session: Session, roles: Optional[List[int]] = None, enable=Fa
     # 普通用户才需要过滤菜单，admin对于所有菜单都开放，不需要过滤
     if enable:
         sql = sql.where(Menu.enable == 1)
-    results = session.exec(sql).all()
+    results: List[Menu] = session.exec(sql).all()
     return results
 
 

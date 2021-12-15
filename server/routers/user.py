@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Form
-from ..dependencies import get_session, check_token
+from ..dependencies import get_session, check_token, check_permission
 from typing import Optional, List, Union
 from ..common.security import hash_password
 from pydantic import BaseModel
@@ -153,14 +153,19 @@ async def update_user(uid: int, user_info: UserInfo, session: Session = Depends(
 
 
 @router.get('/users')
-async def get_all_user(session: Session = Depends(get_session), token: dict = Depends(check_token)):
+async def get_all_user(q: Optional[str] = None, session: Session = Depends(get_session),
+                       token: dict = Depends(check_token)):
     """
     获取“用户管理”页面的用户列表清单
+    :param q:
     :param session:
     :param token:
     :return:
     """
-    users = session.exec(select(User))
+    sql = select(User)
+    if q is not None:
+        sql = sql.where(User.name.like(f'%{q}%'))
+    users = session.exec(sql)
     users_list = [user.dict(exclude={"password": True}) for user in users]
     print(users_list)
     return ApiResponse(
@@ -171,7 +176,7 @@ async def get_all_user(session: Session = Depends(get_session), token: dict = De
 
 
 @router.post('/users',
-             description='新建用户')
+             description='新建用户', dependencies=[Depends(check_permission), ])
 async def update_user(user_info: UserInfo, session: Session = Depends(get_session), token: dict = Depends(check_token)):
     """
     更新用户信息的所有操作，可涉及更新用户名、密码、角色等

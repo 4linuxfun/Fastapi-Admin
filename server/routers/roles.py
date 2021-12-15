@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from typing import Optional
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Request
 from sqlmodel import Session, select
 from ..dependencies import get_session, check_token
 from pydantic import BaseModel
@@ -47,8 +47,12 @@ async def get_role_menus(id: Optional[int] = None, session: Session = Depends(ge
 
 
 @router.get('/roles/categories', description="角色授权页面，获取对应角色的资产信息")
-async def get_role_category(id: Optional[int] = None, session: Session = Depends(get_session)):
+async def get_role_category(request: Request, id: Optional[int] = None, session: Session = Depends(get_session)):
     # 所有角色，进行权限分配的时候，都是返回所有菜单列表,enable=True:只查询启用的菜单
+    print(request)
+    print(request.method)
+    print(request.url.path)
+    print(request.path_params)
     category_list = session.exec(select(Category)).all()
     print(category_list)
     if id is not None:
@@ -69,8 +73,11 @@ async def get_role_category(id: Optional[int] = None, session: Session = Depends
 
 @router.get('/roles',
             description="查询用户角色信息")
-async def get_roles(session: Session = Depends(get_session)):
-    roles: List[Role] = session.exec(select(Role)).all()
+async def get_roles(q: Optional[str] = None, session: Session = Depends(get_session)):
+    sql = select(Role)
+    if q is not None:
+        sql = sql.where(Role.name.like(f'%{q}%'))
+    roles: List[Role] = session.exec(sql).all()
     return ApiResponse(
         code=0,
         message="success",

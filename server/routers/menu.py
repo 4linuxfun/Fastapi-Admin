@@ -11,9 +11,12 @@ router = APIRouter(prefix='/api', dependencies=[Depends(check_token), ])
 
 
 @router.get('/menus', description="查询菜单")
-async def get_all_menu(session: Session = Depends(get_session)):
+async def get_all_menu(q: Optional[str] = None, session: Session = Depends(get_session)):
     # 复用crud.get_menu_list,默认role为admin就是返回所有的菜单列表
-    menu_list: List[Menu] = crud.get_menu_list(session)
+    sql = select(Menu)
+    if q is not None:
+        sql = sql.where(Menu.name.like(f'%{q}%'))
+    menu_list: List[Menu] = session.exec(sql).all()
     user_menus = utils.menu_convert(menu_list, "all")
 
     print(user_menus)
