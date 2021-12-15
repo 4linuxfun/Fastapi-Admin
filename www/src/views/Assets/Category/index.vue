@@ -38,7 +38,8 @@
 
 <script>
 	import request from '@/utils/request'
-	import {GetAssets,PostCategory} from '@/api/index'
+	import {GetAssets} from '@/api/assets'
+	import {PostCategory} from '@/api/categories'
 	import CategoryDialog from './CategoryDialog'
 	export default {
 		components:{

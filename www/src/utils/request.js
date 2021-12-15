@@ -1,5 +1,4 @@
 import axios from 'axios'
-import router from '@/router'
 // import { Notification, detailBox } from 'element-ui'
 import { useStore } from '../stores'
 import { getToken } from '@/utils/auth'
@@ -100,7 +99,11 @@ service.interceptors.response.use(
                 window.location.reload(); // 为了重新实例化vue-router对象 避免bug
             })
         } else if (code === 403) {
-            router.push({ path: '/401' })
+            ElNotification({
+                title: '错误',
+                type: 'error',
+                message: error.response.data
+            })
         } else if (code === 502) {
             ElNotification({
                 title: '错误',

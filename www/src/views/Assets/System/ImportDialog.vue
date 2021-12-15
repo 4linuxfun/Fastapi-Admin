@@ -23,7 +23,7 @@
 </template>
 
 <script>
-	import {ImportFile} from '@/api/index'
+	import {ImportFile} from '@/api/assets'
 	import {downloadFile} from '@/api/file'
 	import CategorySelect from '@/components/CategorySelect'
 	export default {

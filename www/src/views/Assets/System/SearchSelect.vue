@@ -37,11 +37,11 @@
 <script>
 	import {
 		Minus
-	} from '@element-plus/icons'
+	} from '@element-plus/icons-vue'
 	import InputPlus from '@/components/InputPlus'
 	import {
 		SearchCategoryFields
-	} from '@/api/index'
+	} from '@/api/fields'
 	export default {
 		components: {
 			Minus,

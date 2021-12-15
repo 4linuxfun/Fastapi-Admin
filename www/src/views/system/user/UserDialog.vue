@@ -32,7 +32,7 @@
 <script>
 	import {
 		GetUserRoles
-	} from '@/api/index'
+	} from '@/api/users'
 	import md5 from 'js-md5'
 	export default {
 		props: ['user', 'visible'],

@@ -40,7 +40,8 @@
 </template>
 
 <script>
-import {GetCategoryFields,PutAssetsMulti} from '@/api/index'
+import { GetCategoryFields } from '@/api/categories'
+import { PutAssetsMulti } from '@/api/assets'
 export default {
 	props: ['data', 'visible', 'category'],
 	emits: ['reload', 'update:visible'],

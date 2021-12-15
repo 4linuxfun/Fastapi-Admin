@@ -1,5 +1,18 @@
 <template lang="">
-	<div>
+	<el-row style="width:300px" :gutter="5">
+		<el-col :span="18">
+			<el-input v-model="search"  placeholder="搜索" clearable>
+				<template #append>
+					<el-button @click="getUsers"><el-icon><search /></el-icon></el-button>
+				</template>
+			</el-input>
+		</el-col>
+		<el-col :span="6">
+			<el-button  type="primary"  @click="handleAdd">添加新用户</el-button>
+		</el-col>
+	</el-row>
+
+	<div style="padding-top:10px">
 		<el-table :data="userInfo" border style="width: 100%">
 			<el-table-column prop="id" label="ID" width="180">
 			</el-table-column>
@@ -10,10 +23,7 @@
 					<el-tag effect="dark" :type="scope.row.enable === 1?'success':'danger'">{{scope.row.enable === 1?'启用':'禁用'}}</el-tag>
 				</template>
 			</el-table-column>
-			<el-table-column>
-				<template #header>
-					<el-button  type="primary" size="small" @click="handleAdd">添加新用户</el-button>
-				</template>
+			<el-table-column label="操作">
 				<template #default="scope">
 					<el-button type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
 					<el-button type="danger" size="small" @click="handleDel(scope.row.id,scope.row.name)">删除</el-button>
@@ -28,10 +38,12 @@
 	</div>
 </template>
 <script>
+import { Search } from '@element-plus/icons-vue'
 import UserDialog from './UserDialog.vue'
-import { GetUsers, PutNewUser, PostAddUser, DeleteUser } from '@/api/index'
+import { GetUsers, PutNewUser, PostAddUser, DeleteUser } from '@/api/users'
 export default {
 	components: {
+		Search,
 		'user-dialog': UserDialog,
 	},
 	created() {
@@ -39,6 +51,7 @@ export default {
 	},
 	data() {
 		return {
+			search:null,
 			dialogVisible: false,
 			userInfo: '',
 			selectUser: '',
@@ -46,7 +59,7 @@ export default {
 	},
 	methods: {
 		getUsers() {
-			GetUsers().then((response) => {
+			GetUsers(this.search).then((response) => {
 				this.userInfo = response
 			})
 

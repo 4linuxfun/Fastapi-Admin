@@ -5,7 +5,7 @@
 </template>
 
 <script>
-	import {GetCategories} from '@/api/index'
+	import {GetCategories} from '@/api/categories'
 	export default{
 		props:['category','placeholder'],
 		emits:['update:category','handleSelect'],

@@ -48,7 +48,7 @@
 </template>
 
 <script>
-import { GetRoleEnableMenus, GetRoleCategories } from '@/api/index'
+import { GetRoleEnableMenus, GetRoleCategories } from '@/api/roles'
 export default {
 	props: ['role', 'visible'],
 	emits: ['update:role', 'update:visible'],

@@ -1,6 +1,18 @@
 // 菜单管理页面，用于创建菜单关系：菜单名、菜单页面、二级菜单。。。等等
 <template lang="">
-	<div>
+	<el-row style="width:300px" :gutter="5">
+		<el-col :span="18">
+			<el-input v-model="search"  placeholder="搜索" clearable>
+				<template #append>
+					<el-button @click="getMenuInfo"><el-icon><search /></el-icon></el-button>
+				</template>
+			</el-input>
+		</el-col>
+		<el-col :span="6">
+			<el-button  type="primary"  @click="handleAdd(null)">添加父菜单</el-button>
+		</el-col>
+	</el-row>
+	<div style="padding-top:10px">
 		<el-table :data="menuData" style="width: 100%; margin-bottom: 20px;" row-key="id" border default-expand-all>
 			<el-table-column prop="id" label="主键" width="180" />
 			<el-table-column prop="name" label="名称" width="180"/>			
@@ -19,9 +31,6 @@
 				</template>
 			</el-table-column>
 			<el-table-column label="操作" >
-				<template #header>
-					<el-button @click="handleAdd(null)">添加父菜单</el-button>
-				</template>
 				<template #default="scope">
 					<el-button type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
 					<el-button type="danger" size="small" @click="handleDelete(scope.row.id,scope.row.name)">删除</el-button>
@@ -38,19 +47,22 @@
 	
 </template>
 <script>
+	import { Search } from '@element-plus/icons-vue'
 	import {
 		PostNewMenu,
 		PutMenu,
 		DeleteMenu,
 		GetAllMenus
-	} from '@/api/index'
+	} from '@/api/menus'
 	import MenuDialog from '@/components/MenuDialog'
 	export default {
 		components: {
+			Search,
 			'menu-dialog':MenuDialog,
 		},
 		data() {
 			return {
+				search:null,
 				dialogVisible: false,
 				menuInfo: {
 					name: '',
@@ -135,7 +147,7 @@
 			
 			getMenuInfo() {
 				console.log('get menu info')
-				GetAllMenus().then(response => {
+				GetAllMenus(this.search).then(response => {
 					console.log(response)
 					this.menuData = response
 				}).catch(error => {

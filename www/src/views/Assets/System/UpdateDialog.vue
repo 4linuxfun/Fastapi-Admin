@@ -46,7 +46,7 @@
 </template>
 
 <script>
-	import {PutAssets} from '@/api/index'
+	import {PutAssets} from '@/api/assets'
 	import InputPlus from '@/components/InputPlus'
 	export default {
 		props: ['data', 'visible', 'fieldsInfo'],

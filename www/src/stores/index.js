@@ -3,7 +3,7 @@ import {
 	requestLogin,
 	GetUserInfo,
 	GetUserPermission
-} from '@/api/index'
+} from '@/api/users'
 import {
 	setToken,
 	removeToken

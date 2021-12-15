@@ -98,7 +98,7 @@
 </template>
 
 <script>
-import {GetCategoryDetail} from '@/api/index'
+import {GetCategoryDetail} from '@/api/categories'
 export default {
 	props: ['visible', 'id'],
 	emits: ['update:visible', 'upload'],
