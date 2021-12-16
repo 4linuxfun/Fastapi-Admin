@@ -66,7 +66,7 @@ class User(SQLModel, table=True):
 
 class Api(SQLModel, table=True):
     __tablename__ = "sys_api"
-    id: int = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(default=None, primary_key=True)
     name: Optional[str]
     path: Optional[str]
     enable: int
