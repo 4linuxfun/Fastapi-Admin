@@ -1,13 +1,30 @@
 from typing import List, Optional
+from pydantic import BaseModel
 from fastapi import APIRouter, Depends, Form
 from sqlmodel import Session, select
 from ..dependencies import get_session, check_token
-from ..sql.models import Menu
+from ..sql.models import Menu,Api
 from ..sql import crud
 from ..common import utils
 from ..sql.schemas import ApiResponse
 
 router = APIRouter(prefix='/api', dependencies=[Depends(check_token), ])
+
+
+class MenuApis(BaseModel):
+    menu: Menu
+    apis: List[str]
+
+
+@router.get('/menus/{id}/apis')
+async def get_menu_apis(id: int, session: Session = Depends(get_session)):
+    sql = select(Menu).where(Menu.id == id)
+    menu = session.exec(sql).one()
+    return ApiResponse(
+        code=0,
+        message="success",
+        data=menu.apis
+    )
 
 
 @router.get('/menus', description="查询菜单")
@@ -28,12 +45,15 @@ async def get_all_menu(q: Optional[str] = None, session: Session = Depends(get_s
 
 
 @router.post('/menus', description="新建菜单")
-async def add_menu(menu: Menu, session: Session = Depends(get_session)):
+async def add_menu(menu_info: MenuApis, session: Session = Depends(get_session)):
     """
-    :param menu:
+    :param menu_info:
     :param session:
     :return:
     """
+    menu = menu_info.menu
+    apis = session.exec(select(Api).where(Api.name.in_(menu_info.apis))).all()
+    menu.apis = apis
     session.add(menu)
     session.commit()
     return ApiResponse(
@@ -43,20 +63,22 @@ async def add_menu(menu: Menu, session: Session = Depends(get_session)):
 
 
 @router.put('/menus', description="更新菜单")
-async def update_menu(menu: Menu, session: Session = Depends(get_session)):
+async def update_menu(menu_info: MenuApis, session: Session = Depends(get_session)):
     """
-    :param menu:
+    :param menu_info:
     :param session:
     :return:
     """
-    sql = select(Menu).where(Menu.id == menu.id)
+    sql = select(Menu).where(Menu.id == menu_info.menu.id)
     result = session.exec(sql).one()
     print(result)
     # menu_data = menu.dict(exclude_unset=True)
     # for key, value in menu_data.items():
     #     setattr(result, key, value)
-    result = utils.update_model(result, menu)
-    session.add(result)
+    menu = utils.update_model(result, menu_info.menu)
+    apis = session.exec(select(Api).where(Api.name.in_(menu_info.apis))).all()
+    menu.apis = apis
+    session.add(menu)
     session.commit()
     return ApiResponse(
         code=0,

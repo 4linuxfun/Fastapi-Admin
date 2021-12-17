@@ -42,19 +42,17 @@
 		
 	</div>
 	<div v-if="dialogVisible">
-		<menu-dialog v-model:data="selectData" v-model:visible="dialogVisible" @update:data="updateMenu"></menu-dialog>
+		<menu-dialog :data="selectData" v-model:visible="dialogVisible"></menu-dialog>
 	</div>
 	
 </template>
 <script>
 	import { Search } from '@element-plus/icons-vue'
 	import {
-		PostNewMenu,
-		PutMenu,
 		DeleteMenu,
 		GetAllMenus
 	} from '@/api/menus'
-	import MenuDialog from '@/components/MenuDialog'
+	import MenuDialog from './MenuDialog'
 	export default {
 		components: {
 			Search,
@@ -78,6 +76,14 @@
 		created() {
 			console.log('start to get all menu list')
 			this.getMenuInfo()
+		},
+		watch: {
+			dialogVisible(newValue){
+				if(newValue === false){
+					this.getMenuInfo()
+				}
+				
+			},
 		},
 		methods: {
 			onSubmit() {
@@ -132,19 +138,6 @@
 					}	
 				}
 			},
-			updateMenu(data) {
-				console.log(data)
-				this.dialogVisible = false
-				this.selectData = ''
-				if(data.id === null){
-					console.log('新建菜单')
-					PostNewMenu(data)
-				} else{
-					PutMenu(data)
-				}	
-				this.getMenuInfo()
-			},
-			
 			getMenuInfo() {
 				console.log('get menu info')
 				GetAllMenus(this.search).then(response => {
