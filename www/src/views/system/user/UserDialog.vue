@@ -16,7 +16,7 @@
 			</el-form-item>
 			<el-form-item label="角色">
 				<el-checkbox-group v-model="enableRoleList">
-					<el-checkbox v-for="role in roleList" :label="role" :key="role" />
+					<el-checkbox v-for="role in roleList" :label="role.name" :key="role.id" :disabled="role.enable?false:true"/>
 				</el-checkbox-group>
 			</el-form-item>
 			<el-form-item>

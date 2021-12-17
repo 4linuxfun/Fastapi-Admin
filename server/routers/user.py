@@ -42,9 +42,12 @@ async def login(login_form: UserLogin, session: Session = Depends(get_session)):
         return ApiResponse(
             code=1,
             message='error',
-            data="用户名或密码错误"
+            data="用户密码错误，或账号已禁用"
         )
-    user_roles = [role.id for role in user.roles]
+    user_roles = []
+    for role in user.roles:
+        if role.enable == 1:
+            user_roles.append(role.id)
     # 把roles封装再token里，每次只需要depends检查对应的roles是否有权限即可
     access_token = create_access_token(
         data={"uid": user.id,
@@ -91,13 +94,13 @@ async def get_roles(id: Optional[int] = None, session: Session = Depends(get_ses
     else:
         user = session.exec(select(User).where(User.id == id)).one()
         roles = [role.name for role in user.roles]
-    all_roles = session.exec(select(Role))
-    roles_list = [role.name for role in all_roles]
+    all_roles = session.exec(select(Role)).all()
+    # roles_list = [role.name for role in all_roles]
     return ApiResponse(
         code=0,
         message="success",
         data={
-            'roles': roles_list,
+            'roles': all_roles,
             'enable': roles
         }
     )
