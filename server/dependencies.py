@@ -41,15 +41,19 @@ def check_permission(request: Request, roles: List[int] = Depends(check_roles),
                      session: Session = Depends(get_session)):
     print('permission check')
     print(roles)
-    menu_list: List[Menu] = crud.get_menu_list(session, roles=roles, enable=True)
-    permissions = []
-    for menu in menu_list:
-        permissions.extend([api.path for api in menu.apis])
     request_permission = f"{request.method}:{request.url.path}"
-    print(request_permission)
-    if request_permission in permissions:
-        print('拥有权限')
-        return True
-    else:
-        print('没有权限')
-        raise HTTPException(status_code=403, detail="没有权限")
+    all_apis = session.exec(select(Api)).all()
+    need_permissions = [api.path for api in all_apis]
+    print(need_permissions)
+    if request_permission in need_permissions:
+        print(f'{request_permission} 需要权限验证')
+        menu_list: List[Menu] = crud.get_menu_list(session, roles=roles, enable=True)
+        permissions = []
+        for menu in menu_list:
+            permissions.extend([api.path for api in menu.apis])
+        if request_permission in permissions:
+            print('拥有权限')
+            return True
+        else:
+            print('没有权限')
+            raise HTTPException(status_code=403, detail="没有权限")

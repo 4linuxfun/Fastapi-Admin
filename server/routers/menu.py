@@ -2,13 +2,13 @@ from typing import List, Optional
 from pydantic import BaseModel
 from fastapi import APIRouter, Depends, Form
 from sqlmodel import Session, select
-from ..dependencies import get_session, check_token
+from ..dependencies import get_session, check_permission
 from ..sql.models import Menu,Api
 from ..sql import crud
 from ..common import utils
 from ..sql.schemas import ApiResponse
 
-router = APIRouter(prefix='/api', dependencies=[Depends(check_token), ])
+router = APIRouter(prefix='/api', dependencies=[Depends(check_permission), ])
 
 
 class MenuApis(BaseModel):

@@ -1,11 +1,11 @@
 from typing import Optional
 from fastapi import APIRouter, Depends
 from sqlmodel import Session, select
-from ..dependencies import get_session, check_token
+from ..dependencies import get_session, check_permission
 from ..sql.models import CategoryField
 from ..sql.schemas import ApiResponse
 
-router = APIRouter(prefix='/api', dependencies=[Depends(check_token), ])
+router = APIRouter(prefix='/api', dependencies=[Depends(check_permission), ])
 
 
 @router.get('/fields', description="返回对应资产的字段列表")

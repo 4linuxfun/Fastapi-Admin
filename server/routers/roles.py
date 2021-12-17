@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import APIRouter, Depends, Request
 from sqlmodel import Session, select
-from ..dependencies import get_session, check_token
+from ..dependencies import get_session, check_permission
 from pydantic import BaseModel
 from ..sql import crud
 from ..sql.models import Role, Menu, RoleMenu, Category, RoleCategory
@@ -10,7 +10,7 @@ from typing import List
 from ..sql.schemas import ApiResponse
 from ..common.utils import menu_convert, update_model
 
-router = APIRouter(prefix='/api', dependencies=[Depends(check_token), ])
+router = APIRouter(prefix='/api', dependencies=[Depends(check_permission), ])
 
 
 @router.delete('/roles/{id}')

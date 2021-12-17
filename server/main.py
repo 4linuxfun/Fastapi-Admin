@@ -1,6 +1,7 @@
 from typing import Optional
-from fastapi import FastAPI
+from fastapi import FastAPI, Depends
 from .routers import user, menu, roles, assets, category, fields, sysapis
+from .dependencies import check_permission
 
 app = FastAPI()
 

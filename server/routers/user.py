@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Form
-from ..dependencies import get_session, check_token, check_permission
+from ..dependencies import get_session, check_permission,check_token
 from typing import Optional, List, Union
 from ..common.security import hash_password
 from pydantic import BaseModel
@@ -62,7 +62,7 @@ async def login(login_form: UserLogin, session: Session = Depends(get_session)):
     )
 
 
-@router.get('/permission', description='获取用户角色对应的菜单列表')
+@router.get('/permission', description='获取用户角色对应的菜单列表',dependencies=[Depends(check_permission), ])
 async def get_permission(session: Session = Depends(get_session), token: dict = Depends(check_token)):
     """
     用户权限请求，返回拥有权限的菜单列表，前端根据返回的菜单列表信息，合成菜单项
@@ -85,7 +85,7 @@ async def get_permission(session: Session = Depends(get_session), token: dict = 
     )
 
 
-@router.get('/users/roles')
+@router.get('/users/roles',dependencies=[Depends(check_permission), ])
 async def get_roles(id: Optional[int] = None, session: Session = Depends(get_session, ),
                     token: dict = Depends(check_token)):
     if id is None:
@@ -106,7 +106,7 @@ async def get_roles(id: Optional[int] = None, session: Session = Depends(get_ses
     )
 
 
-@router.delete('/users/{uid}')
+@router.delete('/users/{uid}',dependencies=[Depends(check_permission), ])
 async def delete_user(uid: int, session: Session = Depends(get_session),
                       token: dict = Depends(check_token)):
     user = session.exec(select(User).where(User.id == uid)).one()
@@ -119,7 +119,7 @@ async def delete_user(uid: int, session: Session = Depends(get_session),
 
 
 @router.get('/users/{uid}',
-            description='获取用户信息')
+            description='获取用户信息',dependencies=[Depends(check_permission), ])
 async def get_user_info(uid: int, session: Session = Depends(get_session), token: dict = Depends(check_token)):
     sql = select(User).where(User.id == uid)
     user: User = session.exec(sql).one()
@@ -131,7 +131,7 @@ async def get_user_info(uid: int, session: Session = Depends(get_session), token
 
 
 @router.put('/users/{uid}',
-            description='更新用户信息')
+            description='更新用户信息',dependencies=[Depends(check_permission), ])
 async def update_user(uid: int, user_info: UserInfo, session: Session = Depends(get_session),
                       token: dict = Depends(check_token)):
     """
@@ -155,7 +155,7 @@ async def update_user(uid: int, user_info: UserInfo, session: Session = Depends(
     )
 
 
-@router.get('/users')
+@router.get('/users',dependencies=[Depends(check_permission), ])
 async def get_all_user(q: Optional[str] = None, session: Session = Depends(get_session),
                        token: dict = Depends(check_token)):
     """
@@ -179,7 +179,7 @@ async def get_all_user(q: Optional[str] = None, session: Session = Depends(get_s
 
 
 @router.post('/users',
-             description='新建用户', dependencies=[Depends(check_permission), ])
+             description='新建用户',dependencies=[Depends(check_permission), ])
 async def update_user(user_info: UserInfo, session: Session = Depends(get_session), token: dict = Depends(check_token)):
     """
     更新用户信息的所有操作，可涉及更新用户名、密码、角色等

@@ -6,7 +6,7 @@ from starlette.background import BackgroundTask
 from fastapi.responses import FileResponse
 from sqlmodel import Session, select, text
 from sqlalchemy import func
-from ..dependencies import get_session, check_token, check_roles
+from ..dependencies import get_session, check_permission
 from ..sql.models import Assets, Category, CategoryField, RoleCategory, ShareFields, Role
 from typing import List, Union, Dict, Any
 from pydantic import BaseModel
@@ -17,7 +17,7 @@ from tempfile import NamedTemporaryFile
 from ..common import utils
 import json
 
-router = APIRouter(prefix='/api', dependencies=[Depends(check_token), ])
+router = APIRouter(prefix='/api', dependencies=[Depends(check_permission), ])
 
 
 class SearchForm(Assets):

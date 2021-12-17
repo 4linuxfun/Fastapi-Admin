@@ -2,14 +2,14 @@ from typing import Optional
 import sqlalchemy.exc
 from fastapi import APIRouter, Depends
 from sqlmodel import Session, select
-from ..dependencies import get_session, check_token, check_roles
+from ..dependencies import get_session, check_token, check_roles,check_permission
 from ..sql.models import Category, CategoryField, Role
 from typing import List
 from pydantic import BaseModel
 from ..sql.schemas import ApiResponse
 from ..common import utils
 
-router = APIRouter(prefix='/api', dependencies=[Depends(check_token), ])
+router = APIRouter(prefix='/api', dependencies=[Depends(check_permission), ])
 
 
 class UpdateCategory(BaseModel):
