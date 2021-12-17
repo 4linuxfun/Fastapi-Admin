@@ -26,6 +26,7 @@
 					:data="menus"
 					:props="defaultProps"
 					show-checkbox
+					check-strictly
 					node-key="id"
 					:default-checked-keys="enables"
 				></el-tree>
