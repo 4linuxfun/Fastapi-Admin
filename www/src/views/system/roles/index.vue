@@ -33,13 +33,13 @@
 	</div>
     
 	<div v-if="dialogVisible">
-		<role-dialog v-model:role='selectRole' v-model:visible='dialogVisible' @update:role="handleUpdate"></role-dialog>
+		<role-dialog :role='selectRole' v-model:visible='dialogVisible'></role-dialog>
 	</div>
 	
 </template>
 <script>
 import { Search } from '@element-plus/icons-vue'
-import { GetRoles, PutRoles, DeleteRole } from '@/api/roles'
+import { GetRoles, DeleteRole } from '@/api/roles'
 import RoleDialog from './RoleDialog.vue'
 export default {
 	components: {
@@ -58,6 +58,13 @@ export default {
 			addDialog: false
 		}
 	},
+	watch: {
+		dialogVisible(newValue){
+			if(newValue===false){
+				this.getRoles()
+			}
+		},
+	},
 	methods: {
 		// 更新数据后，可以执行此调用，重新获取新的数据，达到刷新效果
 		getRoles() {
@@ -72,17 +79,7 @@ export default {
 			console.log(this.selectRole)
 			this.dialogVisible = true
 		},
-		handleUpdate(role, menuList, category) {
-			console.log(role, menuList, category)
-			PutRoles(role, menuList, category).then(() => {
-				this.$notify({
-					title: 'success',
-					message: "菜单权限更新成功",
-					type: 'success'
-				})
-				this.getRoles()
-			})
-		},
+
 		handleDel(roleId, roleName) {
 			if (roleName === 'admin') {
 				this.$message({

@@ -49,10 +49,10 @@
 </template>
 
 <script>
-import { GetRoleEnableMenus, GetRoleCategories } from '@/api/roles'
+import { GetRoleEnableMenus, GetRoleCategories,PutRoles } from '@/api/roles'
 export default {
 	props: ['role', 'visible'],
-	emits: ['update:role', 'update:visible'],
+	emits: ['update:visible'],
 	data() {
 		return {
 			selectData: this.role,
@@ -93,9 +93,15 @@ export default {
 		handleUpdate() {
 			let checkedKeys = this.$refs.tree.getCheckedKeys().concat(this.$refs.tree.getHalfCheckedKeys())
 			console.log(checkedKeys)
-			this.$emit('update:role', this.selectData, checkedKeys, this.categoryEnables)
+			PutRoles(this.selectData, checkedKeys, this.categoryEnables).then(() => {
+				this.$notify({
+					title: 'success',
+					message: "菜单权限更新成功",
+					type: 'success'
+				})
+			})
 			this.$emit('update:visible', false)
-		}
+		},
 
 	},
 }
