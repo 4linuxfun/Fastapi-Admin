@@ -4,8 +4,8 @@ from .common.security import token_decode
 from jose.exceptions import JWTError, ExpiredSignatureError
 from sqlmodel import Session, select
 from .sql.database import engine
-from .sql.models import User, Role, RoleMenu, Menu, MenuApi, Api
-from .sql import crud
+import casbin_sqlalchemy_adapter
+import casbin
 
 
 # 数据库的dependency，用于每次请求都需要创建db连接时使用
@@ -27,33 +27,34 @@ async def check_token(token: str = Header(..., alias="Authorization")):
     return token_info
 
 
-def check_roles(token: dict = Depends(check_token)):
+def check_uid(token: dict = Depends(check_token)):
     """
     角色检查
     :param token:
     :return:
     """
-    roles = token['roles']
-    return roles
+    uid = token['uid']
+    return uid
 
 
-def check_permission(request: Request, roles: List[int] = Depends(check_roles),
-                     session: Session = Depends(get_session)):
-    print('permission check')
-    print(roles)
-    request_permission = f"{request.method}:{request.url.path}"
-    all_apis = session.exec(select(Api)).all()
-    need_permissions = [api.path for api in all_apis]
-    print(need_permissions)
-    if request_permission in need_permissions:
-        print(f'{request_permission} 需要权限验证')
-        menu_list: List[Menu] = crud.get_menu_list(session, roles=roles, enable=True)
-        permissions = []
-        for menu in menu_list:
-            permissions.extend([api.path for api in menu.apis])
-        if request_permission in permissions:
+class PermissionCheck:
+    def __init__(self, enforcer):
+        self.e: casbin.Enforcer = enforcer
+
+    def __call__(self, request: Request, uid: int = Depends(check_uid)):
+        print('permission check')
+        request_permission = f"{request.method}:{request.url.path}"
+        print(request_permission)
+        self.e.load_policy()
+        if self.e.enforce(f'uid_{uid}', request.url.path, request.method):
             print('拥有权限')
             return True
         else:
             print('没有权限')
             raise HTTPException(status_code=403, detail="没有权限")
+
+
+adapter = casbin_sqlalchemy_adapter.Adapter(engine)
+casbin_enforcer = casbin.Enforcer('server/model.conf', adapter)
+
+check_permission = PermissionCheck(casbin_enforcer)

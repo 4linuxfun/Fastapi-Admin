@@ -2,6 +2,7 @@ from typing import List, Optional
 from sqlmodel import Session, select
 from .models import RoleMenu, Menu, Role
 from ..common import utils
+from ..dependencies import casbin_enforcer
 
 
 def get_menu_list(session: Session, roles: Optional[List[int]] = None, enable=False) -> List[Menu]:
@@ -56,11 +57,27 @@ def get_role_menus(role_id: int, session: Session) -> List[int]:
 
 
 def update_role_menus(role_id: int, new_menus: List[int], session: Session):
+    """
+    更新角色拥有的菜单权限清单
+    :param role_id:
+    :param new_menus:
+    :param session:
+    :return:
+    """
     sql = select(Role).where(Role.id == role_id)
     role = session.exec(sql).one()
     print(role.menus)
     menus = session.exec(select(Menu).where(Menu.id.in_(new_menus))).all()
     role.menus = menus
+    casbin_enforcer.delete_permissions_for_user(f'role_{role.id}')
+    print(menus)
+    for menu in menus:
+        if (menu.api is None) or (len(menu.api.split(',')) == 0):
+            continue
+        for api in menu.api.split(','):
+            method, path = api.split(':')
+            print(f'增加权限:role_{role.id},{path},{method}')
+            casbin_enforcer.add_permission_for_user(f'role_{role.id}', path, method, 'allow')
     session.add(role)
     session.commit()
 

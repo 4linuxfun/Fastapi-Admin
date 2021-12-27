@@ -1,8 +1,7 @@
-from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import APIRouter, Depends, Request
 from sqlmodel import Session, select
-from ..dependencies import get_session, check_permission
+from ..dependencies import get_session, check_permission,casbin_enforcer
 from pydantic import BaseModel
 from ..sql import crud
 from ..sql.models import Role, Menu, RoleMenu, Category, RoleCategory
@@ -13,23 +12,11 @@ from ..common.utils import menu_convert, update_model
 router = APIRouter(prefix='/api', dependencies=[Depends(check_permission), ])
 
 
-@router.delete('/roles/{id}')
-async def del_role(id: int, session: Session = Depends(get_session)):
-    sql = select(Role).where(Role.id == id)
-    role = session.exec(sql).one()
-    session.delete(role)
-    session.commit()
-    return ApiResponse(
-        code=0,
-        message="success",
-    )
-
-
 @router.get('/roles/enable-menus')
 async def get_role_menus(id: Optional[int] = None, session: Session = Depends(get_session)):
     # 所有角色，进行权限分配的时候，都是返回所有菜单列表,enable=True:只查询启用的菜单
     menu_list: List[Menu] = crud.get_menu_list(session, enable=True)
-    user_menus = menu_convert(menu_list, 'role')
+    user_menus = menu_convert(menu_list, 'all')
     if id is not None:
         sql = select(RoleMenu).where(RoleMenu.role_id == id)
         result = session.exec(sql)
@@ -124,6 +111,19 @@ async def update_roles(role_info: RoleInfo, session: Session = Depends(get_sessi
     category = session.exec(select(Category).where(Category.id.in_(role_info.category))).all()
     role.category = category
     session.add(role)
+    session.commit()
+    return ApiResponse(
+        code=0,
+        message="success",
+    )
+
+
+@router.delete('/roles/{id}')
+async def del_role(id: int, session: Session = Depends(get_session)):
+    sql = select(Role).where(Role.id == id)
+    role = session.exec(sql).one()
+    casbin_enforcer.delete_role(f'role_{role.id}')
+    session.delete(role)
     session.commit()
     return ApiResponse(
         code=0,

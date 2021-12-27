@@ -98,29 +98,14 @@ service.interceptors.response.use(
             store.logOut().then(() => {
                 window.location.reload(); // 为了重新实例化vue-router对象 避免bug
             })
-        } else if (code === 403) {
+        } else  {
             ElNotification({
                 title: '错误',
                 type: 'error',
-                message: error.response.data
+                message: error.response.data,
+				duration:10000
             })
-        } else if (code === 502) {
-            ElNotification({
-                title: '错误',
-                type: 'error',
-                message: '后端服务器连接失败!'
-            })
-        } else {
-            const errorMsg = error.response.data
-            if (errorMsg !== undefined) {
-                ElNotification({
-                    title: '错误',
-                    type: 'error',
-                    message: errorMsg,
-                    duration: 2500
-                })
-            }
-        }
+        } 
         return Promise.reject(error)
     }
 )

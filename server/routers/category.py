@@ -2,14 +2,14 @@ from typing import Optional
 import sqlalchemy.exc
 from fastapi import APIRouter, Depends
 from sqlmodel import Session, select
-from ..dependencies import get_session, check_token, check_roles,check_permission
+from ..dependencies import get_session
 from ..sql.models import Category, CategoryField, Role
 from typing import List
 from pydantic import BaseModel
 from ..sql.schemas import ApiResponse
 from ..common import utils
 
-router = APIRouter(prefix='/api', dependencies=[Depends(check_permission), ])
+router = APIRouter(prefix='/api')
 
 
 class UpdateCategory(BaseModel):
@@ -71,8 +71,8 @@ async def get_category_detail(id: int, session: Session = Depends(get_session)):
 
 
 @router.get('/categories', description="资产表实时查询当前资产列表")
-async def get_category_list(search: Optional[str] = None, session: Session = Depends(get_session),
-                            roles: List[str] = Depends(check_roles)):
+async def get_category_list(search: Optional[str] = None, session: Session = Depends(get_session)):
+    roles = []
     role_list = session.exec(select(Role).where(Role.id.in_(roles))).all()
     role_category = []
     for role in role_list:

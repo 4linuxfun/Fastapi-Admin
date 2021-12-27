@@ -17,7 +17,7 @@ from tempfile import NamedTemporaryFile
 from ..common import utils
 import json
 
-router = APIRouter(prefix='/api', dependencies=[Depends(check_permission), ])
+router = APIRouter(prefix='/api')
 
 
 class SearchForm(Assets):
@@ -117,7 +117,7 @@ def download_tmpfile(id: int, session: Session = Depends(get_session)):
         return FileResponse(f.name, filename='template.xlsx', background=BackgroundTask(utils.remove_tmp_file, f.name))
 
 
-@router.put('/assets/multi', description="批量更新资产信息")
+@router.put('/assets/multi', description="批量更新资产信息",dependencies=[Depends(check_permission), ])
 async def update_assets(update: UpdateAssets, session: Session = Depends(get_session)):
     print(update)
     assets_result = session.exec(select(Assets).where(Assets.id.in_(update.assets)))
@@ -143,7 +143,7 @@ async def update_assets(update: UpdateAssets, session: Session = Depends(get_ses
     )
 
 
-@router.put('/assets', description="更新资产")
+@router.put('/assets', description="更新资产",dependencies=[Depends(check_permission), ])
 async def update_category_detail(new_asset: Assets, session: Session = Depends(get_session)):
     old_asset = session.exec(select(Assets).where(Assets.id == new_asset.id)).one()
     old_asset = utils.update_model(old_asset, new_asset)
@@ -181,7 +181,7 @@ async def search_system(q: str, session: Session = Depends(get_session)):
     )
 
 
-@router.post('/assets', description="手动添加资产")
+@router.post('/assets', description="手动添加资产",dependencies=[Depends(check_permission), ])
 async def add_asset(asset: Assets, session: Session = Depends(get_session)):
     print(asset)
     session.add(asset)

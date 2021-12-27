@@ -25,6 +25,7 @@
 			</el-table-column>
 			<el-table-column prop="path" label="路径" width="180" />
 			<el-table-column prop="component" label="组件" width="180" />
+			<el-table-column prop="api" label="API权限"></el-table-column>
 			<el-table-column prop="enable" label="状态" width="80">
 				<template #default="scope">
 					<el-tag effect="dark" :type="scope.row.enable === 1?'success':'danger'">{{scope.row.enable === 1?'启用':'禁用'}}</el-tag>

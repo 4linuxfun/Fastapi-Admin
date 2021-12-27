@@ -1,12 +1,6 @@
 <template>
-	<el-dialog
-		:model-value="visible"
-		title="角色编辑页面"
-		width="50%"
-		@close="$emit('update:visible', false)"
-		@opened="getInfo"
-		destroy-on-close
-	>
+	<el-dialog :model-value="visible" title="角色编辑页面" width="50%" @close="$emit('update:visible', false)"
+		@opened="getInfo" destroy-on-close>
 		<el-form :model="selectData" label-width="80px">
 			<el-form-item label="角色名称">
 				<el-input v-model="selectData.name"></el-input>
@@ -21,23 +15,12 @@
 				</el-radio-group>
 			</el-form-item>
 			<el-form-item label="菜单" style="border-style: solid;">
-				<el-tree
-					ref="tree"
-					:data="menus"
-					:props="defaultProps"
-					show-checkbox
-					check-strictly
-					node-key="id"
-					:default-checked-keys="enables"
-				></el-tree>
+				<el-tree ref="tree" :data="menus" :props="defaultProps" show-checkbox check-strictly node-key="id"
+					:default-checked-keys="enables"></el-tree>
 			</el-form-item>
 			<el-form-item label="资产" style="border-style: solid;">
-				<el-transfer
-					v-model="categoryEnables"
-					:props="{ key: 'id', label: 'name' }"
-					:data="category"
-					:titles="['无权限', '有权限']"
-				></el-transfer>
+				<el-transfer v-model="categoryEnables" :props="{ key: 'id', label: 'name' }" :data="category"
+					:titles="['无权限', '有权限']"></el-transfer>
 			</el-form-item>
 			<el-form-item>
 				<el-button @click="$emit('update:visible', false)">取消</el-button>
@@ -49,62 +32,90 @@
 </template>
 
 <script>
-import { GetRoleEnableMenus, GetRoleCategories,PutRoles } from '@/api/roles'
-export default {
-	props: ['role', 'visible'],
-	emits: ['update:visible'],
-	data() {
-		return {
-			selectData: this.role,
-			menus: '',
-			defaultProps: {
-				children: 'children',
-				label: 'name'
-			},
-			// 拥有权限的菜单ID列表
-			enables: '',
-			category: [],
-			categoryEnables: []
-		}
-	},
-	mounted() {
-		GetRoleCategories(this.role.id).then((response) => {
-			console.log(response)
-			this.category = response.category
-			this.categoryEnables = response.enable
-		})
-	},
-	methods: {
-		// updateMenu() {
-		// 	this.$emit('update',this.selectData)
-		// 	this.$emit('cancel')
-		// },
-		getInfo() {
-			console.log('请求menus信息')
-			GetRoleEnableMenus(this.role.id).then((response) => {
+	import {
+		GetRoleEnableMenus,
+		GetRoleCategories,
+		PutRoles,
+		PostNewRoles,
+	} from '@/api/roles'
+	export default {
+		props: ['role', 'visible'],
+		emits: ['update:visible'],
+		data() {
+			return {
+				selectData: this.role,
+				menus: '',
+				defaultProps: {
+					children: 'children',
+					label: 'name'
+				},
+				// 拥有权限的菜单ID列表
+				enables: '',
+				category: [],
+				categoryEnables: []
+			}
+		},
+		mounted() {
+			GetRoleCategories(this.role.id).then((response) => {
 				console.log(response)
-				this.menus = response.menus
-				this.enables = response.enable
+				this.category = response.category
+				this.categoryEnables = response.enable
 			})
-			console.log('请求category信息')
-
-
 		},
-		handleUpdate() {
-			let checkedKeys = this.$refs.tree.getCheckedKeys().concat(this.$refs.tree.getHalfCheckedKeys())
-			console.log(checkedKeys)
-			PutRoles(this.selectData, checkedKeys, this.categoryEnables).then(() => {
-				this.$notify({
-					title: 'success',
-					message: "菜单权限更新成功",
-					type: 'success'
+		methods: {
+			// updateMenu() {
+			// 	this.$emit('update',this.selectData)
+			// 	this.$emit('cancel')
+			// },
+			getInfo() {
+				console.log('请求menus信息')
+				GetRoleEnableMenus(this.role.id).then((response) => {
+					console.log(response)
+					this.menus = response.menus
+					this.enables = response.enable
 				})
-			})
-			this.$emit('update:visible', false)
-		},
+				console.log('请求category信息')
 
-	},
-}
+
+			},
+			handleUpdate() {
+				let checkedKeys = this.$refs.tree.getCheckedKeys().concat(this.$refs.tree.getHalfCheckedKeys())
+				console.log(checkedKeys)
+				if (this.selectData.id === null) {
+					PostNewRoles(this.selectData, checkedKeys, this.categoryEnables).then(() => {
+						this.$notify({
+							title: 'success',
+							message: '角色新建成功',
+							type: 'success'
+						})
+					}).catch((error) => {
+						this.$notify({
+							title: 'error',
+							message: "角色新建失败：" + error,
+							type: 'error'
+						})
+					})
+				} else {
+					PutRoles(this.selectData, checkedKeys, this.categoryEnables).then(() => {
+						this.$notify({
+							title: 'success',
+							message: "角色更新成功",
+							type: 'success'
+						})
+					}).catch((error) => {
+						this.$notify({
+							title: 'error',
+							message: "失败：" + error,
+							type: 'error'
+						})
+					})
+				}
+
+				this.$emit('update:visible', false)
+			},
+
+		},
+	}
 </script>
 
 <style>
