@@ -6,15 +6,10 @@ from sqlmodel import Session, select
 from sqlalchemy.exc import NoResultFound
 from ..common.security import create_access_token
 from ..sql.models import User, Menu
-from ..sql.schemas import ApiResponse
-from ..sql import crud
+from ..schemas import ApiResponse
+from ..schemas.user import UserLogin
+from .. import crud
 from ..common.utils import menu_convert
-
-
-class UserLogin(BaseModel):
-    username: str
-    password: str
-
 
 router = APIRouter(prefix='/api')
 
@@ -28,9 +23,7 @@ async def login(login_form: UserLogin, session: Session = Depends(get_session)):
     :return:
     """
     try:
-        sql = select(User).where(User.name == login_form.username, User.password == login_form.password,
-                                 User.enable == 1)
-        user: User = session.exec(sql).one()
+        user = crud.user.login(session, login_form)
     except NoResultFound:
         return ApiResponse(
             code=1,
@@ -64,7 +57,7 @@ async def get_permission(session: Session = Depends(get_session), token: dict = 
     """
     uid: List[int] = token['uid']
     print(f"uid is:{uid}")
-    user: User = session.exec(select(User).where(User.id == uid)).one()
+    user: User = crud.user.get(session, uid)
     print(user.roles)
     user_menus = []
     for role in user.roles:

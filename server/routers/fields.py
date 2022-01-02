@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from sqlmodel import Session, select
 from ..dependencies import get_session, check_permission
 from ..sql.models import CategoryField
-from ..sql.schemas import ApiResponse
+from ..schemas import ApiResponse
 
 router = APIRouter(prefix='/api', dependencies=[Depends(check_permission), ])
 

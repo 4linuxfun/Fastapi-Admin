@@ -10,7 +10,7 @@ from ..dependencies import get_session, check_permission
 from ..sql.models import Assets, Category, CategoryField, RoleCategory, ShareFields, Role
 from typing import List, Union, Dict, Any
 from pydantic import BaseModel
-from ..sql.schemas import ApiResponse
+from ..schemas import ApiResponse
 import pandas as pd
 from ..sql.database import engine
 from tempfile import NamedTemporaryFile
