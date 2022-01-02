@@ -25,8 +25,8 @@
 			</el-table-column>
 			<el-table-column label="操作">
 				<template #default="scope">
-					<el-button type="primary" size="small" @click="handleEdit(scope.row)">编辑权限</el-button>
-					<el-button type="danger" size="small" @click="handleDel(scope.row.id,scope.row.name)">删除</el-button>
+					<el-button v-if="scope.row.name!='admin'" type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
+					<el-button v-if="scope.row.name!='admin'" type="danger" size="small" @click="handleDel(scope.row.id,scope.row.name)">删除</el-button>
 				</template>
 			</el-table-column>
 		</el-table>

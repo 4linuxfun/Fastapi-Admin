@@ -69,6 +69,12 @@ async def add_roles(role_info: RoleInfo, session: Session = Depends(get_session)
 @router.put('/roles', description="更新用户角色")
 async def update_roles(role_info: RoleInfo, session: Session = Depends(get_session)):
     print(role_info)
+    if role_info.role.name == 'admin':
+        return ApiResponse(
+            code=1,
+            message="error",
+            data="admin权限组无法更新信息"
+        )
     db_obj = crud.role.get(session, role_info.role.id)
     db_obj = crud.role.update(session, db_obj, role_info.role)
     crud.role.update_menus(session, db_obj, role_info.menus)
@@ -81,6 +87,13 @@ async def update_roles(role_info: RoleInfo, session: Session = Depends(get_sessi
 
 @router.delete('/roles/{id}')
 async def del_role(id: int, session: Session = Depends(get_session)):
+    db_obj = crud.role.get(session,id)
+    if db_obj.name == 'admin':
+        return ApiResponse(
+            code=1,
+            message="error",
+            data="admin用户组无法删除"
+        )
     crud.role.delete(session, id)
     return ApiResponse(
         code=0,
