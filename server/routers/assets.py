@@ -1,51 +1,44 @@
-import base64
-from typing import Optional
-import sqlalchemy.exc
+import json
+from tempfile import NamedTemporaryFile
+from typing import List, Optional
+import pandas as pd
 from fastapi import APIRouter, Depends, File, UploadFile
 from starlette.background import BackgroundTask
 from fastapi.responses import FileResponse
-from sqlmodel import Session, select, text
-from sqlalchemy import func
-from ..dependencies import get_session, check_permission
-from ..sql.models import Assets, Category, CategoryField, RoleCategory, ShareFields, Role
-from typing import List, Union, Dict, Any
-from pydantic import BaseModel
+from sqlmodel import Session, select
+from ..dependencies import get_session, check_permission, base_to_json
+from ..sql.models import Assets, Category, CategoryField, ShareFields
 from ..schemas import ApiResponse
-import pandas as pd
 from ..sql.database import engine
-from tempfile import NamedTemporaryFile
 from ..common import utils
-import json
+from ..schemas.assets import SearchForm, UpdateAssets
+from .. import crud
 
 router = APIRouter(prefix='/api')
 
 
-class SearchForm(Assets):
-    limit: Optional[int]
-    offset: Optional[int]
-    filters: Optional[list]
-
-
-class UpdateAssets(BaseModel):
-    # 批量更新资产信息提交内容
-    assets: List[int]
-    update: List[Dict[str, Any]]
-
-
 @router.get('/assets/count', description="查询资源的总数")
-async def search_total(q: str, session: Session = Depends(get_session)):
-    print(q)
-    search = json.loads(base64.b64decode(q))
-    print(search)
-    system = SearchForm(**search)
-    sql = make_search_sql(system, model='count')
-    print(sql)
-    total = session.execute(sql).scalar()
-    print(total)
+async def search_total(search: SearchForm = Depends(base_to_json), session: Session = Depends(get_session)):
+    total = crud.assets.search_total(session, search)
     return ApiResponse(
         code=0,
         message="success",
         data=total
+    )
+
+
+@router.get('/assets/category/fields', description="查找资产可查询字段")
+async def get_category_field(category_id: int, query: Optional[str] = None, session: Session = Depends(get_session)):
+    search = select(CategoryField).where(CategoryField.category_id == category_id)
+    if query is not None:
+        print('query is not none' + query)
+        search = search.where(CategoryField.name.like('%' + query + '%'))
+    fields = session.exec(search).all()
+    print(fields)
+    return ApiResponse(
+        code=0,
+        message="success",
+        data=fields
     )
 
 
@@ -117,7 +110,7 @@ def download_tmpfile(id: int, session: Session = Depends(get_session)):
         return FileResponse(f.name, filename='template.xlsx', background=BackgroundTask(utils.remove_tmp_file, f.name))
 
 
-@router.put('/assets/multi', description="批量更新资产信息",dependencies=[Depends(check_permission), ])
+@router.put('/assets/multi', description="批量更新资产信息", dependencies=[Depends(check_permission), ])
 async def update_assets(update: UpdateAssets, session: Session = Depends(get_session)):
     print(update)
     assets_result = session.exec(select(Assets).where(Assets.id.in_(update.assets)))
@@ -143,7 +136,7 @@ async def update_assets(update: UpdateAssets, session: Session = Depends(get_ses
     )
 
 
-@router.put('/assets', description="更新资产",dependencies=[Depends(check_permission), ])
+@router.put('/assets', description="更新资产", dependencies=[Depends(check_permission), ])
 async def update_category_detail(new_asset: Assets, session: Session = Depends(get_session)):
     old_asset = session.exec(select(Assets).where(Assets.id == new_asset.id)).one()
     old_asset = utils.update_model(old_asset, new_asset)
@@ -156,22 +149,15 @@ async def update_category_detail(new_asset: Assets, session: Session = Depends(g
 
 
 @router.get('/assets', description="搜索资源")
-async def search_system(q: str, session: Session = Depends(get_session)):
-    print(q)
-    search = json.loads(base64.b64decode(q))
+async def search_system(search: SearchForm = Depends(base_to_json), session: Session = Depends(get_session)):
     print(search)
-    system = SearchForm(**search)
-    print(system)
-    if not system.category:
+    if not search.category:
         return ApiResponse(
             code=1,
             message="error",
             data='请选择资产类型'
         )
-    sql = make_search_sql(system)
-    sql = sql.offset(system.offset).limit(system.limit)
-    print(str(sql))
-    results = session.exec(sql).all()
+    results = crud.assets.search_assets(session, search)
 
     print(results)
     return ApiResponse(
@@ -181,7 +167,7 @@ async def search_system(q: str, session: Session = Depends(get_session)):
     )
 
 
-@router.post('/assets', description="手动添加资产",dependencies=[Depends(check_permission), ])
+@router.post('/assets', description="手动添加资产", dependencies=[Depends(check_permission), ])
 async def add_asset(asset: Assets, session: Session = Depends(get_session)):
     print(asset)
     session.add(asset)
@@ -224,47 +210,3 @@ def to_json(x, dynamic_list):
     for value in dynamic_list:
         info[value] = x[value]
     return json.dumps(info)
-
-
-def make_search_sql(search: SearchForm, model='all'):
-    """
-    searchForm生成对应的查询sql
-    :param search:
-    :param model: 'all':代表查询所有，'count':表示返回count
-    :return:
-    """
-    if model == 'all':
-        sql = select(Assets)
-    elif model == 'count':
-        sql = select(func.count(Assets.id))
-    if search.category:
-        sql = sql.where(Assets.category.like('%' + search.category + '%'))
-    if search.manager:
-        sql = sql.where(Assets.manager.like('%' + search.manager + '%'))
-    if search.area:
-        sql = sql.where(Assets.area.like('%' + search.area + '%'))
-    if search.user:
-        sql = sql.where(Assets.user.like('%' + search.user + '%'))
-    for key, value in search.info.items():
-        if value:
-            sql = sql.where(Assets.info[key].like('%' + value + '%'))
-    if search.filters is not None:
-        for filter in search.filters:
-            print(filter)
-            if filter['field'] is None:
-                continue
-            if filter['mode'] == 'like':
-                sql = sql.where(Assets.info[filter['field']].like('%' + filter['value'] + '%'))
-            if filter['mode'] == 'eq':
-                sql = sql.where(Assets.info[filter['field']] == filter['value'])
-            if filter['mode'] == 'lt':
-                sql = sql.where(Assets.info[filter['field']] < filter['value'])
-            if filter['mode'] == 'le':
-                sql = sql.where(Assets.info[filter['field']] <= filter['value'])
-            if filter['mode'] == 'gt':
-                sql = sql.where(Assets.info[filter['field']] > filter['value'])
-            if filter['mode'] == 'ge':
-                sql = sql.where(Assets.info[filter['field']] >= filter['value'])
-            if filter['mode'] == 'ne':
-                sql = sql.where(Assets.info[filter['field']] != filter['value'])
-    return sql
