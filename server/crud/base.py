@@ -1,16 +1,18 @@
 # 参考自：tiangolo/full-stack-fastapi-postgresql项目，部分代码为直接摘抄
-from sqlmodel import Session, select
-from fastapi.encoders import jsonable_encoder
+from typing import TypeVar, Generic, List, Type
+from sqlmodel import Session, select, SQLModel
+
+ModelType = TypeVar('ModelType', bound=SQLModel)
 
 
-class CRUDBase:
-    def __init__(self, model):
+class CRUDBase(Generic[ModelType]):
+    def __init__(self, model: Type[ModelType]):
         self.model = model
 
     def get(self, db: Session, id: int):
         return db.exec(select(self.model).where(self.model.id == id)).one()
 
-    def get_multi(self, db: Session, *, skip: int = 0, limit: int = 100):
+    def get_multi(self, db: Session, *, skip: int = 0, limit: int = 100) -> List[ModelType]:
         return db.exec(select(self.model).offset(skip).limit(limit)).all()
 
     def insert(self, db: Session, obj_in):

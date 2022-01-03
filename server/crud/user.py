@@ -6,7 +6,7 @@ from ..schemas.user import UserInfo, UserLogin
 from .roles import role
 
 
-class CRUDUser(CRUDBase):
+class CRUDUser(CRUDBase[User]):
     def login(self, session: Session, login_form: UserLogin) -> User:
         sql = select(self.model).where(self.model.name == login_form.username,
                                        self.model.password == login_form.password,
@@ -14,7 +14,7 @@ class CRUDUser(CRUDBase):
         return session.exec(sql).one()
 
     def search(self, session: Session, q: Union[int, str]):
-        sql = select(User)
+        sql = select(self.model)
         if q is not None:
             sql = sql.where(or_(self.model.name.like(f'%{q}%'), ))
         return session.exec(sql).all()

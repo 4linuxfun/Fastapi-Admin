@@ -5,7 +5,7 @@ from .base import CRUDBase
 from ..dependencies import casbin_enforcer
 
 
-class CRUDMenu(CRUDBase):
+class CRUDMenu(CRUDBase[Menu]):
     def search(self, session: Session, q: Optional = None) -> List[Menu]:
         sql = select(self.model)
         if q is not None:

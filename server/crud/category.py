@@ -4,7 +4,7 @@ from ..sql.models import Category, RoleCategory, CategoryField
 from .base import CRUDBase
 
 
-class CRUECategory(CRUDBase):
+class CRUECategory(CRUDBase[Category]):
     def get_all_catagories(self, session: Session) -> List[Category]:
         return session.exec(select(Category)).all()
 

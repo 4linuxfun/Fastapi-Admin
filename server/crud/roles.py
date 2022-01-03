@@ -5,10 +5,10 @@ from .base import CRUDBase
 from ..dependencies import casbin_enforcer
 
 
-class CRUDRole(CRUDBase):
+class CRUDRole(CRUDBase[Role]):
     def get_roles_by_name(self, session: Session, roles: List[str]):
         return session.exec(select(self.model).where(self.model.name.in_(roles))).all()
-
+        
     def get_all_menus(self, session: Session):
         return session.exec(select(Menu).where(Menu.enable == 1)).all()
 
