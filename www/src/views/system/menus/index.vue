@@ -25,7 +25,14 @@
 			</el-table-column>
 			<el-table-column prop="path" label="路径" width="180" />
 			<el-table-column prop="component" label="组件" width="180" />
-			<el-table-column prop="api" label="API权限"></el-table-column>
+			<el-table-column prop="api" label="API权限">
+				<template #default="scope">
+					<template v-if="scope.row.api != null">
+						<el-tag v-for="(api,index) of splitApis(scope.row.api)" :key="index" type="success">{{api}}</el-tag>
+					</template>
+					
+				</template>
+			</el-table-column>
 			<el-table-column prop="enable" label="状态" width="80">
 				<template #default="scope">
 					<el-tag effect="dark" :type="scope.row.enable === 1?'success':'danger'">{{scope.row.enable === 1?'启用':'禁用'}}</el-tag>
@@ -87,6 +94,11 @@
 			},
 		},
 		methods: {
+			splitApis(apis){
+				console.log('split')
+				console.log(apis)
+				return apis.split(',')
+			},
 			onSubmit() {
 				console.log('submit!')
 			},

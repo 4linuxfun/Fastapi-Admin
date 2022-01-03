@@ -39,7 +39,7 @@
 <script>
 	import request from '@/utils/request'
 	import {GetAssets} from '@/api/assets'
-	import {PostCategory} from '@/api/categories'
+	import {PostCategory,PutCategory} from '@/api/categories'
 	import CategoryDialog from './CategoryDialog'
 	export default {
 		components:{
@@ -103,19 +103,36 @@
 			},
 			updateCategory(category){
 				console.log(category)
-				PostCategory(category).then(()=>{
-					this.$notify({
+				if(category.category.id == null){
+					PostCategory(category).then(()=>{
+						this.$notify({
+									title:'success',
+									message:"资产创建成功",
+									type:'success'
+								})
+					}).catch(()=>{
+							this.$notify({
 								title:'success',
-								message:"资产创建成功",
+								message:"取消删除操作",
 								type:'success'
 							})
-				}).catch(()=>{
+					})
+				}else{
+					PutCategory(category.category.id,category).then(()=>{
 						this.$notify({
-							title:'success',
-							message:"取消删除操作",
-							type:'success'
-						})
-				})
+									title:'success',
+									message:"资产更新成功",
+									type:'success'
+								})
+					}).catch(()=>{
+							this.$notify({
+								title:'success',
+								message:"取消更新操作",
+								type:'success'
+							})
+					})
+				}
+				
 				this.init()
 			},
 			addDialog(){
