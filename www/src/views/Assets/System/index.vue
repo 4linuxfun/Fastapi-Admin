@@ -112,9 +112,8 @@
 </template>
 
 <script>
-import {
-	GetCategoryFields,GetAssetsCount,GetAssets
-} from '@/api/index'
+import { GetCategoryFields } from '@/api/categories'
+import { GetAssetsCount, GetAssets } from '@/api/assets'
 import ImportDialog from './ImportDialog'
 import DetailDialog from './DetailDialog'
 import MultiDialog from './MultiDialog'
@@ -186,7 +185,7 @@ export default {
 
 		}
 
-		const handleSelect=(item)=> {
+		const handleSelect = (item) => {
 			// 选择后，就需要去后台捞取对应资产的动态字段，并进行列出选择
 			console.log(item)
 			searchForm.id = item.id
@@ -201,7 +200,7 @@ export default {
 			})
 		}
 
-		const handleSearch = ()=> {
+		const handleSearch = () => {
 			console.log(searchForm)
 			if (searchForm.category == null) {
 				ElMessage({
@@ -254,7 +253,7 @@ export default {
 
 	methods: {
 
-		
+
 		handlePage(newPage) {
 			console.log(newPage)
 			this.currentPage = newPage

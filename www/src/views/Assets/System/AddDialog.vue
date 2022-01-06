@@ -1,6 +1,6 @@
 <template>
 	<!-- 单条数据录入页面 -->
-	<el-dialog :model-value="visible" :title="title" width="30%" @close="$emit('update:visible',false)"
+	<el-dialog :model-value="visible" :title="title" width="30%" @close="$emit('update:visible', false)"
 		destroy-on-close>
 		<el-form :model="formData" label-width="100px">
 			<el-form-item label="资产类型">
@@ -25,20 +25,21 @@
 			</template>
 
 			<el-form-item>
-				<el-button type="danger" @click="$emit('update:visible',false)">取消</el-button>
+				<el-button type="danger" @click="$emit('update:visible', false)">取消</el-button>
 				<el-button type="primary" @click="handleAdd">添加</el-button>
 			</el-form-item>
 		</el-form>
-
 	</el-dialog>
-
 </template>
 
 <script>
 	import InputPlus from '@/components/InputPlus'
 	import {
-		GetCategoryFields,PostAssets
-	} from '@/api/index'
+		GetCategoryFields
+	} from '@/api/categories'
+	import {
+		PostAssets
+	} from '@/api/assets'
 	import CategorySelect from '@/components/CategorySelect'
 	export default {
 		props: ['visible', "title"],

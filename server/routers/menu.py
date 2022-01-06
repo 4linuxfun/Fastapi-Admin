@@ -1,19 +1,20 @@
+import copy
 from typing import List, Optional
-from fastapi import APIRouter, Depends, Form
+from fastapi import APIRouter, Depends
 from sqlmodel import Session, select
-from ..dependencies import get_session, check_token
+from ..dependencies import get_session, casbin_enforcer
 from ..sql.models import Menu
-from ..sql import crud
 from ..common import utils
-from ..sql.schemas import ApiResponse
+from ..schemas import ApiResponse
+from .. import crud
 
-router = APIRouter(prefix='/api', dependencies=[Depends(check_token), ])
+router = APIRouter(prefix='/api')
 
 
 @router.get('/menus', description="查询菜单")
-async def get_all_menu(session: Session = Depends(get_session)):
+async def get_all_menu(q: Optional[str] = None, session: Session = Depends(get_session)):
     # 复用crud.get_menu_list,默认role为admin就是返回所有的菜单列表
-    menu_list: List[Menu] = crud.get_menu_list(session)
+    menu_list = crud.menu.search(session, q)
     user_menus = utils.menu_convert(menu_list, "all")
 
     print(user_menus)
@@ -27,12 +28,12 @@ async def get_all_menu(session: Session = Depends(get_session)):
 @router.post('/menus', description="新建菜单")
 async def add_menu(menu: Menu, session: Session = Depends(get_session)):
     """
+    # 新建的菜单，还是没有授权给角色的，所以直接新增就行了
     :param menu:
     :param session:
     :return:
     """
-    session.add(menu)
-    session.commit()
+    crud.menu.insert(session, menu)
     return ApiResponse(
         code=0,
         message="success"
@@ -42,19 +43,13 @@ async def add_menu(menu: Menu, session: Session = Depends(get_session)):
 @router.put('/menus', description="更新菜单")
 async def update_menu(menu: Menu, session: Session = Depends(get_session)):
     """
+    更新菜单，涉及到原菜单对应api的更新，则需要更新对应信息
     :param menu:
     :param session:
     :return:
     """
-    sql = select(Menu).where(Menu.id == menu.id)
-    result = session.exec(sql).one()
-    print(result)
-    # menu_data = menu.dict(exclude_unset=True)
-    # for key, value in menu_data.items():
-    #     setattr(result, key, value)
-    result = utils.update_model(result, menu)
-    session.add(result)
-    session.commit()
+    db_obj = crud.menu.get(session, menu.id)
+    crud.menu.update(session, db_obj, menu)
     return ApiResponse(
         code=0,
         message="success"
@@ -63,10 +58,7 @@ async def update_menu(menu: Menu, session: Session = Depends(get_session)):
 
 @router.delete('/menus/{id}')
 async def del_menu(id: int, session: Session = Depends(get_session)):
-    sql = select(Menu).where(Menu.id == id)
-    result = session.exec(sql).one()
-    session.delete(result)
-    session.commit()
+    crud.menu.delete(session, id)
     return ApiResponse(
         code=0,
         message="success"

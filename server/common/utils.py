@@ -38,10 +38,6 @@ def menu_convert(menu_list, mode=None):
                             info['children'] = []
                             for btn in btn_dict[info['id']]:
                                 info['children'].append(btn)
-                        elif mode == "role":
-                            info['children'] = []
-                            for btn in btn_dict[info['id']]:
-                                info['children'].append(btn)
                     tmp['children'].append(info)
             user_menus.append(tmp)
     print(user_menus)

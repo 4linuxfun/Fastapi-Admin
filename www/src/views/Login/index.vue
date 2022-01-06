@@ -4,12 +4,22 @@
 			class="login-form" @keyup.enter="handleLogin">
 			<h3 class="title">资产管理系统</h3>
 			<el-form-item prop="username">
-				<el-input v-model="loginForm.username" type="text" auto-complete="off" placeholder="账号">
+				<el-input v-model="loginForm.username" type="text" auto-complete="off" placeholder="请输入用户名">
+					<template #prepend>
+						<el-icon :size="20">
+							<user/>
+						</el-icon>
+					</template>
 					<!-- <i class="el-icon-user-solid" style="height: 39px;width: 13px;margin-left: 2px;"></i> -->
 				</el-input>
 			</el-form-item>
 			<el-form-item prop="password">
-				<el-input v-model="loginForm.password" type="password" auto-complete="off" placeholder="密码">
+				<el-input v-model="loginForm.password" type="password" auto-complete="off" placeholder="请输入密码">
+					<template #prepend>
+						<el-icon :size="20">
+							<lock/>
+						</el-icon>
+					</template>
 					<!-- <i class="el-icon-lock" style="height: 39px;width: 13px;margin-left: 2px;"></i> -->
 				</el-input>
 			</el-form-item>
@@ -25,14 +35,24 @@
 </template>
 
 <script>
+	import {
+		User,
+		Lock
+	} from '@element-plus/icons-vue'
 	import Cookies from "js-cookie";
 	import md5 from 'js-md5';
 	import {
 		mapActions
 	} from "pinia"
-	import {useStore} from '@/stores'
+	import {
+		useStore
+	} from '@/stores'
 	export default {
 		name: "Login",
+		components: {
+			User,
+			Lock,
+		},
 		data() {
 			return {
 				loginForm: {
@@ -70,7 +90,7 @@
 		},
 		methods: {
 			// 映射actions到本地
-			...mapActions(useStore,['logIn']),
+			...mapActions(useStore, ['logIn']),
 			getCookie() {
 				const username = Cookies.get("username");
 				const rememberMe = Cookies.get("rememberMe");
@@ -113,9 +133,10 @@
 							.catch((error) => {
 								this.loading = false;
 								this.$notify({
-									title:'错误！',
-									message:error,
-									type:'error'})
+									title: '错误！',
+									message: error,
+									type: 'error'
+								})
 							});
 					} else {
 						console.log("提交错误!");

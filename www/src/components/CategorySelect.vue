@@ -5,7 +5,7 @@
 </template>
 
 <script>
-	import request from '@/utils/request'
+	import {GetCategories} from '@/api/categories'
 	export default{
 		props:['category','placeholder'],
 		emits:['update:category','handleSelect'],
@@ -17,11 +17,7 @@
 		methods: {
 			async querySearchAsync(query, callback) {
 				console.log('query:'+query)
-				request({
-					url: '/api/assets/category-list',
-					method: 'get',
-					params:{search:query}
-				}).then((response) => {
+				GetCategories(query).then((response) => {
 					callback(response)
 				}).catch((error)=>{
 					this.$notify({

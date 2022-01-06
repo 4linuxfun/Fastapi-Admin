@@ -18,7 +18,7 @@
 	</el-table>
 </template>
 <script>
-	import {GetRoles,GetRoleInfo} from '@/api/index'
+	import {GetRoles,GetRoleInfo} from '@/api/roles'
 export default {
 	created() {
 		this.getRoles()

@@ -1,0 +1,10 @@
+import {GET,POST,PUT,DELETE} from '@/utils/request'
+
+// 角色接口
+export const GetRoles = (q)=>GET('api/roles',{q})
+export const GetRoleInfo = (roleId)=>GET('api/roles'+roleId)
+export const GetRoleEnableMenus = (roleId) =>GET('api/roles/enable-menus',{id:roleId})
+export const PostNewRoles = (role, menuList,category)=>POST('api/roles',{role,menus:menuList,category})
+export const PutRoles = (role, menuList,category)=>PUT('api/roles',{role,menus:menuList,category}) 
+export const DeleteRole = (roleId)=>DELETE('api/roles/'+roleId)
+export const GetRoleCategories = (id)=>GET('api/roles/categories',{id})

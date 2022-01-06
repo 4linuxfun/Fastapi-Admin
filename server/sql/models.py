@@ -22,11 +22,13 @@ class Menu(SQLModel, table=True):
     name: Optional[str]
     path: Optional[str]
     component: Optional[str]
+    api: Optional[str]
     type: Optional[str]
     parent_id: Optional[int]
     enable: int
     url: Optional[str]
     roles: List["Role"] = Relationship(back_populates="menus", link_model=RoleMenu)
+    # apis: List['Api'] = Relationship(back_populates="menus", link_model=MenuApi)
 
 
 class UserRole(SQLModel, table=True):
@@ -126,3 +128,15 @@ class Assets(ShareFields, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     info: Optional[Dict[Any, Any]] = Field(default=None, sa_column=Column(MutableDict.as_mutable(JSON)))
     deleted: Optional[int] = 0
+
+#
+# class Permission(SQLModel, table=True):
+#     __tablename__ = "casbin_rule"
+#     id: Optional[int] = Field(default=None, primary_key=True)
+#     ptype: Optional[str]
+#     v0: Optional[str]
+#     v1: Optional[str]
+#     v2: Optional[str]
+#     v3: Optional[str]
+#     v4: Optional[str]
+#     v5: Optional[str]

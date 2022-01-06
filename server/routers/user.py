@@ -1,125 +1,40 @@
-from fastapi import APIRouter, Depends, Form
-from ..dependencies import get_session, check_token
-from typing import Optional, List, Union
-from ..common.security import hash_password
-from pydantic import BaseModel
+from typing import Optional
 from sqlmodel import Session, select
-from sqlalchemy.exc import NoResultFound
-from ..common.security import create_access_token
-from ..common.utils import menu_convert
-from ..sql import crud
-from ..sql.models import User, Menu, Role, UserRole
-from ..sql.schemas import ApiResponse
-from ..common.utils import update_model
+from fastapi import APIRouter, Depends
+from ..dependencies import get_session, check_token, casbin_enforcer
+from ..sql.models import User, Role
+from .. import crud
+from ..schemas import ApiResponse
+from ..schemas.user import UserInfo
+
+router = APIRouter(prefix='/api', )
 
 
-class UserLogin(BaseModel):
-    username: str
-    password: str
-
-
-class UserInfo(BaseModel):
-    user: User
-    roles: List[str]
-
-
-router = APIRouter(prefix='/api')
-
-
-@router.post('/login', description="用户登录验证模块")
-async def login(login_form: UserLogin, session: Session = Depends(get_session)):
-    """
-    处理登录请求，返回{token:xxxxx}，判断用户密码是否正确
-    :param login_form:
-    :param session
-    :return:
-    """
-    try:
-        sql = select(User).where(User.name == login_form.username, User.password == login_form.password,
-                                 User.enable == 1)
-        user: User = session.exec(sql).one()
-    except NoResultFound:
-        return ApiResponse(
-            code=1,
-            message='error',
-            data="用户名或密码错误"
-        )
-    user_roles = [role.id for role in user.roles]
-    # 把roles封装再token里，每次只需要depends检查对应的roles是否有权限即可
-    access_token = create_access_token(
-        data={"uid": user.id,
-              "roles": user_roles}
-    )
-    return ApiResponse(
-        code=0,
-        message='success',
-        data={
-            "uid": user.id,
-            "token": access_token}
-    )
-
-
-@router.get('/permission', description='获取用户角色对应的菜单列表')
-async def get_permission(session: Session = Depends(get_session), token: dict = Depends(check_token)):
-    """
-    用户权限请求，返回拥有权限的菜单列表，前端根据返回的菜单列表信息，合成菜单项
-    :param session:
-    :param token:
-    :return:
-    """
-    roles: List[int] = token['roles']
-    print(f"rolse is:{roles}")
-    menu_list: List[Menu] = crud.get_menu_list(session, roles=roles, enable=True)
-    print('menulist')
-    print(menu_list)
-    user_menus = menu_convert(menu_list)
-
-    print(user_menus)
-    return ApiResponse(
-        code=0,
-        message="success",
-        data=user_menus
-    )
-
-
-@router.get('/users/roles')
+@router.get('/users/roles', )
 async def get_roles(id: Optional[int] = None, session: Session = Depends(get_session, ),
                     token: dict = Depends(check_token)):
     if id is None:
         # 添加新用户时无用户id
         roles = []
     else:
-        user = session.exec(select(User).where(User.id == id)).one()
+        user = crud.user.get(session, id)
         roles = [role.name for role in user.roles]
-    all_roles = session.exec(select(Role))
-    roles_list = [role.name for role in all_roles]
+    all_roles = session.exec(select(Role)).all()
+    # roles_list = [role.name for role in all_roles]
     return ApiResponse(
         code=0,
         message="success",
         data={
-            'roles': roles_list,
+            'roles': all_roles,
             'enable': roles
         }
-    )
-
-
-@router.delete('/users/{uid}')
-async def delete_user(uid: int, session: Session = Depends(get_session),
-                      token: dict = Depends(check_token)):
-    user = session.exec(select(User).where(User.id == uid)).one()
-    session.delete(user)
-    session.commit()
-    return ApiResponse(
-        code=0,
-        message="success",
     )
 
 
 @router.get('/users/{uid}',
             description='获取用户信息')
 async def get_user_info(uid: int, session: Session = Depends(get_session), token: dict = Depends(check_token)):
-    sql = select(User).where(User.id == uid)
-    user: User = session.exec(sql).one()
+    user = crud.user.get(session, uid)
     return ApiResponse(
         code=0,
         message="success",
@@ -127,40 +42,17 @@ async def get_user_info(uid: int, session: Session = Depends(get_session), token
     )
 
 
-@router.put('/users/{uid}',
-            description='更新用户信息')
-async def update_user(uid: int, user_info: UserInfo, session: Session = Depends(get_session),
-                      token: dict = Depends(check_token)):
-    """
-    更新用户信息的所有操作，可涉及更新用户名、密码、角色等
-    :param uid:
-    :param user_info:
-    :param session:
-    :param token:
-    :return:
-    """
-    print(user_info)
-    user = session.exec(select(User).where(User.id == uid)).one()
-    updated_user = update_model(user, user_info.user)
-    user_roles = session.exec(select(Role).where(Role.name.in_(user_info.roles))).all()
-    updated_user.roles = user_roles
-    session.add(updated_user)
-    session.commit()
-    return ApiResponse(
-        code=0,
-        message="success",
-    )
-
-
 @router.get('/users')
-async def get_all_user(session: Session = Depends(get_session), token: dict = Depends(check_token)):
+async def get_all_user(q: Optional[str] = None, session: Session = Depends(get_session),
+                       token: dict = Depends(check_token)):
     """
     获取“用户管理”页面的用户列表清单
+    :param q:
     :param session:
     :param token:
     :return:
     """
-    users = session.exec(select(User))
+    users = crud.user.search(session, q)
     users_list = [user.dict(exclude={"password": True}) for user in users]
     print(users_list)
     return ApiResponse(
@@ -181,10 +73,45 @@ async def update_user(user_info: UserInfo, session: Session = Depends(get_sessio
     :return:
     """
     print(user_info)
-    updated_user = User(name=user_info.user.name, password=user_info.user.password, enable=user_info.user.enable)
-    user_roles = session.exec(select(Role).where(Role.name.in_(user_info.roles))).all()
-    updated_user.roles = user_roles
-    session.add(updated_user)
+    user: User = crud.user.insert(session, user_info)
+    new_roles = [role.id for role in user.roles]
+    for role in new_roles:
+        casbin_enforcer.add_role_for_user(f'uid_{user.id}', f'role_{role}')
+    return ApiResponse(
+        code=0,
+        message="success",
+    )
+
+
+@router.put('/users/{uid}',
+            description='更新用户信息')
+async def update_user(uid: int, user_info: UserInfo, session: Session = Depends(get_session),
+                      token: dict = Depends(check_token)):
+    """
+    更新用户信息的所有操作，可涉及更新用户名、密码、角色等
+    :param uid:
+    :param user_info:
+    :param session:
+    :param token:
+    :return:
+    """
+    print(user_info)
+    user = crud.user.update(session, uid, user_info)
+    new_roles = [role.id for role in user.roles]
+    casbin_enforcer.delete_roles_for_user(f'uid_{user.id}')
+    for role in new_roles:
+        casbin_enforcer.add_role_for_user(f'uid_{user.id}', f'role_{role}')
+    return ApiResponse(
+        code=0,
+        message="success",
+    )
+
+
+@router.delete('/users/{uid}')
+async def delete_user(uid: int, session: Session = Depends(get_session)):
+    user = session.exec(select(User).where(User.id == uid)).one()
+    casbin_enforcer.delete_roles_for_user(f'uid_{user.id}')
+    session.delete(user)
     session.commit()
     return ApiResponse(
         code=0,
