@@ -32,20 +32,20 @@
 		ElDatePicker,
 		ElTimePicker
 	} from "element-plus"
-	
+
 	/**  
-	   * 动态表单组件  
-	   * @description 动态表单组件
-	   * @tutorial 无  
-	   * @property {Boolean} visible 是否显示formdialog  
-	   * @property {Number} col = [1|2] 显示列数
-	   * @property {String} labelWidth = "100px" formItem label的宽度
-	   * @property {Array} formItemInfo 表单各字段的属性  
-	   * @event {Function} update 提交事件，返回新值  
-	   * @example 
-	*/  
+	 * 动态表单组件  
+	 * @description 动态表单组件
+	 * @tutorial 无  
+	 * @property {Boolean} visible 是否显示formdialog  
+	 * @property {Number} col = [1|2] 显示列数
+	 * @property {String} labelWidth = "100px" formItem label的宽度
+	 * @property {Array} formItemInfo 表单各字段的属性  
+	 * @event {Function} update 提交事件，返回新值  
+	 * @example 
+	 */
 	export default {
-		name:"AutoFormDialog",
+		name: "AutoFormDialog",
 		components: {
 			"text": ElInput,
 			"number": ElInputNumber,
@@ -79,36 +79,22 @@
 				formItemInfo,
 				col
 			} = toRefs(props)
-			
+
 			const formData = reactive({})
-			
-			formItemInfo.value.forEach((v)=>{
+			const componentAttrs = reactive({})
+			const rules = reactive({})
+
+			formItemInfo.value.forEach((v) => {
 				formData[v.prop] = v.value
+				componentAttrs[v.prop] = v.properties
+				rules[v.prop] = v.rules
 			})
-			
+
 			// 根据col属性判断，1列 则默认30%，2列则50%
-			const dialogWidth = (col.value == 1)?ref('30%'):ref('50%')
+			const dialogWidth = (col.value == 1) ? ref('30%') : ref('50%')
 
 			const colSpan = computed(() => {
 				return (col.value == 1) ? 24 : 12
-			})
-
-			const rules = computed(() => {
-				let itemRules = {}
-				formItemInfo.value.forEach((v) => {
-					itemRules[v.prop] = v.rules
-				})
-				console.log(itemRules)
-				return itemRules
-			})
-
-			const componentAttrs = computed(() => {
-				let itemAttrs = {}
-				formItemInfo.value.forEach((v) => {
-					itemAttrs[v.prop] = v.properties
-				})
-				console.log(itemAttrs)
-				return itemAttrs
 			})
 
 			const handleUpdate = () => {
