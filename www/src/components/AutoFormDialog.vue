@@ -38,6 +38,7 @@
 	 * @description 动态表单组件
 	 * @tutorial 无  
 	 * @property {Boolean} visible 是否显示formdialog  
+	 * @property {String} title = "更新" 自定义表单抬头 
 	 * @property {Number} col = [1|2] 显示列数
 	 * @property {String} labelWidth = "100px" formItem label的宽度
 	 * @property {Array} formItemInfo 表单各字段的属性  
@@ -62,6 +63,10 @@
 			col: {
 				type: Number,
 				default: 1
+			},
+			title: {
+				type: String,
+				default: "更新"
 			},
 			labelWidth: {
 				type: String,
