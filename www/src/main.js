@@ -8,10 +8,17 @@ import {createPinia} from 'pinia'
 import request from '@/utils/request'
 import './permission'
 
+import 'xe-utils'
+import VXETable from 'vxe-table'
+import "vxe-table/lib/style.css"
+import VXETablePluginElement from 'vxe-table-plugin-element'
+import 'vxe-table-plugin-element/dist/style.css'
 
 const app = createApp(App)
 app.config.globalProperties.$request = request
 app.use(ElementPlus,{ locale: zhCn})
 app.use(router)
 app.use(createPinia())
+app.use(VXETable)
+VXETable.use(VXETablePluginElement)
 app.mount('#app')

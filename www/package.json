@@ -19,7 +19,10 @@
     "pinia": "^2.0.9",
     "vue": "^3.2.23",
     "vue-echarts": "^6.0.0",
-    "vue-router": "^4.0.11"
+    "vue-router": "^4.0.11",
+    "vxe-table": "^4.1.19",
+    "vxe-table-plugin-element": "^3.0.5",
+    "xe-utils": "^3.5.2"
   },
   "devDependencies": {
     "@vue/cli-plugin-babel": "~4.5.15",
