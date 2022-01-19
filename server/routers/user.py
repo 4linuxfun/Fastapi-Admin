@@ -1,5 +1,6 @@
 from typing import Optional
 from sqlmodel import Session, select
+from sqlalchemy.exc import NoResultFound
 from fastapi import APIRouter, Depends
 from ..dependencies import get_session, check_token, casbin_enforcer
 from ..sql.models import User, Role
@@ -29,6 +30,23 @@ async def get_roles(id: Optional[int] = None, session: Session = Depends(get_ses
             'enable': roles
         }
     )
+
+
+@router.get('/users/exist', description='判断用户是否已经存在')
+async def check_uname_exist(name: str, session: Session = Depends(get_session)):
+    try:
+        crud.user.check_name(session, name)
+    except NoResultFound:
+        return ApiResponse(
+            code=0,
+            message='success'
+        )
+    else:
+        return ApiResponse(
+            code=1,
+            message='error',
+            data="用户名已存在"
+        )
 
 
 @router.get('/users/{uid}',

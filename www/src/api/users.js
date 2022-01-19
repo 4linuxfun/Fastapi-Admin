@@ -5,6 +5,7 @@ export const requestLogin = (username, password) => POST('api/login',{username,p
 export const GetUserInfo = (uid)=> GET('api/users/'+uid)
 export const GetUserPermission = ()=>GET('api/permission')
 export const GetUsers = (q,direction,id,limit,offset_page) => GET('api/users',{q,direction,id,limit,offset_page})
+export const GetUserExist = (name) => GET('api/users/exist',{name})
 export const GetUserRoles = (userId) => GET('api/users/roles',{id:userId})  
 export const PutNewUser = (user, roles) => PUT('api/users/'+user.id,{user,roles})
 export const PostAddUser = (user,roles) =>POST('api/users',{user,roles})

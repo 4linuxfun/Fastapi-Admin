@@ -13,6 +13,10 @@ class CRUDUser(CRUDBase[User]):
                                        self.model.enable == 1)
         return session.exec(sql).one()
 
+    def check_name(self, session: Session, name: str):
+        sql = select(self.model).where(self.model.name == name)
+        return session.exec(sql).one()
+
     # 重写父类的查询构建命令
     def _make_search(self, sql, q: Union[int, str]):
         if q is not None:
