@@ -1,6 +1,6 @@
 from typing import Union
-from sqlmodel import select, Session, or_
-from ..sql.models import User, Role
+from sqlmodel import select, Session
+from ..sql.models import User
 from .base import CRUDBase
 from ..schemas.user import UserInfo, UserLogin
 from .roles import role
@@ -13,11 +13,11 @@ class CRUDUser(CRUDBase[User]):
                                        self.model.enable == 1)
         return session.exec(sql).one()
 
-    def search(self, session: Session, q: Union[int, str]):
-        sql = select(self.model)
+    # 重写父类的查询构建命令
+    def _make_search(self, sql, q: Union[int, str]):
         if q is not None:
-            sql = sql.where(or_(self.model.name.like(f'%{q}%'), ))
-        return session.exec(sql).all()
+            sql = sql.where(self.model.name.like(f'%{q}%'))
+        return sql
 
     def insert(self, session: Session, user_info: UserInfo) -> User:
         updated_user = User(name=user_info.user.name, password=user_info.user.password, enable=user_info.user.enable)
