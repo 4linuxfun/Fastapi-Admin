@@ -1,8 +1,8 @@
 <template>
 	<el-dialog :model-value="visible" title="用户编辑页面" width="30%" @close="$emit('update:visible',false)"
 		@opened="getRoles(selectData.id)" destroy-on-close>
-		<el-form :model="selectData" label-width="80px">
-			<el-form-item label="用户名称">
+		<el-form :model="selectData" label-width="80px" :rules="rules">
+			<el-form-item label="用户名称" prop="name">
 				<el-input v-model="selectData.name"></el-input>
 			</el-form-item>
 			<el-form-item label="密码">
@@ -16,7 +16,8 @@
 			</el-form-item>
 			<el-form-item label="角色">
 				<el-checkbox-group v-model="enableRoleList">
-					<el-checkbox v-for="role in roleList" :label="role.name" :key="role.id" :disabled="role.enable?false:true"/>
+					<el-checkbox v-for="role in roleList" :label="role.name" :key="role.id"
+						:disabled="role.enable?false:true" />
 				</el-checkbox-group>
 			</el-form-item>
 			<el-form-item>
@@ -31,7 +32,8 @@
 
 <script>
 	import {
-		GetUserRoles
+		GetUserRoles,
+		GetUserExist
 	} from '@/api/users'
 	import md5 from 'js-md5'
 	export default {
@@ -44,7 +46,23 @@
 				roleList: [],
 				// 拥有权限的列表
 				enableRoleList: [],
-				password: ''
+				password: '',
+				rules: {
+					name: [{
+						requeired: true,
+						message: "请输入用户名",
+						trigger: 'blur',
+					}, {
+						trigger: 'blur',
+						validator(rule, value, callback) {
+							GetUserExist(value).then(() => {
+								callback()
+							}).catch((error) => {
+								callback(error)
+							})
+						},
+					}]
+				}
 			}
 		},
 		methods: {
@@ -52,6 +70,7 @@
 			// 	this.$emit('update',this.selectData)
 			// 	this.$emit('cancel')
 			// },
+
 			getRoles(userId) {
 				GetUserRoles(userId).then((response) => {
 					this.roleList = response.roles
