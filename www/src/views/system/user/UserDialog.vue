@@ -49,7 +49,7 @@
 				password: '',
 				rules: {
 					name: [{
-						requeired: true,
+						required: true,
 						message: "请输入用户名",
 						trigger: 'blur',
 					}, {
