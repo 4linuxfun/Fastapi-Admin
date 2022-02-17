@@ -5,6 +5,7 @@ from .relationships import RoleMenu, UserRole, RoleCategory
 if TYPE_CHECKING:
     from .user import User
     from .menu import Menu
+    from .assets import Category
 
 
 class Role(SQLModel, table=True):
