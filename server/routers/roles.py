@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from sqlmodel import Session
 from ..dependencies import get_session, check_permission
 from .. import crud
-from ..sql.models import Role, Menu
+from ..models import Role, Menu
 from ..schemas import ApiResponse
 from ..schemas.role import RoleInfo
 from ..common.utils import menu_convert

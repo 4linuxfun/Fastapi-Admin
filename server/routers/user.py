@@ -2,8 +2,8 @@ from typing import Optional
 from sqlmodel import Session, select
 from sqlalchemy.exc import NoResultFound
 from fastapi import APIRouter, Depends
-from ..dependencies import get_session, check_token, casbin_enforcer
-from ..sql.models import User, Role
+from ..dependencies import get_session, casbin_enforcer
+from ..models import User, Role
 from .. import crud
 from ..schemas import ApiResponse
 from ..schemas.user import UserInfo
@@ -11,9 +11,8 @@ from ..schemas.user import UserInfo
 router = APIRouter(prefix='/api', )
 
 
-@router.get('/users/roles', )
-async def get_roles(id: Optional[int] = None, session: Session = Depends(get_session, ),
-                    token: dict = Depends(check_token)):
+@router.get('/users/roles')
+async def get_roles(id: Optional[int] = None, session: Session = Depends(get_session, )):
     if id is None:
         # 添加新用户时无用户id
         roles = []
@@ -51,12 +50,12 @@ async def check_uname_exist(name: str, session: Session = Depends(get_session)):
 
 @router.get('/users/{uid}',
             description='获取用户信息')
-async def get_user_info(uid: int, session: Session = Depends(get_session), token: dict = Depends(check_token)):
+async def get_user_info(uid: int, session: Session = Depends(get_session)):
     user = crud.user.get(session, uid)
     return ApiResponse(
         code=0,
         message="success",
-        data=user.dict(exclude={'password': True})
+        data=user.dict(exclude={'password'})
     )
 
 
@@ -77,7 +76,7 @@ async def get_all_user(q: Optional[str] = None, direction: str = 'next', id: Opt
     total = crud.user.search_total(session, q)
     print(total)
     users = crud.user.search(session, q, direction, id, limit, offset_page)
-    users_list = [user.dict(exclude={"password": True}) for user in users]
+    users_list = [user.dict(exclude={"password"}) for user in users]
     print(users_list)
     return ApiResponse(
         code=0,
@@ -90,13 +89,12 @@ async def get_all_user(q: Optional[str] = None, direction: str = 'next', id: Opt
 
 
 @router.post('/users',
-             description='新建用户')
-async def update_user(user_info: UserInfo, session: Session = Depends(get_session), token: dict = Depends(check_token)):
+             description='新建用户',tags=['auth'])
+async def update_user(user_info: UserInfo, session: Session = Depends(get_session)):
     """
     更新用户信息的所有操作，可涉及更新用户名、密码、角色等
     :param user_info:
     :param session:
-    :param token:
     :return:
     """
     print(user_info)
@@ -112,14 +110,12 @@ async def update_user(user_info: UserInfo, session: Session = Depends(get_sessio
 
 @router.put('/users/{uid}',
             description='更新用户信息')
-async def update_user(uid: int, user_info: UserInfo, session: Session = Depends(get_session),
-                      token: dict = Depends(check_token)):
+async def update_user(uid: int, user_info: UserInfo, session: Session = Depends(get_session)):
     """
     更新用户信息的所有操作，可涉及更新用户名、密码、角色等
     :param uid:
     :param user_info:
     :param session:
-    :param token:
     :return:
     """
     print(user_info)

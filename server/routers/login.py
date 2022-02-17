@@ -1,11 +1,10 @@
-from typing import Set, List
+from typing import List
 from fastapi import APIRouter, Depends
 from ..dependencies import get_session, check_token
-from pydantic import BaseModel
 from sqlmodel import Session, select
 from sqlalchemy.exc import NoResultFound
 from ..common.security import create_access_token
-from ..sql.models import User, Menu
+from ..models import User, Menu
 from ..schemas import ApiResponse
 from ..schemas.user import UserLogin
 from .. import crud

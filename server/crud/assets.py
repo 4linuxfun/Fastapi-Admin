@@ -1,6 +1,6 @@
-from typing import List, Optional, Union, Any
+from typing import List, Union, Any
 from sqlmodel import select, Session, func
-from ..sql.models import Assets
+from ..models import Assets
 from ..schemas.assets import SearchForm
 from .base import CRUDBase
 

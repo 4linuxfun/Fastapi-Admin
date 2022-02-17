@@ -1,6 +1,6 @@
 from typing import Optional, List, Any,Dict
 from pydantic import BaseModel
-from ..sql.models import Assets
+from ..models import Assets
 
 
 class SearchForm(Assets):

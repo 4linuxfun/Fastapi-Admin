@@ -1,6 +1,6 @@
 from typing import List, Optional
 from sqlmodel import Session, select
-from .models import RoleMenu, Menu, Role
+from ..models import RoleMenu, Menu, Role
 from ..common import utils
 from ..dependencies import casbin_enforcer
 

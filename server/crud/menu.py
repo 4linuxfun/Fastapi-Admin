@@ -1,6 +1,6 @@
 from typing import Optional, List
 from sqlmodel import Session, select
-from ..sql.models import Menu
+from ..models import Menu
 from .base import CRUDBase
 from ..dependencies import casbin_enforcer
 

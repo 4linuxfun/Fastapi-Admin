@@ -1,6 +1,6 @@
 from typing import List
 from pydantic import BaseModel
-from ..sql.models import Menu
+from models import Menu
 
 
 class MenuApis(BaseModel):

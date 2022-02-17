@@ -1,6 +1,6 @@
 from typing import List, Optional
-from sqlmodel import select, Session, or_
-from ..sql.models import Category, RoleCategory, CategoryField
+from sqlmodel import select, Session
+from ..models import Category, RoleCategory, CategoryField
 from .base import CRUDBase
 
 

@@ -1,6 +1,6 @@
 from typing import Union
 from sqlmodel import select, Session
-from ..sql.models import User
+from ..models import User
 from .base import CRUDBase
 from ..schemas.user import UserInfo, UserLogin
 from .roles import role

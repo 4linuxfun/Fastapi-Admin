@@ -7,7 +7,7 @@ from starlette.background import BackgroundTask
 from fastapi.responses import FileResponse
 from sqlmodel import Session, select
 from ..dependencies import get_session, check_permission, base_to_json
-from ..sql.models import Assets, Category, CategoryField, ShareFields
+from ..models import Assets, Category, CategoryField, ShareFields
 from ..schemas import ApiResponse
 from ..sql.database import engine
 from ..common import utils
@@ -149,7 +149,7 @@ async def update_category_detail(new_asset: Assets, session: Session = Depends(g
 
 
 @router.get('/assets', description="搜索资源")
-async def search_system(search: SearchForm = Depends(base_to_json), session: Session = Depends(get_session)):
+def search_system(search: SearchForm = Depends(base_to_json), session: Session = Depends(get_session)):
     print(search)
     if not search.category:
         return ApiResponse(
@@ -158,12 +158,20 @@ async def search_system(search: SearchForm = Depends(base_to_json), session: Ses
             data='请选择资产类型'
         )
     results = crud.assets.search_assets(session, search)
+    assets = []
+    for asset in results:
+        tmp = asset.dict().copy()
+        info = tmp['info'].copy()
+        del tmp['info']
+        tmp.update(info)
+        print(tmp)
+        assets.append(tmp)
 
-    print(results)
+    print(assets)
     return ApiResponse(
         code=0,
         message="success",
-        data=results
+        data=assets
     )
 
 
