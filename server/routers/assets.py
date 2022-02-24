@@ -6,10 +6,10 @@ from fastapi import APIRouter, Depends, File, UploadFile
 from starlette.background import BackgroundTask
 from fastapi.responses import FileResponse
 from sqlmodel import Session, select
-from ..dependencies import get_session, check_permission, base_to_json
+from ..dependencies import check_permission, base_to_json
 from ..models import Assets, Category, CategoryField, ShareFields
 from ..schemas import ApiResponse
-from ..sql.database import engine
+from ..db import engine, get_session
 from ..common import utils
 from ..schemas.assets import SearchForm, UpdateAssets
 from .. import crud

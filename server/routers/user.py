@@ -2,7 +2,8 @@ from typing import Optional
 from sqlmodel import Session, select
 from sqlalchemy.exc import NoResultFound
 from fastapi import APIRouter, Depends
-from ..dependencies import get_session, casbin_enforcer
+from ..dependencies import casbin_enforcer
+from ..db import get_session
 from ..models import User, Role
 from .. import crud
 from ..schemas import ApiResponse
@@ -49,7 +50,7 @@ async def check_uname_exist(name: str, session: Session = Depends(get_session)):
 
 
 @router.get('/users/{uid}',
-            description='获取用户信息')
+            summary='获取用户信息')
 async def get_user_info(uid: int, session: Session = Depends(get_session)):
     user = crud.user.get(session, uid)
     return ApiResponse(
@@ -59,7 +60,7 @@ async def get_user_info(uid: int, session: Session = Depends(get_session)):
     )
 
 
-@router.get('/users', description="获取所有用户列表")
+@router.get('/users', summary="获取所有用户列表")
 async def get_all_user(q: Optional[str] = None, direction: str = 'next', id: Optional[int] = 0,
                        limit: Optional[int] = None, offset_page: Optional[int] = None,
                        session: Session = Depends(get_session)):
@@ -88,8 +89,7 @@ async def get_all_user(q: Optional[str] = None, direction: str = 'next', id: Opt
     )
 
 
-@router.post('/users',
-             description='新建用户',tags=['auth'])
+@router.post('/users', summary="新建用户")
 async def update_user(user_info: UserInfo, session: Session = Depends(get_session)):
     """
     更新用户信息的所有操作，可涉及更新用户名、密码、角色等

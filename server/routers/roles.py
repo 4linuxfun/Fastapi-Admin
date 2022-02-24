@@ -1,7 +1,8 @@
 from typing import Optional, List
 from fastapi import APIRouter, Depends
 from sqlmodel import Session
-from ..dependencies import get_session, check_permission
+from ..dependencies import check_permission
+from ..db import get_session
 from .. import crud
 from ..models import Role, Menu
 from ..schemas import ApiResponse

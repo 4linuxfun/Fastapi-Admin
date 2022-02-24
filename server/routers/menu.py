@@ -1,7 +1,7 @@
 from typing import Optional
 from fastapi import APIRouter, Depends
 from sqlmodel import Session
-from ..dependencies import get_session
+from ..db import get_session
 from ..models import Menu
 from ..common import utils
 from ..schemas import ApiResponse

@@ -1,7 +1,8 @@
 from typing import Optional
 from fastapi import APIRouter, Depends
 from sqlmodel import Session
-from ..dependencies import get_session, check_uid
+from ..dependencies import check_uid
+from ..db import get_session
 from ..models import Category
 from ..schemas import ApiResponse
 from ..schemas.category import UpdateCategory

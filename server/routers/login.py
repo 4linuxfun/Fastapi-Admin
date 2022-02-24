@@ -1,6 +1,7 @@
 from typing import List
 from fastapi import APIRouter, Depends
-from ..dependencies import get_session, check_token
+from ..dependencies import check_token
+from ..db import get_session
 from sqlmodel import Session, select
 from sqlalchemy.exc import NoResultFound
 from ..common.security import create_access_token
