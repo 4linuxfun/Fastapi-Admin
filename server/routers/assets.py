@@ -17,7 +17,7 @@ from .. import crud
 router = APIRouter(prefix='/api')
 
 
-@router.get('/assets/count', description="查询资源的总数")
+@router.get('/assets/count', description="查询资源总数")
 async def search_total(search: SearchForm = Depends(base_to_json), session: Session = Depends(get_session)):
     total = crud.assets.search_total(session, search)
     return ApiResponse(
@@ -27,7 +27,7 @@ async def search_total(search: SearchForm = Depends(base_to_json), session: Sess
     )
 
 
-@router.get('/assets/category/fields', description="查找资产可查询字段")
+@router.get('/assets/category/fields', description="查找资产字段")
 async def get_category_field(category_id: int, query: Optional[str] = None, session: Session = Depends(get_session)):
     search = select(CategoryField).where(CategoryField.category_id == category_id)
     if query is not None:

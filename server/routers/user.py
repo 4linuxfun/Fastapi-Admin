@@ -12,7 +12,7 @@ from ..schemas.user import UserInfo
 router = APIRouter(prefix='/api', )
 
 
-@router.get('/users/roles')
+@router.get('/users/roles', summary='获取角色')
 async def get_roles(id: Optional[int] = None, session: Session = Depends(get_session, )):
     if id is None:
         # 添加新用户时无用户id
@@ -32,7 +32,7 @@ async def get_roles(id: Optional[int] = None, session: Session = Depends(get_ses
     )
 
 
-@router.get('/users/exist', description='判断用户是否已经存在')
+@router.get('/users/exist', summary='用户是否存在')
 async def check_uname_exist(name: str, session: Session = Depends(get_session)):
     try:
         crud.user.check_name(session, name)
@@ -60,7 +60,7 @@ async def get_user_info(uid: int, session: Session = Depends(get_session)):
     )
 
 
-@router.get('/users', summary="获取所有用户列表")
+@router.get('/users', summary="获取用户列表")
 async def get_all_user(q: Optional[str] = None, direction: str = 'next', id: Optional[int] = 0,
                        limit: Optional[int] = None, offset_page: Optional[int] = None,
                        session: Session = Depends(get_session)):
@@ -109,7 +109,7 @@ async def update_user(user_info: UserInfo, session: Session = Depends(get_sessio
 
 
 @router.put('/users/{uid}',
-            description='更新用户信息')
+            description='更新用户')
 async def update_user(uid: int, user_info: UserInfo, session: Session = Depends(get_session)):
     """
     更新用户信息的所有操作，可涉及更新用户名、密码、角色等
@@ -130,7 +130,7 @@ async def update_user(uid: int, user_info: UserInfo, session: Session = Depends(
     )
 
 
-@router.delete('/users/{uid}')
+@router.delete('/users/{uid}', summary='删除用户')
 async def delete_user(uid: int, session: Session = Depends(get_session)):
     user = session.exec(select(User).where(User.id == uid)).one()
     casbin_enforcer.delete_roles_for_user(f'uid_{user.id}')

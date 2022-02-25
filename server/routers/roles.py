@@ -12,7 +12,7 @@ from ..common.utils import menu_convert
 router = APIRouter(prefix='/api', dependencies=[Depends(check_permission), ])
 
 
-@router.get('/roles/enable-menus')
+@router.get('/roles/enable-menus', summary='获取角色菜单')
 async def get_role_menus(id: Optional[int] = None, session: Session = Depends(get_session)):
     # 所有角色，进行权限分配的时候，都是返回所有菜单列表,enable=True:只查询启用的菜单
     menu_list: List[Menu] = crud.role.get_all_menus(session)
@@ -28,7 +28,7 @@ async def get_role_menus(id: Optional[int] = None, session: Session = Depends(ge
     )
 
 
-@router.get('/roles/categories', description="角色授权页面，获取对应角色的资产信息")
+@router.get('/roles/categories', summary="获取角色资产")
 async def get_role_category(id: Optional[int] = None, session: Session = Depends(get_session)):
     # 所有角色，进行权限分配的时候，都是返回所有菜单列表,enable=True:只查询启用的菜单
     category_list = crud.category.get_all_catagories(session)
@@ -45,7 +45,7 @@ async def get_role_category(id: Optional[int] = None, session: Session = Depends
 
 
 @router.get('/roles',
-            description="查询用户角色信息")
+            summary="查询角色")
 async def get_roles(q: Optional[str] = None, session: Session = Depends(get_session)):
     roles: List[Role] = crud.role.search(session, q)
     return ApiResponse(
@@ -55,7 +55,7 @@ async def get_roles(q: Optional[str] = None, session: Session = Depends(get_sess
     )
 
 
-@router.post('/roles', description="新建用户角色")
+@router.post('/roles', summary="新建角色")
 async def add_roles(role_info: RoleInfo, session: Session = Depends(get_session)):
     print(role_info)
     db_obj = crud.role.insert(session, role_info.role)
@@ -67,7 +67,7 @@ async def add_roles(role_info: RoleInfo, session: Session = Depends(get_session)
     )
 
 
-@router.put('/roles', description="更新用户角色")
+@router.put('/roles', description="更新角色")
 async def update_roles(role_info: RoleInfo, session: Session = Depends(get_session)):
     print(role_info)
     if role_info.role.name == 'admin':
@@ -86,9 +86,9 @@ async def update_roles(role_info: RoleInfo, session: Session = Depends(get_sessi
     )
 
 
-@router.delete('/roles/{id}')
+@router.delete('/roles/{id}', summary='删除角色')
 async def del_role(id: int, session: Session = Depends(get_session)):
-    db_obj = crud.role.get(session,id)
+    db_obj = crud.role.get(session, id)
     if db_obj.name == 'admin':
         return ApiResponse(
             code=1,

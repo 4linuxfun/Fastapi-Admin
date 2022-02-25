@@ -10,7 +10,7 @@ from .. import crud
 router = APIRouter(prefix='/api')
 
 
-@router.get('/menus', description="查询菜单")
+@router.get('/menus', summary="查询菜单")
 async def get_all_menu(q: Optional[str] = None, session: Session = Depends(get_session)):
     # 复用crud.get_menu_list,默认role为admin就是返回所有的菜单列表
     menu_list = crud.menu.search(session, q)
@@ -24,7 +24,7 @@ async def get_all_menu(q: Optional[str] = None, session: Session = Depends(get_s
     )
 
 
-@router.post('/menus', description="新建菜单")
+@router.post('/menus', summary="新建菜单")
 async def add_menu(menu: Menu, session: Session = Depends(get_session)):
     """
     # 新建的菜单，还是没有授权给角色的，所以直接新增就行了
@@ -39,7 +39,7 @@ async def add_menu(menu: Menu, session: Session = Depends(get_session)):
     )
 
 
-@router.put('/menus', description="更新菜单")
+@router.put('/menus', summary="更新菜单")
 async def update_menu(menu: Menu, session: Session = Depends(get_session)):
     """
     更新菜单，涉及到原菜单对应api的更新，则需要更新对应信息
@@ -55,7 +55,7 @@ async def update_menu(menu: Menu, session: Session = Depends(get_session)):
     )
 
 
-@router.delete('/menus/{id}')
+@router.delete('/menus/{id}',summary='删除菜单')
 async def del_menu(id: int, session: Session = Depends(get_session)):
     crud.menu.delete(session, id)
     return ApiResponse(

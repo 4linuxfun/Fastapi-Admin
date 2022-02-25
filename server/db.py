@@ -1,4 +1,4 @@
-from sqlmodel import create_engine, SQLModel, Session
+from sqlmodel import create_engine, SQLModel, Session, select
 
 SQLALCHEMY_DATABASE_URL = "mysql+pymysql://root:1234567890@192.168.137.129/simple_sam"
 
@@ -17,3 +17,21 @@ def init_db():
 def get_session():
     with Session(engine) as session:
         yield session
+
+
+def get_or_create(session: Session, model, **kwargs):
+    """
+    检查表中是否存在对象，如果不存在就创建
+    :param session:
+    :param model: 表模型
+    :param kwargs: 表模型参数
+    :return:
+    """
+    instance = session.query(model).filter_by(**kwargs).first()
+    if instance:
+        return instance
+    else:
+        instance = model(**kwargs)
+        session.add(instance)
+        session.commit()
+        return instance
