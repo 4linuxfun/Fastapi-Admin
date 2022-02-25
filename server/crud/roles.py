@@ -8,7 +8,21 @@ from ..dependencies import casbin_enforcer
 class CRUDRole(CRUDBase[Role]):
     def get_roles_by_name(self, session: Session, roles: List[str]):
         return session.exec(select(self.model).where(self.model.name.in_(roles))).all()
-        
+
+    def check_admin(self, session: Session, uid: int) -> bool:
+        """
+        通过uid，判断此用户是否在admin组中
+        :param session:
+        :param uid:
+        :return:
+        """
+        admin = session.exec(select(self.model).where(self.model.name == 'admin')).one()
+        admin_users = [user.id for user in admin.users]
+        if uid in admin_users:
+            return True
+        else:
+            return False
+
     def get_all_menus(self, session: Session):
         return session.exec(select(Menu).where(Menu.enable == 1)).all()
 
