@@ -2,6 +2,7 @@ from .assets import System, Category, CategoryField, ShareFields, Assets
 from .menu import Menu
 from .role import Role
 from .user import User
+from .api import Api
 from .relationships import RoleMenu, RoleCategory, UserRole
 
 #
