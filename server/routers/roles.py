@@ -67,7 +67,7 @@ async def add_roles(role_info: RoleInfo, session: Session = Depends(get_session)
     )
 
 
-@router.put('/roles', description="更新角色")
+@router.put('/roles', summary="更新角色")
 async def update_roles(role_info: RoleInfo, session: Session = Depends(get_session)):
     print(role_info)
     if role_info.role.name == 'admin':
