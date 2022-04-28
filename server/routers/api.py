@@ -1,12 +1,8 @@
 from typing import Optional
-from sqlmodel import Session, select
-from sqlalchemy.exc import NoResultFound
+from sqlmodel import Session
 from fastapi import APIRouter, Depends
-from ..dependencies import casbin_enforcer
 from ..db import get_session
-from ..models import api
 from .. import crud
-from ..schemas import ApiResponse
 
 router = APIRouter(prefix='/api', )
 
