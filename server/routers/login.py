@@ -6,15 +6,15 @@ from sqlmodel import Session, select
 from sqlalchemy.exc import NoResultFound
 from ..common.security import create_access_token
 from ..models import User, Menu
+from ..models.user import UserLogin, LoginResponse
 from ..schemas import ApiResponse
-from ..schemas.user import UserLogin
 from .. import crud
 from ..common.utils import menu_convert
 
 router = APIRouter(prefix='/api')
 
 
-@router.post('/login', summary="登录验证")
+@router.post('/login', summary="登录验证", response_model=LoginResponse)
 async def login(login_form: UserLogin, session: Session = Depends(get_session)):
     """
     处理登录请求，返回{token:xxxxx}，判断用户密码是否正确
@@ -38,13 +38,8 @@ async def login(login_form: UserLogin, session: Session = Depends(get_session)):
     access_token = create_access_token(
         data={"uid": user.id}
     )
-    return ApiResponse(
-        code=0,
-        message='success',
-        data={
-            "uid": user.id,
+    return {"uid": user.id,
             "token": access_token}
-    )
 
 
 @router.get('/permission', summary='获取权限')
@@ -72,8 +67,4 @@ async def get_permission(session: Session = Depends(get_session), token: dict = 
     user_menus = menu_convert(menu_list)
 
     print(user_menus)
-    return ApiResponse(
-        code=0,
-        message="success",
-        data=user_menus
-    )
+    return user_menus

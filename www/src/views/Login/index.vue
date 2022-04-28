@@ -48,7 +48,7 @@
 		useStore
 	} from '@/stores'
 	export default {
-		name: "Login",
+		name: "UserLogin",
 		components: {
 			User,
 			Lock,
