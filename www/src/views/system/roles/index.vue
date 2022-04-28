@@ -3,7 +3,7 @@
     <el-col :span="18">
       <el-input v-model="search" placeholder="搜索" clearable>
         <template #append>
-          <el-button @click="getRoles">
+          <el-button @click="handleSearch">
             <el-icon>
               <search/>
             </el-icon>
@@ -17,7 +17,7 @@
   </el-row>
 
   <div style="padding-top:10px">
-    <el-table :data="roles" border stripe :header-cell-style="{background:'#eef1f6',color:'#606266'}">
+    <el-table :data="tableData" border stripe :header-cell-style="{background:'#eef1f6',color:'#606266'}">
       <el-table-column label="角色ID" prop="id"></el-table-column>
       <el-table-column label="角色名称" prop="name"></el-table-column>
       <el-table-column label="描述" prop="description"></el-table-column>
@@ -39,6 +39,10 @@
       </el-table-column>
     </el-table>
   </div>
+  <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :total="total" background
+                 layout="prev,pager,next"
+                 prev-text="上一页" next-text="下一页"
+  />
 
   <div v-if="dialogVisible">
     <role-dialog :role='selectRole' v-model:visible='dialogVisible'></role-dialog>
@@ -46,8 +50,10 @@
 
 </template>
 <script>
+  import {ref} from 'vue'
   import {Search} from '@element-plus/icons-vue'
   import {GetRoles, DeleteRole} from '@/api/roles'
+  import usePagination from '@/composables/usePagination'
   import RoleDialog from './RoleDialog.vue'
 
   export default {
@@ -56,18 +62,40 @@
       Search,
       'role-dialog': RoleDialog
     },
-    created() {
-      this.getRoles()
-    },
-    data() {
+    setup() {
+      const dialogVisible = ref(false)
+      const selectRole = ref(null)
+      const addDialog = ref(false)
+
+      const {
+        search,
+        tableData,
+        currentPage,
+        pageSize,
+        total,
+        firstId,
+        lastId,
+        freshCurrentPage,
+        handleSearch
+      } = usePagination('api/roles')
+
+      console.log(tableData.value)
       return {
-        search: null,
-        roles: '',
-        dialogVisible: false,
-        selectRole: '',
-        addDialog: false
+        dialogVisible,
+        selectRole,
+        addDialog,
+        search,
+        tableData,
+        currentPage,
+        pageSize,
+        total,
+        firstId,
+        lastId,
+        freshCurrentPage,
+        handleSearch
       }
     },
+
     watch: {
       dialogVisible(newValue) {
         if (newValue === false) {
@@ -76,13 +104,6 @@
       },
     },
     methods: {
-      // 更新数据后，可以执行此调用，重新获取新的数据，达到刷新效果
-      getRoles() {
-        GetRoles(this.search).then((response) => {
-          this.roles = response
-        })
-
-      },
       handleEdit(role) {
         console.log(role)
         this.selectRole = Object.assign({}, role)

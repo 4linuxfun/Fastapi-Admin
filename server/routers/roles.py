@@ -47,12 +47,13 @@ async def get_role_category(id: Optional[int] = None, session: Session = Depends
 @router.get('/roles',
             summary="查询角色")
 async def get_roles(q: Optional[str] = None, session: Session = Depends(get_session)):
+    total = crud.role.search_total(session, q)
+    print(total)
     roles: List[Role] = crud.role.search(session, q)
-    return ApiResponse(
-        code=0,
-        message="success",
-        data=roles
-    )
+    return {
+        'total': total,
+        'data': roles
+    }
 
 
 @router.post('/roles', summary="新建角色")
