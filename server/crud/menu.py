@@ -1,7 +1,8 @@
 from typing import Optional, List
 from sqlmodel import Session, select
-from ..models import Menu
+from ..models.menu import Menu
 from .base import CRUDBase
+from .sysapi import api
 from ..dependencies import casbin_enforcer
 
 
@@ -13,18 +14,15 @@ class CRUDMenu(CRUDBase[Menu]):
         return session.exec(sql).all()
 
     def update(self, session: Session, db_obj, obj_in: Menu):
-        original_roles = [role.id for role in db_obj.roles]
+        """
+        菜单的更新，1. 更新基础内容，2. 更新apis.
+        roles的更新，应该在角色管理里，菜单里不涉及关联角色的更新
+        :param session:
+        :param db_obj:
+        :param obj_in:
+        :return:
+        """
         print(db_obj)
-        # 权限更新原则：统一删除原来的，然后统一增加新的
-
-        for role in original_roles:
-            print('删除')
-            casbin_enforcer.delete_permissions_for_user(f'role_{role}')
-        for api in obj_in.api.split(','):
-            method, path = api.split(':')
-            for role in original_roles:
-                print(f'更新:role_{role},{path},{method}')
-                casbin_enforcer.add_permission_for_user(f'role_{role}', path, method, 'allow')
         return super(CRUDMenu, self).update(session, db_obj, obj_in)
 
     def delete(self, session: Session, *, id: int):
