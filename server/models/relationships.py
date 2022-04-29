@@ -8,12 +8,6 @@ class RoleMenu(SQLModel, table=True):
     menu_id: int = Field(foreign_key="menu.id", primary_key=True)
 
 
-class RoleCategory(SQLModel, table=True):
-    __tablename__ = 'role_category'
-    role_id: int = Field(foreign_key="roles.id", primary_key=True)
-    category_id: int = Field(foreign_key="category.id", primary_key=True)
-
-
 class UserRole(SQLModel, table=True):
     __tablename__ = 'user_roles'
 

@@ -2,10 +2,6 @@
 from typing import Optional, Dict, Any, List, TYPE_CHECKING
 from sqlmodel import SQLModel, Field, JSON, Column, Relationship
 from sqlalchemy.ext.mutable import MutableDict
-from .relationships import RoleCategory
-
-if TYPE_CHECKING:
-    from .role import Role
 
 
 # 资产相关的表定义
@@ -34,7 +30,6 @@ class Category(SQLModel, table=True):
     alias: Optional[str]
     desc: Optional[str]
     fields: List["CategoryField"] = Relationship(back_populates="category")
-    roles: List["Role"] = Relationship(back_populates="category", link_model=RoleCategory)
 
 
 class CategoryField(SQLModel, table=True):

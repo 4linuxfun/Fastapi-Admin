@@ -3,7 +3,7 @@ from .menu import Menu
 from .role import Role
 from .user import User
 from .api import ApiBase, Api
-from .relationships import RoleMenu, RoleCategory, UserRole
+from .relationships import RoleMenu, UserRole
 
 #
 # class Permission(SQLModel, table=True):

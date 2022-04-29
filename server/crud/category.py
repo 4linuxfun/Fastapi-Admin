@@ -1,21 +1,12 @@
 from typing import List, Optional
 from sqlmodel import select, Session
-from ..models import Category, RoleCategory, CategoryField
+from ..models import Category, CategoryField
 from .base import CRUDBase
 
 
 class CRUECategory(CRUDBase[Category]):
     def get_all_catagories(self, session: Session) -> List[Category]:
         return session.exec(select(Category)).all()
-
-    def get_categories_by_roles(self, session: Session, id: int) -> List[int]:
-        if id is not None:
-            sql = select(RoleCategory).where(RoleCategory.role_id == id)
-            result = session.exec(sql)
-            role_category = [role.category_id for role in result]
-        else:
-            role_category = []
-        return role_category
 
     def get_category_fields(self, session: Session, id: int) -> List[CategoryField]:
         return session.exec(select(CategoryField).where(CategoryField.category_id == id)).all()
