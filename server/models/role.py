@@ -20,9 +20,12 @@ class Role(RoleBase, table=True):
     users: List["User"] = Relationship(back_populates="roles", link_model=UserRole)
 
 
-class RoleUpdate(RoleBase):
-    id: int
+class RoleInsert(RoleBase):
     menus: List[int]
+
+
+class RoleUpdate(RoleInsert):
+    id: int
 
 
 class RoleWithMenus(RoleBase):

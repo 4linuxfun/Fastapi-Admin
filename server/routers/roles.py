@@ -5,7 +5,7 @@ from ..dependencies import check_permission
 from ..db import get_session
 from .. import crud
 from ..models import Role, Menu
-from ..models.role import RoleWithMenus, RoleUpdate
+from ..models.role import RoleWithMenus, RoleInsert, RoleUpdate
 from ..schemas import ApiResponse
 from ..schemas.role import RoleInfo
 from ..common.utils import menu_convert
@@ -48,15 +48,13 @@ async def get_roles(q: Optional[str] = None, session: Session = Depends(get_sess
 
 
 @router.post('/roles', summary="新建角色")
-async def add_roles(role_info: RoleInfo, session: Session = Depends(get_session)):
+async def add_roles(role_info: RoleInsert, session: Session = Depends(get_session)):
     print(role_info)
-    db_obj = crud.role.insert(session, role_info.role)
-    crud.role.update_menus(session, db_obj, role_info.menus)
-    crud.role.update_categories(session, db_obj, role_info.category)
-    return ApiResponse(
-        code=0,
-        message="success",
-    )
+    enable_menus = role_info.menus
+    delattr(role_info, 'menus')
+    db_obj = crud.role.insert(session, Role(**role_info.dict()))
+    crud.role.update_menus(session, db_obj, enable_menus)
+    return db_obj
 
 
 @router.put('/roles', summary="更新角色")
