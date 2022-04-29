@@ -99,7 +99,7 @@
     watch: {
       dialogVisible(newValue) {
         if (newValue === false) {
-          this.getRoles()
+          this.freshCurrentPage()
         }
       },
     },
@@ -126,7 +126,7 @@
               message: '角色删除成功',
               type: 'success'
             })
-            this.getRoles()
+            this.freshCurrentPage()
           })
         }).catch(() => {
           this.$notify({

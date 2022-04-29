@@ -26,11 +26,11 @@ class CRUDRole(CRUDBase[Role]):
     def get_all_menus(self, session: Session):
         return session.exec(select(Menu).where(Menu.enable == 1)).all()
 
-    def get_roles_by_id(self, session: Session, id: int) -> List[id]:
+    def get_enable_menus(self, session: Session, id: int) -> List[id]:
         if id is not None:
-            sql = select(RoleMenu).where(RoleMenu.role_id == id)
-            result = session.exec(sql)
-            role_menus = [role.menu_id for role in result]
+            sql = select(self.model).where(self.model.id == id)
+            role: Role = session.exec(sql).one()
+            role_menus = [menu.id for menu in role.menus]
         else:
             role_menus = []
         return role_menus
@@ -55,19 +55,11 @@ class CRUDRole(CRUDBase[Role]):
         casbin_enforcer.delete_permissions_for_user(f'role_{db_obj.id}')
         print(db_menus)
         for menu in db_menus:
-            if (menu.api is None) or (len(menu.api.split(',')) == 0):
+            if len(menu.apis) == 0:
                 continue
-            for api in menu.api.split(','):
-                method, path = api.split(':')
-                print(f'增加权限:role_{db_obj.id},{path},{method}')
-                casbin_enforcer.add_permission_for_user(f'role_{db_obj.id}', path, method, 'allow')
-        session.add(db_obj)
-        session.commit()
-        session.refresh(db_obj)
-
-    def update_categories(self, session: Session, db_obj: Role, categories: List[int]):
-        category = session.exec(select(Category).where(Category.id.in_(categories))).all()
-        db_obj.category = category
+            for api in menu.apis:
+                print(f'增加权限:role_{db_obj.id},{api.path},{api.method}')
+                casbin_enforcer.add_permission_for_user(f'role_{db_obj.id}', api.path, api.method, 'allow')
         session.add(db_obj)
         session.commit()
         session.refresh(db_obj)
