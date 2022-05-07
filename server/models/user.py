@@ -27,11 +27,6 @@ class UserCreate(UserBase):
         title = '新建用户'
 
 
-class UserUpdate(UserBase):
-    # PUT请求时，传递过来的数据模型
-    pass
-
-
 class UserReadWithRoles(UserRead):
     # 包含relationship的数据模型
     roles: List['Role'] = []
@@ -47,9 +42,16 @@ class User(UserBase, table=True):
     roles: List['Role'] = Relationship(back_populates="users", link_model=UserRole)
 
 
+class UserUpdateWithRoles(SQLModel):
+    # PUT请求时，传递过来的数据模型
+    user: User
+    roles: List[int]
+
+
 class UserInfo(SQLModel):
     user: UserCreate
     roles: Role
+
     # dep: Dep
 
     class Config:

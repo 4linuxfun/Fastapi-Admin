@@ -16,8 +16,9 @@
       </el-form-item>
       <el-form-item label="角色">
         <el-checkbox-group v-model="enableRoleList">
-          <el-checkbox v-for="role in roleList" :label="role.name" :key="role.id"
-                       :disabled="role.enable?false:true"/>
+          <el-checkbox v-for="role in roleList" :label="role.id" :key="role.id"
+                       :disabled="!role.enable">{{ role.name }}
+          </el-checkbox>
         </el-checkbox-group>
       </el-form-item>
       <el-form-item>
@@ -36,18 +37,17 @@
     GetUserExist, PostAddUser, PutNewUser
   } from '@/api/users'
   import md5 from 'js-md5'
+  import {ElNotification} from 'element-plus'
 
   export default {
     props: ['user', 'visible'],
     emits: ['update:visible'],
     data() {
       return {
-        selectData: this.user,
-        // 所有权限列表
+        selectData: JSON.parse(JSON.stringify(this.user)),
         roleList: [],
-        // 拥有权限的列表
         enableRoleList: [],
-        password: '',
+        password: null,
         rules: {
           name: [{
             required: true,
@@ -66,40 +66,48 @@
         }
       }
     },
-    methods: {
-      getRoles(userId) {
-        GetUserRoles(userId).then((response) => {
-          this.roleList = response.roles
-          this.enableRoleList = response.enable
-        })
-      },
-      handleUpdate() {
-        if (this.password) {
-          this.selectData.password = md5(this.password)
-        }
-        // this.$emit('update:user', this.selectData, this.enableRoleList)
-          if (this.selectData.id === null) {
-            PostAddUser(user, roleList).then(() => {
-              this.$notify({
-                title: 'success',
-                message: '用户新建成功',
-                type: 'success'
-              })
-              this.freshCurrentPage()
-            })
-          } else {
-            PutNewUser(user, roleList).then(() => {
-              this.$notify({
-                title: 'success',
-                message: '用户更新成功',
-                type: 'success'
-              })
-              this.freshCurrentPage()
-            })
-          }
-      }
-
+    mounted() {
+      console.log('userDialog mounted')
+      console.log(this.selectData)
+      console.log(this.user)
     },
+    methods:
+        {
+          getRoles(userId) {
+            console.log(this.selectData)
+            GetUserRoles(userId).then((response) => {
+              this.roleList = response.roles
+              this.enableRoleList = response.enable
+            })
+          },
+          handleUpdate() {
+            if (this.password) {
+              this.selectData.password = md5(this.password)
+            }
+            // this.$emit('update:user', this.selectData, this.enableRoleList)
+            if (this.selectData.id === null) {
+              PostAddUser(this.selectData, this.enableRoleList).then(() => {
+                ElNotification({
+                  title: 'success',
+                  message: '用户新建成功',
+                  type: 'success'
+                })
+              })
+            } else {
+              console.log(this.enableRoleList)
+              PutNewUser(this.selectData, this.enableRoleList).then(() => {
+                ElNotification({
+                  title: 'success',
+                  message: '用户更新成功',
+                  type: 'success'
+                })
+              })
+            }
+            this.$emit('update:visible', false)
+
+          }
+        }
+    ,
   }
 </script>
 

@@ -33,7 +33,7 @@ class CRUDUser(CRUDBase[User]):
         db_obj = self.get(session, uid)
         updated_user = user_info.user
         db_obj = super(CRUDUser, self).update(session, db_obj, updated_user)
-        user_roles = role.get_roles_by_name(session, user_info.roles)
+        user_roles = role.get_roles_by_id(session, user_info.roles)
         db_obj.roles = user_roles
         print('update:')
         print(db_obj)

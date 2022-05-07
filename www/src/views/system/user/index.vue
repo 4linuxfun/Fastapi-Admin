@@ -33,7 +33,7 @@
       <el-table-column label="操作" align="center">
         <template #default="scope">
           <el-button type="primary" size="small" @click="handleEdit(scope.row.id)">编辑</el-button>
-          <el-button type="danger" size="small" @click="handleDel(scope.row.id,scope.row.name)">删除</el-button>
+          <el-button type="danger" size="small" @click="handleDel(scope.row)">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -43,7 +43,9 @@
     />
 
   </div>
-  <user-dialog :user='selectUser' v-model:visible='dialogVisible'/>
+  <div v-if="dialogVisible">
+    <user-dialog :user='selectUser' v-model:visible='dialogVisible'/>
+  </div>
 
 </template>
 <script>
@@ -109,9 +111,10 @@
 
       handleEdit(uid) {
         console.log(uid)
-        this.dialogVisible = true
+
         GetUserInfo(uid).then(response => {
           this.selectUser = response
+          this.dialogVisible = true
         })
 
         console.log(this.selectUser)
@@ -133,16 +136,16 @@
         console.log(this.formData)
         this.dialogVisible = false
       },
-      handleDel(userId, userName) {
-        if (userName === 'admin') {
+      handleDel(userInfo) {
+        if (userInfo.name === 'admin') {
           this.$message({
             message: 'admin用户无法删除',
             type: 'warning'
           })
           return false
         }
-        this.$confirm('是否确定要删除用户：' + userName, 'Warnning').then(() => {
-          DeleteUser(userId).then(() => {
+        this.$confirm('是否确定要删除用户：' + userInfo.name, 'Warnning').then(() => {
+          DeleteUser(userInfo.id).then(() => {
             this.$notify({
               title: 'success',
               message: '角色删除成功',
