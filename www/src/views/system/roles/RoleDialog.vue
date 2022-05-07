@@ -15,7 +15,7 @@
         </el-radio-group>
       </el-form-item>
       <el-form-item label="菜单权限" style="border-style: solid;">
-        <el-tree ref="menuTree" :data="menus" :props="defaultProps" show-checkbox node-key="id"
+        <el-tree ref="menuTree" :data="menus" :props="defaultProps" accordion show-checkbox node-key="id"
                  :default-checked-keys="enables"></el-tree>
       </el-form-item>
       <el-form-item>

@@ -1,5 +1,6 @@
 from typing import Optional, List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
+from fastapi.exceptions import HTTPException
 from sqlmodel import Session
 from ..dependencies import check_permission
 from ..db import get_session
@@ -61,11 +62,7 @@ async def add_roles(role_info: RoleInsert, session: Session = Depends(get_sessio
 async def update_roles(role_info: RoleUpdate, session: Session = Depends(get_session)):
     print(role_info)
     if role_info.name == 'admin':
-        return ApiResponse(
-            code=1,
-            message="error",
-            data="admin权限组无法更新信息"
-        )
+        raise HTTPException(status_code=403, detail='admin权限组无法更新信息')
     db_obj = crud.role.get(session, role_info.id)
     enable_menus = role_info.menus
     delattr(role_info, 'menus')
@@ -74,17 +71,11 @@ async def update_roles(role_info: RoleUpdate, session: Session = Depends(get_ses
     return db_obj
 
 
-@router.delete('/roles/{id}', summary='删除角色')
+@router.delete('/roles/{id}', summary='删除角色', status_code=status.HTTP_204_NO_CONTENT)
 async def del_role(id: int, session: Session = Depends(get_session)):
     db_obj = crud.role.get(session, id)
     if db_obj.name == 'admin':
-        return ApiResponse(
-            code=1,
-            message="error",
-            data="admin用户组无法删除"
-        )
+        raise HTTPException(status_code=400, detail='admin用户组无法删除')
+    if len(db_obj.users) > 0:
+        raise HTTPException(status_code=400, detail='有用户关联此角色')
     crud.role.delete(session, id)
-    return ApiResponse(
-        code=0,
-        message="success",
-    )

@@ -33,7 +33,7 @@
           <el-button v-if="scope.row.name!='admin'" type="primary" size="small" @click="handleEdit(scope.row)">编辑
           </el-button>
           <el-button v-if="scope.row.name!='admin'" type="danger" size="small"
-                     @click="handleDel(scope.row.id,scope.row.name)">删除
+                     @click="handleDel(scope.row)">删除
           </el-button>
         </template>
       </el-table-column>
@@ -111,16 +111,9 @@
         this.dialogVisible = true
       },
 
-      handleDel(roleId, roleName) {
-        if (roleName === 'admin') {
-          this.$message({
-            message: 'admin角色无法删除',
-            type: 'warning'
-          })
-          return false
-        }
-        this.$confirm('是否确定要删除角色：' + roleName, 'Warnning').then(() => {
-          DeleteRole(roleId).then(() => {
+      handleDel(role) {
+        this.$confirm('是否确定要删除角色：' + role.name, 'Warnning').then(() => {
+          DeleteRole(role.id).then(() => {
             this.$notify({
               title: 'success',
               message: '角色删除成功',
