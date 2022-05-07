@@ -6,8 +6,8 @@ from ..dependencies import casbin_enforcer
 
 
 class CRUDRole(CRUDBase[Role]):
-    def get_roles_by_name(self, session: Session, roles: List[str]):
-        return session.exec(select(self.model).where(self.model.name.in_(roles))).all()
+    def get_roles_by_id(self, session: Session, roles: List[str]):
+        return session.exec(select(self.model).where(self.model.id.in_(roles))).all()
 
     def check_admin(self, session: Session, uid: int) -> bool:
         """
