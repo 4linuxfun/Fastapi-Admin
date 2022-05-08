@@ -34,8 +34,8 @@ class CRUDBase(Generic[ModelType]):
         db.refresh(db_obj)
         return db_obj
 
-    def delete(self, db: Session, *, id: int):
-        obj = db.exec(select(self.model).where(self.model.id == id))
+    def delete(self, db: Session, id: int):
+        obj = db.exec(select(self.model).where(self.model.id == id)).one()
         db.delete(obj)
         db.commit()
         return obj
