@@ -148,7 +148,7 @@
           DeleteUser(userInfo.id).then(() => {
             this.$notify({
               title: 'success',
-              message: '角色删除成功',
+              message: userInfo.name +'用户删除成功',
               type: 'success'
             })
             this.freshCurrentPage()
