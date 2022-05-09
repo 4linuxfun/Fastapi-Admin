@@ -107,6 +107,11 @@
         handleSearch
       }
     },
+    watch:{
+      dialogVisible(newValue,oldValue){
+        this.freshCurrentPage()
+      },
+    },
     methods: {
 
       handleEdit(uid) {
