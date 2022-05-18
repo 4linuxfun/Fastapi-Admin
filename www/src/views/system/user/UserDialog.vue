@@ -2,11 +2,14 @@
   <el-dialog :model-value="visible" title="用户编辑页面" width="30%" @close="$emit('update:visible',false)"
              @opened="getRoles(selectData.id)" destroy-on-close>
     <el-form :model="selectData" label-width="80px" :rules="rules">
-      <el-form-item label="用户名称">
-        <el-input v-model="selectData.name"></el-input>
+      <el-form-item label="用户名称" prop="name">
+        <el-input v-model="selectData.name" :disabled="selectData.id !== null"></el-input>
       </el-form-item>
-      <el-form-item label="密码">
-        <el-input v-model="password" placeholder="请输入新密码" :show-password="true"></el-input>
+      <el-form-item label="密码" prop="password">
+        <el-input v-model="selectData.password" placeholder="请输入新密码" :show-password="true"></el-input>
+      </el-form-item>
+      <el-form-item label="密码确认" prop="secondPassword">
+        <el-input v-model="selectData.secondPassword" placeholder="请再次确认密码" :show-password="true"></el-input>
       </el-form-item>
       <el-form-item label="状态">
         <el-radio-group v-model="selectData.enable">
@@ -43,11 +46,25 @@
     props: ['user', 'visible'],
     emits: ['update:visible'],
     data() {
+      function checkPassword(rule, value, callback) {
+        console.log(this.selectData)
+        console.log(value)
+        console.log(this.selectData.password)
+        if (value.length === 0) {
+          callback(new Error('请确认密码不能为空'))
+        } else if (value !== this.selectData.password) {
+          callback(new Error('2次密码不一致'))
+        } else {
+          callback()
+        }
+      }
+
       return {
         selectData: JSON.parse(JSON.stringify(this.user)),
         roleList: [],
         enableRoleList: [],
         password: null,
+        secondPassword: null,
         rules: {
           name: [{
             required: true,
@@ -62,14 +79,11 @@
                 callback(error)
               })
             },
-          }]
+          }],
+          password: [{message: '密码不能为空', trigger: 'blur'}],
+          secondPassword: [{validator: checkPassword, trigger: 'blur'}]
         }
       }
-    },
-    mounted() {
-      console.log('userDialog mounted')
-      console.log(this.selectData)
-      console.log(this.user)
     },
     methods:
         {
@@ -82,8 +96,10 @@
           },
           handleUpdate() {
             if (this.password) {
-              this.selectData.password = md5(this.password)
+              console.log(md5(this.password))
+              this.selectData['password'] = md5(this.password)
             }
+            console.log(this.selectData)
             // this.$emit('update:user', this.selectData, this.enableRoleList)
             if (this.selectData.id === null) {
               PostAddUser(this.selectData, this.enableRoleList).then(() => {

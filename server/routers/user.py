@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, status, HTTPException
 from ..dependencies import casbin_enforcer
 from ..db import get_session
 from ..models import User, Role
-from ..models.user import UserRoles, UserCreate, UserRead, UserReadWithRoles, UserInfo, UserUpdateWithRoles
+from ..models.user import UserCreateWithRoles, UserReadWithRoles, UserUpdateWithRoles, UserUpdatePassword
 from .. import crud
 from ..schemas import ApiResponse
 
@@ -28,21 +28,14 @@ async def get_roles(id: Optional[int] = None, session: Session = Depends(get_ses
     }
 
 
-@router.get('/users/exist', summary='用户是否存在')
+@router.get('/users/exist', summary='用户是否存在', status_code=status.HTTP_204_NO_CONTENT)
 async def check_uname_exist(name: str, session: Session = Depends(get_session)):
     try:
         crud.user.check_name(session, name)
     except NoResultFound:
-        return ApiResponse(
-            code=0,
-            message='success'
-        )
+        return
     else:
-        return ApiResponse(
-            code=1,
-            message='error',
-            data="用户名已存在"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='用户名已存在')
 
 
 @router.get('/users/{uid}',
@@ -81,7 +74,7 @@ async def get_all_user(q: Optional[str] = None, direction: str = 'next', id: Opt
 
 
 @router.post('/users', summary="新建用户")
-async def update_user(user_info: UserInfo, session: Session = Depends(get_session)):
+async def update_user(user_info: UserCreateWithRoles, session: Session = Depends(get_session)):
     """
     更新用户信息的所有操作，可涉及更新用户名、密码、角色等
     :param user_info:
@@ -96,8 +89,13 @@ async def update_user(user_info: UserInfo, session: Session = Depends(get_sessio
     return user
 
 
+@router.put('/users/password', summary='重置密码')
+async def update_password(user: UserUpdatePassword, session: Session = Depends(get_session)):
+    crud.user.update_passwd(session, uid=user.id, passwd=user.password)
+
+
 @router.put('/users/{uid}',
-            summary='更新用户')
+            summary='更新用户', status_code=status.HTTP_204_NO_CONTENT)
 async def update_user(uid: int, user_info: UserUpdateWithRoles, session: Session = Depends(get_session)):
     """
     更新用户信息的所有操作，可涉及更新用户名、密码、角色等

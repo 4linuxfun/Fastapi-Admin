@@ -24,8 +24,8 @@ class CRUDUser(CRUDBase[User]):
         return sql
 
     def insert(self, session: Session, user_info: UserInfo) -> User:
-        updated_user = User(name=user_info.user.name, password=user_info.user.password, enable=user_info.user.enable)
-        user_roles = role.get_roles_by_name(session, user_info.roles)
+        updated_user = User(**user_info.user.dict())
+        user_roles = role.get_roles_by_id(session, user_info.roles)
         updated_user.roles = user_roles
         return super(CRUDUser, self).insert(session, updated_user)
 
@@ -41,6 +41,12 @@ class CRUDUser(CRUDBase[User]):
         session.commit()
         session.refresh(db_obj)
         return db_obj
+
+    def update_passwd(self, session: Session, uid: int, passwd: str):
+        db_obj = self.get(session, uid)
+        db_obj.password = passwd
+        session.add(db_obj)
+        session.commit()
 
 
 user = CRUDUser(User)
