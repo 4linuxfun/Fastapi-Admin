@@ -1,11 +1,11 @@
 import json
 import base64
-from fastapi import Header, HTTPException, Depends, Request
+from fastapi import Header, HTTPException, Depends, Request, APIRouter
 from .common.security import token_decode
 from jose.exceptions import JWTError, ExpiredSignatureError
 from sqlmodel import Session, select
 from .schemas.assets import SearchForm
-from .sql.database import engine
+from .db import engine
 import casbin_sqlalchemy_adapter
 import casbin
 
@@ -13,12 +13,6 @@ import casbin
 async def base_to_json(q: str) -> SearchForm:
     search = json.loads(base64.b64decode(q))
     return SearchForm(**search)
-
-
-# 数据库的dependency，用于每次请求都需要创建db连接时使用
-def get_session():
-    with Session(engine) as session:
-        yield session
 
 
 async def check_token(token: str = Header(..., alias="Authorization")):

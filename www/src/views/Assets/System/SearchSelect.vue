@@ -26,7 +26,7 @@
 			<input-plus :type="filterInfo.type" v-model:data="filterInfo.value"></input-plus>
 		</el-col>
 		<el-button class="mini-button" type="danger" size="mini" circle @click="$emit('delete')">
-			<el-icon>
+			<el-icon :size="5">
 				<minus />
 			</el-icon>
 		</el-button>

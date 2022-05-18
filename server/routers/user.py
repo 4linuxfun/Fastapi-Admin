@@ -1,66 +1,54 @@
-from typing import Optional
+from typing import Optional, List
 from sqlmodel import Session, select
 from sqlalchemy.exc import NoResultFound
-from fastapi import APIRouter, Depends
-from ..dependencies import get_session, check_token, casbin_enforcer
-from ..sql.models import User, Role
+from fastapi import APIRouter, Depends, status, HTTPException
+from ..dependencies import casbin_enforcer
+from ..db import get_session
+from ..models import User, Role
+from ..models.user import UserCreateWithRoles, UserReadWithRoles, UserUpdateWithRoles, UserUpdatePassword
 from .. import crud
 from ..schemas import ApiResponse
-from ..schemas.user import UserInfo
 
 router = APIRouter(prefix='/api', )
 
 
-@router.get('/users/roles', )
-async def get_roles(id: Optional[int] = None, session: Session = Depends(get_session, ),
-                    token: dict = Depends(check_token)):
+@router.get('/users/roles', summary='获取角色')
+async def get_roles(id: Optional[int] = None, session: Session = Depends(get_session, )):
     if id is None:
         # 添加新用户时无用户id
         roles = []
     else:
         user = crud.user.get(session, id)
-        roles = [role.name for role in user.roles]
-    all_roles = session.exec(select(Role)).all()
+        roles: List[int] = [role.id for role in user.roles]
+    all_roles: List[Role] = session.exec(select(Role)).all()
     # roles_list = [role.name for role in all_roles]
-    return ApiResponse(
-        code=0,
-        message="success",
-        data={
-            'roles': all_roles,
-            'enable': roles
-        }
-    )
+    return {
+        'roles': all_roles,
+        'enable': roles
+    }
 
 
-@router.get('/users/exist', description='判断用户是否已经存在')
+@router.get('/users/exist', summary='用户是否存在', status_code=status.HTTP_204_NO_CONTENT)
 async def check_uname_exist(name: str, session: Session = Depends(get_session)):
     try:
         crud.user.check_name(session, name)
     except NoResultFound:
-        return ApiResponse(
-            code=0,
-            message='success'
-        )
+        return
     else:
-        return ApiResponse(
-            code=1,
-            message='error',
-            data="用户名已存在"
-        )
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='用户名已存在')
 
 
 @router.get('/users/{uid}',
-            description='获取用户信息')
-async def get_user_info(uid: int, session: Session = Depends(get_session), token: dict = Depends(check_token)):
-    user = crud.user.get(session, uid)
-    return ApiResponse(
-        code=0,
-        message="success",
-        data=user.dict(exclude={'password': True})
-    )
+            summary='获取用户信息', response_model=UserReadWithRoles, response_model_exclude={'password'})
+async def get_user_info(uid: int, session: Session = Depends(get_session)):
+    try:
+        user = crud.user.get(session, uid)
+    except NoResultFound:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='用户不存在')
+    return user
 
 
-@router.get('/users', description="获取所有用户列表")
+@router.get('/users', summary="获取用户列表")
 async def get_all_user(q: Optional[str] = None, direction: str = 'next', id: Optional[int] = 0,
                        limit: Optional[int] = None, offset_page: Optional[int] = None,
                        session: Session = Depends(get_session)):
@@ -77,26 +65,20 @@ async def get_all_user(q: Optional[str] = None, direction: str = 'next', id: Opt
     total = crud.user.search_total(session, q)
     print(total)
     users = crud.user.search(session, q, direction, id, limit, offset_page)
-    users_list = [user.dict(exclude={"password": True}) for user in users]
+    users_list = [user.dict(exclude={"password"}) for user in users]
     print(users_list)
-    return ApiResponse(
-        code=0,
-        message="success",
-        data={
-            'total': total,
-            'data': users_list
-        }
-    )
+    return {
+        'total': total,
+        'data': users_list
+    }
 
 
-@router.post('/users',
-             description='新建用户')
-async def update_user(user_info: UserInfo, session: Session = Depends(get_session), token: dict = Depends(check_token)):
+@router.post('/users', summary="新建用户")
+async def update_user(user_info: UserCreateWithRoles, session: Session = Depends(get_session)):
     """
     更新用户信息的所有操作，可涉及更新用户名、密码、角色等
     :param user_info:
     :param session:
-    :param token:
     :return:
     """
     print(user_info)
@@ -104,43 +86,40 @@ async def update_user(user_info: UserInfo, session: Session = Depends(get_sessio
     new_roles = [role.id for role in user.roles]
     for role in new_roles:
         casbin_enforcer.add_role_for_user(f'uid_{user.id}', f'role_{role}')
-    return ApiResponse(
-        code=0,
-        message="success",
-    )
+    return user
+
+
+@router.put('/users/password', summary='重置密码')
+async def update_password(user: UserUpdatePassword, session: Session = Depends(get_session)):
+    crud.user.update_passwd(session, uid=user.id, passwd=user.password)
 
 
 @router.put('/users/{uid}',
-            description='更新用户信息')
-async def update_user(uid: int, user_info: UserInfo, session: Session = Depends(get_session),
-                      token: dict = Depends(check_token)):
+            summary='更新用户', status_code=status.HTTP_204_NO_CONTENT)
+async def update_user(uid: int, user_info: UserUpdateWithRoles, session: Session = Depends(get_session)):
     """
     更新用户信息的所有操作，可涉及更新用户名、密码、角色等
     :param uid:
     :param user_info:
     :param session:
-    :param token:
     :return:
     """
-    print(user_info)
+    print('update...')
+    print(user_info.dict(exclude_unset=True, exclude_none=True))
     user = crud.user.update(session, uid, user_info)
     new_roles = [role.id for role in user.roles]
     casbin_enforcer.delete_roles_for_user(f'uid_{user.id}')
     for role in new_roles:
         casbin_enforcer.add_role_for_user(f'uid_{user.id}', f'role_{role}')
-    return ApiResponse(
-        code=0,
-        message="success",
-    )
+    return user
 
 
-@router.delete('/users/{uid}')
+@router.delete('/users/{uid}', summary='删除用户', status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(uid: int, session: Session = Depends(get_session)):
-    user = session.exec(select(User).where(User.id == uid)).one()
+    try:
+        user = session.exec(select(User).where(User.id == uid)).one()
+    except NoResultFound as e:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='此用户不存在')
     casbin_enforcer.delete_roles_for_user(f'uid_{user.id}')
     session.delete(user)
     session.commit()
-    return ApiResponse(
-        code=0,
-        message="success",
-    )

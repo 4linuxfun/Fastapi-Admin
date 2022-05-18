@@ -2,3 +2,5 @@ server/**/__pycache__/*.pyc
 server/**/.idea
 *.pyc
 *.pyc
+*.log
+*.pyc

@@ -1,13 +1,12 @@
-from typing import Optional, List
-import sqlalchemy.exc
+from typing import Optional
 from fastapi import APIRouter, Depends
-from sqlmodel import Session, select
-from ..dependencies import get_session, check_uid
-from ..sql.models import Category, CategoryField, User
+from sqlmodel import Session
+from ..dependencies import check_uid
+from ..db import get_session
+from ..models import Category
 from ..schemas import ApiResponse
 from ..schemas.category import UpdateCategory
 from .. import crud
-from ..common import utils
 
 router = APIRouter(prefix='/api')
 
@@ -17,36 +16,29 @@ async def get_asset_fields(id: int, session: Session = Depends(get_session)):
     fields = crud.category.get_category_fields(session, id)
     info_fields = []
     for field in fields:
-        info_fields.append({'label': field.name, 'value': field.name})
+        info_fields.append({'title': field.name, 'field': field.name})
+    print(Category.schema_json())
     return ApiResponse(
         code=0,
         message="success",
         data=[
             {
-                'label': '通用字段',
-                'options': [
-                    {
-                        'label': '资产类别',
-                        'value': 'category'
-                    },
-                    {
-                        'label': '使用人',
-                        'value': 'user'
-                    },
-                    {
-                        'label': '管理员',
-                        'value': 'manager'
-                    },
-                    {
-                        'label': '区域',
-                        'value': 'area'
-                    }
-                ]
+                'title': '资产类别',
+                'field': 'category',
             },
             {
-                'label': '专用字段',
-                'options': info_fields
-            }
+                'title': '使用人',
+                'field': 'user',
+            },
+            {
+                'title': '管理员',
+                'field': 'manager',
+            },
+            {
+                'title': '区域',
+                'field': 'area',
+            }, *info_fields,
+
         ]
     )
 

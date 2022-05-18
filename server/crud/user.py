@@ -1,6 +1,6 @@
 from typing import Union
 from sqlmodel import select, Session
-from ..sql.models import User
+from ..models import User
 from .base import CRUDBase
 from ..schemas.user import UserInfo, UserLogin
 from .roles import role
@@ -24,8 +24,8 @@ class CRUDUser(CRUDBase[User]):
         return sql
 
     def insert(self, session: Session, user_info: UserInfo) -> User:
-        updated_user = User(name=user_info.user.name, password=user_info.user.password, enable=user_info.user.enable)
-        user_roles = role.get_roles_by_name(session, user_info.roles)
+        updated_user = User(**user_info.user.dict())
+        user_roles = role.get_roles_by_id(session, user_info.roles)
         updated_user.roles = user_roles
         return super(CRUDUser, self).insert(session, updated_user)
 
@@ -33,7 +33,7 @@ class CRUDUser(CRUDBase[User]):
         db_obj = self.get(session, uid)
         updated_user = user_info.user
         db_obj = super(CRUDUser, self).update(session, db_obj, updated_user)
-        user_roles = role.get_roles_by_name(session, user_info.roles)
+        user_roles = role.get_roles_by_id(session, user_info.roles)
         db_obj.roles = user_roles
         print('update:')
         print(db_obj)
@@ -41,6 +41,12 @@ class CRUDUser(CRUDBase[User]):
         session.commit()
         session.refresh(db_obj)
         return db_obj
+
+    def update_passwd(self, session: Session, uid: int, passwd: str):
+        db_obj = self.get(session, uid)
+        db_obj.password = passwd
+        session.add(db_obj)
+        session.commit()
 
 
 user = CRUDUser(User)

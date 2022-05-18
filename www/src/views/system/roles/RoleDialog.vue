@@ -1,121 +1,123 @@
 <template>
-	<el-dialog :model-value="visible" title="角色编辑页面" width="50%" @close="$emit('update:visible', false)"
-		@opened="getInfo" destroy-on-close>
-		<el-form :model="selectData" label-width="80px">
-			<el-form-item label="角色名称">
-				<el-input v-model="selectData.name"></el-input>
-			</el-form-item>
-			<el-form-item label="角色描述">
-				<el-input v-model="selectData.description"></el-input>
-			</el-form-item>
-			<el-form-item label="状态">
-				<el-radio-group v-model="selectData.enable">
-					<el-radio :label="0" size="medium">禁用</el-radio>
-					<el-radio :label="1" size="medium">启用</el-radio>
-				</el-radio-group>
-			</el-form-item>
-			<el-form-item label="菜单" style="border-style: solid;">
-				<el-tree ref="tree" :data="menus" :props="defaultProps" show-checkbox check-strictly node-key="id"
-					:default-checked-keys="enables"></el-tree>
-			</el-form-item>
-			<el-form-item label="资产" style="border-style: solid;">
-				<el-transfer v-model="categoryEnables" :props="{ key: 'id', label: 'name' }" :data="category"
-					:titles="['无权限', '有权限']"></el-transfer>
-			</el-form-item>
-			<el-form-item>
-				<el-button @click="$emit('update:visible', false)">取消</el-button>
-				<el-button v-if="selectData.id" type="primary" @click="handleUpdate">更新</el-button>
-				<el-button v-else type="primary" @click="handleUpdate">添加</el-button>
-			</el-form-item>
-		</el-form>
-	</el-dialog>
+  <el-dialog :model-value="visible" title="角色编辑页面" width="50%" @close="$emit('update:visible', false)"
+             @opened="GetInfo" destroy-on-close>
+    <el-form :model="selectData" label-width="80px">
+      <el-form-item label="角色名称">
+        <el-input v-model="selectData.name"></el-input>
+      </el-form-item>
+      <el-form-item label="角色描述">
+        <el-input v-model="selectData.description"></el-input>
+      </el-form-item>
+      <el-form-item label="状态">
+        <el-radio-group v-model="selectData.enable">
+          <el-radio :label="0">禁用</el-radio>
+          <el-radio :label="1">启用</el-radio>
+        </el-radio-group>
+      </el-form-item>
+      <el-form-item label="菜单权限" style="border-style: solid;">
+        <el-tree ref="menuTree" :data="menus" :props="defaultProps" accordion show-checkbox node-key="id"
+                 :default-checked-keys="enables"></el-tree>
+      </el-form-item>
+      <el-form-item>
+        <el-button @click="$emit('update:visible', false)">取消</el-button>
+        <el-button v-if="selectData.id" type="primary" @click="handleUpdate">更新</el-button>
+        <el-button v-else type="primary" @click="handleUpdate">添加</el-button>
+      </el-form-item>
+    </el-form>
+  </el-dialog>
 </template>
 
 <script>
-	import {
-		GetRoleEnableMenus,
-		GetRoleCategories,
-		PutRoles,
-		PostNewRoles,
-	} from '@/api/roles'
-	export default {
-		props: ['role', 'visible'],
-		emits: ['update:visible'],
-		data() {
-			return {
-				selectData: this.role,
-				menus: '',
-				defaultProps: {
-					children: 'children',
-					label: 'name'
-				},
-				// 拥有权限的菜单ID列表
-				enables: '',
-				category: [],
-				categoryEnables: []
-			}
-		},
-		mounted() {
-			GetRoleCategories(this.role.id).then((response) => {
-				console.log(response)
-				this.category = response.category
-				this.categoryEnables = response.enable
-			})
-		},
-		methods: {
-			// updateMenu() {
-			// 	this.$emit('update',this.selectData)
-			// 	this.$emit('cancel')
-			// },
-			getInfo() {
-				console.log('请求menus信息')
-				GetRoleEnableMenus(this.role.id).then((response) => {
-					console.log(response)
-					this.menus = response.menus
-					this.enables = response.enable
-				})
-				console.log('请求category信息')
+  import {ref, reactive} from 'vue'
+  import {
+    GetRoleEnableMenus,
+    PutRoles,
+    PostNewRoles,
+  } from '@/api/roles'
+  import {ElNotification} from 'element-plus'
 
+  export default {
+    props: ['role', 'visible'],
+    emits: ['update:visible'],
+    setup(props, {
+      emit
+    }) {
+      const selectData = reactive(props.role)
+      const menus = ref([])
+      const defaultProps = reactive({
+        children: 'children',
+        label: 'name'
+      })
+      const enables = ref([])
+      const category = ref([])
+      const categoryEnables = ref([])
 
-			},
-			handleUpdate() {
-				let checkedKeys = this.$refs.tree.getCheckedKeys().concat(this.$refs.tree.getHalfCheckedKeys())
-				console.log(checkedKeys)
-				if (this.selectData.id === null) {
-					PostNewRoles(this.selectData, checkedKeys, this.categoryEnables).then(() => {
-						this.$notify({
-							title: 'success',
-							message: '角色新建成功',
-							type: 'success'
-						})
-					}).catch((error) => {
-						this.$notify({
-							title: 'error',
-							message: "角色新建失败：" + error,
-							type: 'error'
-						})
-					})
-				} else {
-					PutRoles(this.selectData, checkedKeys, this.categoryEnables).then(() => {
-						this.$notify({
-							title: 'success',
-							message: "角色更新成功",
-							type: 'success'
-						})
-					}).catch((error) => {
-						this.$notify({
-							title: 'error',
-							message: "失败：" + error,
-							type: 'error'
-						})
-					})
-				}
+      //tree的用法
+      const menuTree = ref(null)
 
-				this.$emit('update:visible', false)
-			},
+      const GetInfo = () => {
+        console.log('id:' + selectData.id)
+        GetRoleEnableMenus(selectData.id).then((response) => {
+          console.log(response)
+          menus.value = response.menus
+          enables.value = response.enable
+        })
+      }
 
-		},
-	}
+      const handleUpdate = () => {
+        let checkedKeys = menuTree.value.getCheckedKeys().concat(menuTree.value.getHalfCheckedKeys())
+        console.log(checkedKeys)
+        selectData.menus = checkedKeys
+        console.log(selectData)
+        if (selectData.id === null) {
+          PostNewRoles(selectData).then(() => {
+            ElNotification({
+              title: 'success',
+              message: '角色新建成功',
+              type: 'success'
+            })
+          }).catch((error) => {
+            ElNotification({
+              title: 'error',
+              message: '角色新建失败：' + error,
+              type: 'error'
+            })
+          })
+        } else {
+          PutRoles(selectData).then(() => {
+            console.log('notification')
+            ElNotification({
+              title: 'success',
+              message: '角色更新成功',
+              type: 'success'
+            })
+          }).catch((error) => {
+            ElNotification({
+              title: 'error',
+              message: '失败：' + error,
+              type: 'error'
+            })
+          })
+        }
+
+        emit('update:visible', false)
+      }
+
+      GetInfo()
+      console.log(enables.value)
+      return {
+        menuTree,
+        selectData,
+        menus,
+        defaultProps,
+        enables,
+        category,
+        categoryEnables,
+        GetInfo,
+        handleUpdate
+      }
+    },
+  }
 </script>
 
 <style>

@@ -6,10 +6,10 @@ from fastapi import APIRouter, Depends, File, UploadFile
 from starlette.background import BackgroundTask
 from fastapi.responses import FileResponse
 from sqlmodel import Session, select
-from ..dependencies import get_session, check_permission, base_to_json
-from ..sql.models import Assets, Category, CategoryField, ShareFields
+from ..dependencies import check_permission, base_to_json
+from ..models import Assets, Category, CategoryField, ShareFields
 from ..schemas import ApiResponse
-from ..sql.database import engine
+from ..db import engine, get_session
 from ..common import utils
 from ..schemas.assets import SearchForm, UpdateAssets
 from .. import crud
@@ -17,7 +17,7 @@ from .. import crud
 router = APIRouter(prefix='/api')
 
 
-@router.get('/assets/count', description="查询资源的总数")
+@router.get('/assets/count', description="查询资源总数")
 async def search_total(search: SearchForm = Depends(base_to_json), session: Session = Depends(get_session)):
     total = crud.assets.search_total(session, search)
     return ApiResponse(
@@ -27,7 +27,7 @@ async def search_total(search: SearchForm = Depends(base_to_json), session: Sess
     )
 
 
-@router.get('/assets/category/fields', description="查找资产可查询字段")
+@router.get('/assets/category/fields', description="查找资产字段")
 async def get_category_field(category_id: int, query: Optional[str] = None, session: Session = Depends(get_session)):
     search = select(CategoryField).where(CategoryField.category_id == category_id)
     if query is not None:
@@ -149,7 +149,7 @@ async def update_category_detail(new_asset: Assets, session: Session = Depends(g
 
 
 @router.get('/assets', description="搜索资源")
-async def search_system(search: SearchForm = Depends(base_to_json), session: Session = Depends(get_session)):
+def search_system(search: SearchForm = Depends(base_to_json), session: Session = Depends(get_session)):
     print(search)
     if not search.category:
         return ApiResponse(
@@ -158,12 +158,20 @@ async def search_system(search: SearchForm = Depends(base_to_json), session: Ses
             data='请选择资产类型'
         )
     results = crud.assets.search_assets(session, search)
+    assets = []
+    for asset in results:
+        tmp = asset.dict().copy()
+        info = tmp['info'].copy()
+        del tmp['info']
+        tmp.update(info)
+        print(tmp)
+        assets.append(tmp)
 
-    print(results)
+    print(assets)
     return ApiResponse(
         code=0,
         message="success",
-        data=results
+        data=assets
     )
 
 

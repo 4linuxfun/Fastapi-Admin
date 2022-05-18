@@ -2,8 +2,9 @@ import {
 	ref,
 	watch
 } from 'vue'
+import {GET} from '@/utils/request'
 
-export default function usePagination(searchFunc) {
+export default function usePagination(url) {
 	const search = ref(null)
 	const tableData = ref([])
 	const pageSize = ref(10)
@@ -12,6 +13,13 @@ export default function usePagination(searchFunc) {
 	const lastId = ref(0)
 	const firstId = ref(0)
 
+	const searchFunc = (q, direction, id, limit, offset_page) => GET(url, {
+		q,
+		direction,
+		id,
+		limit,
+		offset_page
+	})
 	// 初始化调用
 	searchFunc(search.value, 'next', lastId.value, pageSize.value, null).then((response) => {
 		tableData.value = response.data
