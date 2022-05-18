@@ -11,7 +11,7 @@
     </el-form-item>
   </el-form>
   <el-button @click="$emit('update:visible',false)">关闭</el-button>
-  <el-button @click="updatePasswd(ruleFormRef)">确定</el-button>
+  <el-button @click="updatePasswd(ruleFormRef)" type="primary">确定</el-button>
 </template>
 
 <script>
