@@ -12,7 +12,7 @@ def menu_convert(menu_list, mode=None):
     # 生成btn字典，用于后面的组合
     btn_dict = {}
     for menu in menu_list:
-        if menu.type == "button":
+        if menu.type == "btn":
             parent_id = menu.parent_id
             if parent_id not in btn_dict.keys():
                 btn_dict[parent_id] = []
