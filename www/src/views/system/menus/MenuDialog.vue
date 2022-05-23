@@ -7,8 +7,7 @@
         <el-radio-button label="btn">按钮</el-radio-button>
       </el-radio-group>
     </el-form-item>
-    <component :is="selectData.type" v-model:form="selectData" :totalApiLists="totalApiLists"
-               :menuData="menuData"></component>
+    <component :is="selectData.type" v-model:form="selectData" :totalApiLists="totalApiLists"></component>
     <el-form-item>
       <el-button @click="$emit('update:visible', false)">取消</el-button>
       <!-- 更新和添加按钮触发的事件都是一样的，只是提交数据时id字段为空，此需要服务端通过此字段去判断添加还是更新 -->
