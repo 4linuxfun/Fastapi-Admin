@@ -1,11 +1,14 @@
+from copy import deepcopy
 from typing import Optional, List
 from fastapi import APIRouter, Depends, status
 from sqlmodel import Session
 from ..db import get_session
 from ..models.menu import Menu, MenusWithChild, MenuWithUpdate, MenuRead
+from ..models.api import Api
 from ..common import utils
 from ..schemas import ApiResponse
 from .. import crud
+from ..dependencies import casbin_enforcer
 
 router = APIRouter(prefix='/api')
 
@@ -49,16 +52,22 @@ async def update_menu(menu: MenuWithUpdate, session: Session = Depends(get_sessi
     :param session:
     :return:
     """
-    db_obj = crud.menu.get(session, menu.id)
-    apis = crud.api.get_multi(session, menu.apis)
+    db_obj: Menu = crud.menu.get(session, menu.id)
+    old_apis: List[Api] = deepcopy(db_obj.apis)
+    apis: List[Api] = crud.api.get_multi(session, menu.apis)
     delattr(menu, "apis")
-    db_obj = crud.menu.update(session, db_obj, menu)
+    new_obj: Menu = crud.menu.update(session, db_obj, menu)
     print(apis)
-    db_obj.apis = apis
-    session.add(db_obj)
+    new_obj.apis = apis
+    for role in new_obj.roles:
+        for api in old_apis:
+            casbin_enforcer.delete_permission_for_user(f'role_{role.id}', api.path, api.method)
+        for api in apis:
+            casbin_enforcer.add_permission_for_user(f'role_{role.id}', api.path, api.method)
+    session.add(new_obj)
     session.commit()
-    session.refresh(db_obj)
-    return db_obj
+    session.refresh(new_obj)
+    return new_obj
 
 
 @router.delete('/menus/{id}', summary='删除菜单', status_code=status.HTTP_204_NO_CONTENT)
