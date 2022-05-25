@@ -3,8 +3,9 @@
     <el-input v-model="selectData.name"></el-input>
   </el-form-item>
   <el-form-item v-if="selectData.type ==='subPage'" label="父菜单">
-    <el-cascader v-model="selectData.parent_id" :options="menuData" :props="{checkStrictly:true,value:'id'}"
-                 placeholder="请选择父菜单">
+    <el-cascader v-model="selectData.parent_id" :options="cascaderMenu"
+                 :props="{checkStrictly:true,value:'id',label:'name',emitPath:false}"
+                 placeholder="请选择父菜单" style="width:100%">
     </el-cascader>
   </el-form-item>
   <el-form-item label="菜单路径" prop="path" :rules="[{required:true,message:'请填写菜单路径'}]">
@@ -34,7 +35,8 @@
 </template>
 
 <script>
-  import {toRefs, reactive, ref, watch, inject} from 'vue'
+  import {toRefs, reactive, ref, watch, inject, computed} from 'vue'
+  import useMenu from '@/composables/useMenu'
 
   export default {
     name: 'MenuForm',
@@ -42,31 +44,17 @@
     emits: ['update:form'],
     setup(props, {emit}) {
       const {form} = toRefs(props)
-      const selectData = reactive(form.value)
       const loading = ref(false)
-      const selectApis = ref([])
 
       const menuData = inject('menuData')
-      if (selectData.id !== null) {
-        for (const api of selectData.apis) {
-          console.log(api)
-          selectApis.value.push(api.id)
-        }
-      }
 
-      watch(selectData, (newData) => {
-        console.log('watch selectData change:' + selectData)
-        emit('update:form', selectData)
-      })
+      const {selectData, selectApis, cascaderMenu} = useMenu(form.value, menuData.value, emit)
 
-      watch(selectApis, (newValue) => {
-        console.log('selectApi watch')
-        selectData.apis = selectApis.value
-      })
 
       return {
         selectData,
         menuData,
+        cascaderMenu,
         selectApis,
         loading,
       }
