@@ -25,16 +25,8 @@ class CRUDMenu(CRUDBase[Menu]):
         print(db_obj)
         return super(CRUDMenu, self).update(session, db_obj, obj_in)
 
-    def delete(self, session: Session, *, id: int):
+    def delete(self, session: Session, id: int):
         db_obj = self.get(session, id)
-        if db_obj.api is not None:
-            apis: List[str] = db_obj.api.split(',')
-            roles: List[int] = [role.id for role in db_obj.roles]
-            if apis and roles:
-                for api in apis:
-                    method, path = api.split(':')
-                    for role in roles:
-                        casbin_enforcer.delete_permission_for_user(f'role_{role}', path, method, 'allow')
         session.delete(db_obj)
         session.commit()
 

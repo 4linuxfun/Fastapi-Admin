@@ -49,28 +49,20 @@
       </el-table-column>
       <el-table-column label="操作">
         <template #default="scope">
-          <!--          <el-dropdown @command="handleCommand">-->
-          <!--            <span style="color: deepskyblue">-->
-          <!--              更多<el-icon>-->
-          <!--              <arrow-down/>-->
-          <!--            </el-icon>-->
-          <!--            </span>-->
-          <!--            <template #dropdown>-->
-          <!--              <el-dropdown-menu>-->
-          <!--                <el-dropdown-item :command="beforeHandleCommand(scope.row,'detail')">详情</el-dropdown-item>-->
-          <!--                <el-dropdown-item :command="beforeHandleCommand(scope.row,'password')">添加子菜单</el-dropdown-item>-->
-          <!--                <el-dropdown-item :command="beforeHandleCommand(scope.row,'password')">添加按钮</el-dropdown-item>-->
-          <!--                <el-dropdown-item :command="beforeHandleCommand(scope.row,'delete')">删除</el-dropdown-item>-->
-          <!--              </el-dropdown-menu>-->
-          <!--            </template>-->
-          <!--          </el-dropdown>-->
-          <el-button type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button type="danger" size="small" @click="handleDelete(scope.row.id,scope.row.name)">删除</el-button>
-          <el-button v-if="scope.row.component == 'Layout'" size="small" @click="handleAdd">添加子菜单
-          </el-button>
-          <el-button v-else-if="scope.row.component !== 'Layout' && scope.row.type === 'page'"
-                     @click="handleAdd">添加按钮
-          </el-button>
+          <el-dropdown @command="handleCommand">
+            <span style="color: deepskyblue">
+              更多<el-icon>
+              <arrow-down/>
+            </el-icon>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item :command="beforeHandleCommand(scope.row,'detail')">编辑</el-dropdown-item>
+                <el-dropdown-item :command="beforeHandleCommand(scope.row,'password')">添加子菜单</el-dropdown-item>
+                <el-dropdown-item :command="beforeHandleCommand(scope.row,'delete')">删除</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </template>
       </el-table-column>
       >
@@ -83,7 +75,8 @@
 
 </template>
 <script>
-  import {Search} from '@element-plus/icons-vue'
+  import {Search, ArrowDown} from '@element-plus/icons-vue'
+  import {ElMessageBox} from 'element-plus'
   import {
     DeleteMenu,
     GetAllMenus
@@ -93,6 +86,7 @@
 
   export default {
     components: {
+      ArrowDown,
       Search,
       'menu-dialog': MenuDialog,
     },
@@ -106,13 +100,40 @@
       const menuData = ref([])
       const selectData = reactive({})
 
-      provide('menuData',menuData)
+      provide('menuData', menuData)
 
       watch(dialogVisible, (newValue) => {
         if (newValue === false) {
           getMenuInfo()
         }
       })
+
+      const beforeHandleCommand = (row, command) => {
+        return {
+          row,
+          command
+        }
+      }
+      const handleCommand = (command) => {
+        let row = command.row
+        switch (command.command) {
+          case 'detail':
+            dialogVisible.value = true
+            Object.assign(selectData, row)
+            break
+          case 'password':
+            this.handleChangePwd(command.row)
+            break
+          case 'delete':
+            ElMessageBox.confirm('是否删除菜单：' +row.name, '删除菜单', {
+              type: 'warning'
+            }).then(() => {
+              DeleteMenu(row.id)
+              getMenuInfo()
+            }).catch()
+            break
+        }
+      }
 
       const splitApis = (apis) => {
         console.log('split')
@@ -124,18 +145,9 @@
         console.log('submit!')
       }
 
-      const handleEdit = (row) => {
-        dialogVisible.value = true
-        Object.assign(selectData, row)
-      }
 
       const handleDelete = (id, name) => {
-        this.$confirm('是否删除菜单：' + id + ': ' + name, '删除菜单', {
-          type: 'warning'
-        }).then(() => {
-          DeleteMenu(id)
-          getMenuInfo()
-        }).catch()
+
       }
 
       const handleAdd = () => {
@@ -173,9 +185,10 @@
         menuData,
         // 点击编辑菜单时选择的数据
         selectData,
+        beforeHandleCommand,
+        handleCommand,
         splitApis,
         onSubmit,
-        handleEdit,
         handleDelete,
         handleAdd,
         getMenuInfo

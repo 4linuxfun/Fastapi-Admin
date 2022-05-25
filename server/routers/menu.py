@@ -1,5 +1,5 @@
 from typing import Optional, List
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, status
 from sqlmodel import Session
 from ..db import get_session
 from ..models.menu import Menu, MenusWithChild, MenuWithUpdate, MenuRead
@@ -61,10 +61,6 @@ async def update_menu(menu: MenuWithUpdate, session: Session = Depends(get_sessi
     return db_obj
 
 
-@router.delete('/menus/{id}', summary='删除菜单')
+@router.delete('/menus/{id}', summary='删除菜单', status_code=status.HTTP_204_NO_CONTENT)
 async def del_menu(id: int, session: Session = Depends(get_session)):
     crud.menu.delete(session, id)
-    return ApiResponse(
-        code=0,
-        message="success"
-    )
