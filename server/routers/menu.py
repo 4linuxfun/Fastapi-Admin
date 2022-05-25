@@ -33,15 +33,21 @@ async def get_menu_apis(session: Session = Depends(get_session)):
 
 
 @router.post('/menus', summary="新建菜单", response_model=Menu)
-async def add_menu(menu: Menu, session: Session = Depends(get_session)):
+async def add_menu(menu: MenuWithUpdate, session: Session = Depends(get_session)):
     """
     # 新建的菜单，还是没有授权给角色的，所以直接新增就行了
     :param menu:
     :param session:
     :return:
     """
-    menu = crud.menu.insert(session, menu)
-    return menu
+    apis: List[Api] = crud.api.get_multi(session, menu.apis)
+    delattr(menu, "apis")
+    db_obj = crud.menu.insert(session, Menu(**menu.dict()))
+    db_obj.apis = apis
+    session.add(db_obj)
+    session.commit()
+    session.refresh(db_obj)
+    return db_obj
 
 
 @router.put('/menus', summary="更新菜单")
