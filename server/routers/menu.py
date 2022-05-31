@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, status
 from sqlmodel import Session
 from ..db import get_session
 from ..models.menu import Menu, MenusWithChild, MenuWithUpdate, MenuRead
-from ..models.api import Api
+from ..models.api import Api, ApiWithMenus
 from ..common import utils
 from ..schemas import ApiResponse
 from .. import crud
@@ -59,7 +59,13 @@ async def update_menu(menu: MenuWithUpdate, session: Session = Depends(get_sessi
     :return:
     """
     db_obj: Menu = crud.menu.get(session, menu.id)
-    old_apis: List[Api] = deepcopy(db_obj.apis)
+    old_apis: List[ApiWithMenus] = []
+    for api in db_obj.apis:
+        tmp_api = ApiWithMenus(**api.dict())
+        tmp_api.menus = [menu.id for menu in api.menus]
+        old_apis.append(tmp_api)
+    print('old_apis is:')
+    print(old_apis)
     apis: List[Api] = crud.api.get_multi(session, menu.apis)
     delattr(menu, "apis")
     new_obj: Menu = crud.menu.update(session, db_obj, menu)
@@ -67,6 +73,8 @@ async def update_menu(menu: MenuWithUpdate, session: Session = Depends(get_sessi
     new_obj.apis = apis
     for role in new_obj.roles:
         for api in old_apis:
+            if len(api.menus) > 1:
+                continue
             casbin_enforcer.delete_permission_for_user(f'role_{role.id}', api.path, api.method)
         for api in apis:
             casbin_enforcer.add_permission_for_user(f'role_{role.id}', api.path, api.method)

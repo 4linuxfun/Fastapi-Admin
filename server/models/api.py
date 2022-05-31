@@ -18,3 +18,8 @@ class Api(ApiBase, table=True):
     __tablename__ = 'sys_api'
     id: int = Field(default=None, primary_key=True)
     menus: List['Menu'] = Relationship(back_populates='apis', link_model=MenuApis)
+
+
+class ApiWithMenus(ApiBase):
+    id: int
+    menus: List['Menu'] = []
