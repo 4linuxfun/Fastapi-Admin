@@ -1,6 +1,6 @@
 from copy import deepcopy
 from typing import Optional, List
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, HTTPException
 from sqlmodel import Session
 from ..db import get_session
 from ..models.menu import Menu, MenusWithChild, MenuWithUpdate, MenuRead
@@ -86,4 +86,8 @@ async def update_menu(menu: MenuWithUpdate, session: Session = Depends(get_sessi
 
 @router.delete('/menus/{id}', summary='删除菜单', status_code=status.HTTP_204_NO_CONTENT)
 async def del_menu(id: int, session: Session = Depends(get_session)):
+    db_obj = crud.menu.get(session, id)
+    if len(db_obj.roles) > 0:
+        roles = [role.name for role in db_obj.roles]
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{roles} 角色关联菜单，请先取消关联")
     crud.menu.delete(session, id)
