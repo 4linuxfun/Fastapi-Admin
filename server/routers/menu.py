@@ -21,7 +21,7 @@ async def get_all_menu(q: Optional[str] = None, session: Session = Depends(get_s
     for menu in menu_list:
         new_menu = MenuRead(**menu.dict(), apis=menu.apis)
         menu_list_apis.append(new_menu)
-    user_menus = utils.menu_convert(menu_list_apis, "all")
+    user_menus = utils.menu_convert(menu_list_apis)
     return user_menus
 
 
