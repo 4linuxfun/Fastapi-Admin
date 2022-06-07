@@ -13,7 +13,7 @@
       </el-input>
     </el-col>
     <el-col :span="6">
-      <el-button type="primary" @click="handleAdd">新增</el-button>
+      <el-button v-permission="'addMenu'" type="primary" @click="handleAdd">新增</el-button>
     </el-col>
   </el-row>
   <div style="padding-top:10px">
@@ -57,9 +57,12 @@
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item :command="beforeHandleCommand(scope.row,'detail')">编辑</el-dropdown-item>
-                <el-dropdown-item :command="beforeHandleCommand(scope.row,'password')">添加子菜单</el-dropdown-item>
-                <el-dropdown-item :command="beforeHandleCommand(scope.row,'delete')">删除</el-dropdown-item>
+                <el-dropdown-item v-permission="'editMenu'" :command="beforeHandleCommand(scope.row,'detail')">编辑
+                </el-dropdown-item>
+                <el-dropdown-item v-permission="'addMenu'" :command="beforeHandleCommand(scope.row,'password')">添加子菜单
+                </el-dropdown-item>
+                <el-dropdown-item v-permission="'delMenu'" :command="beforeHandleCommand(scope.row,'delete')">删除
+                </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
@@ -125,7 +128,7 @@
             this.handleChangePwd(command.row)
             break
           case 'delete':
-            ElMessageBox.confirm('是否删除菜单：' +row.name, '删除菜单', {
+            ElMessageBox.confirm('是否删除菜单：' + row.name, '删除菜单', {
               type: 'warning'
             }).then(() => {
               DeleteMenu(row.id)

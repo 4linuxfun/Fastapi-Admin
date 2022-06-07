@@ -12,7 +12,7 @@
       </el-input>
     </el-col>
     <el-col :span="6">
-      <el-button type="primary" @click="handleAdd">添加新用户</el-button>
+      <el-button v-permission="'addUser'" type="primary"  @click="handleAdd">添加新用户</el-button>
     </el-col>
   </el-row>
 
