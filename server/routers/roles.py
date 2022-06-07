@@ -24,7 +24,7 @@ async def get_role_menus(id: Optional[int] = None, session: Session = Depends(ge
     """
     # 所有角色，进行权限分配的时候，都是返回所有菜单列表,enable=True:只查询启用的菜单
     menu_list: List[Menu] = crud.role.get_all_menus(session)
-    user_menus = menu_convert(menu_list, 'all')
+    user_menus = menu_convert(menu_list)
     role_menus = crud.role.get_enable_menus(session, id)
     return {
         "menus": user_menus,

@@ -59,7 +59,7 @@ class CRUDRole(CRUDBase[Role]):
                 continue
             for api in menu.apis:
                 print(f'增加权限:role_{db_obj.id},{api.path},{api.method}')
-                casbin_enforcer.add_permission_for_user(f'role_{db_obj.id}', api.path, api.method, 'allow')
+                casbin_enforcer.add_permission_for_user(f'role_{db_obj.id}', api.path, api.method)
         session.add(db_obj)
         session.commit()
         session.refresh(db_obj)

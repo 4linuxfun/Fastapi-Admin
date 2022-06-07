@@ -7,12 +7,15 @@ if TYPE_CHECKING:
     from .role import Role
 
 
-class UserBase(SQLModel):
+class UserWithOutPasswd(SQLModel):
     name: str = Field(..., min_length=5, max_length=50)
-    password: Optional[str]
     enable: int
     avatar: Optional[str]
     email: Optional[str]
+
+
+class UserBase(UserWithOutPasswd):
+    password: Optional[str]
     # age: Optional[int] = Field(..., title='年龄', lt=120)
 
 
@@ -52,7 +55,7 @@ class UserUpdatePassword(SQLModel):
 
 class UserUpdateWithRoles(SQLModel):
     # PUT请求时，传递过来的数据模型
-    user: User
+    user: UserWithOutPasswd
     roles: List[int]
 
 

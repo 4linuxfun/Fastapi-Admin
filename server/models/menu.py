@@ -32,7 +32,7 @@ class MenusWithChild(MenuBase):
 
 class MenuWithUpdate(MenuBase):
     # 更新菜单信息
-    id: int
+    id: Optional[int]
     apis: List[int] = []
 
 

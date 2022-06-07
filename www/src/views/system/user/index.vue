@@ -12,7 +12,7 @@
       </el-input>
     </el-col>
     <el-col :span="6">
-      <el-button type="primary" @click="handleAdd">添加新用户</el-button>
+      <el-button v-permission="'addUser'" type="primary"  @click="handleAdd">添加新用户</el-button>
     </el-col>
   </el-row>
 
@@ -57,12 +57,13 @@
     />
 
   </div>
-  <div v-if="dialogVisible">
-    <user-dialog :user='selectUser' v-model:visible='dialogVisible'/>
-  </div>
-  <el-dialog :model-value="resetPasswdDialog" title="用户密码重置" width="30%" @close="resetPasswdDialog=false">
+  <el-dialog v-model="resetPasswdDialog" title="用户密码重置" width="30%" @close="resetPasswdDialog=false">
     <change-passwd :user='selectUser' v-model:visible="resetPasswdDialog"/>
   </el-dialog>
+
+  <el-drawer v-model="detailVisible" title="用户详情" destroy-on-close>
+    <user-dialog :user='selectUser' v-model:visible='detailVisible'/>
+  </el-drawer>
 
 </template>
 <script>
@@ -96,6 +97,7 @@
       const formData = reactive({})
       const formSchema = reactive({})
       const dialogVisible = ref(false)
+      const detailVisible = ref(false)
       const resetPasswdDialog = ref(false)
       const selectUser = reactive({})
 
@@ -117,6 +119,7 @@
         formSchema,
         search,
         dialogVisible,
+        detailVisible,
         resetPasswdDialog,
         tableData,
         selectUser,
@@ -130,7 +133,7 @@
       }
     },
     watch: {
-      dialogVisible(newValue, oldValue) {
+      detailVisible(newValue, oldValue) {
         this.freshCurrentPage()
       },
     },
@@ -163,7 +166,7 @@
 
         GetUserInfo(uid).then(response => {
           this.selectUser = response
-          this.dialogVisible = true
+          this.detailVisible = true
         })
 
         console.log(this.selectUser)
@@ -171,7 +174,6 @@
 
       handleAdd() {
         console.log('start to add user')
-        this.dialogVisible = true
         this.selectUser = {
           id: null,
           name: null,
@@ -181,7 +183,7 @@
           password: null,
         }
         console.log(this.selectUser)
-
+        this.detailVisible = true
       },
       handleSubmit() {
         console.log(this.formData)

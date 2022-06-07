@@ -13,7 +13,7 @@
       </el-input>
     </el-col>
     <el-col :span="6">
-      <el-button type="primary" @click="handleAdd(null)">添加父菜单</el-button>
+      <el-button v-permission="'addMenu'" type="primary" @click="handleAdd">新增</el-button>
     </el-col>
   </el-row>
   <div style="padding-top:10px">
@@ -23,20 +23,20 @@
       <el-table-column prop="name" label="名称" width="180"/>
       <el-table-column prop="type" label="类型" width="100" align="center">
         <template #default="scope">
-          <el-tag effect="dark" v-if="(scope.row.type === 'page') && (scope.row.component === 'Layout')" type='info'>
-            父菜单
+          <el-tag effect="dark" v-if="scope.row.type === 'page'" type='info'>
+            一级菜单
           </el-tag>
-          <el-tag effect="dark" v-else-if="scope.row.type === 'page' && scope.row.component !== 'Layout'" type='info'>
+          <el-tag effect="dark" v-else-if="scope.row.type === 'subPage'" type='success'>
             子菜单
           </el-tag>
-          <el-tag effect="dark" v-else type="success">按钮</el-tag>
+          <el-tag effect="dark" v-else type="warning">按钮</el-tag>
         </template>
       </el-table-column>
       <el-table-column prop="path" label="路径" width="180"/>
       <el-table-column prop="component" label="组件" width="180"/>
       <el-table-column prop="apis" label="关联API权限" align="center">
         <template #default="scope">
-          <el-tag v-for="api in scope.row.apis" type='info' :key="api.id">{{api.tags}}-{{api.summary}}
+          <el-tag v-for="api in scope.row.apis" type='info' :key="api.id">{{ api.tags }}-{{ api.summary }}
           </el-tag>
         </template>
       </el-table-column>
@@ -49,127 +49,128 @@
       </el-table-column>
       <el-table-column label="操作">
         <template #default="scope">
-          <el-button type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
-          <el-button type="danger" size="small" @click="handleDelete(scope.row.id,scope.row.name)">删除</el-button>
-          <el-button v-if="scope.row.component == 'Layout'" size="small" @click="handleAdd(scope.row.id,'page')">添加子菜单
-          </el-button>
-          <el-button v-else-if="scope.row.component !== 'Layout' && scope.row.type === 'page'"
-                     @click="handleAdd(scope.row.id,'btn')">添加按钮
-          </el-button>
+          <el-dropdown @command="handleCommand">
+            <span style="color: deepskyblue">
+              更多<el-icon>
+              <arrow-down/>
+            </el-icon>
+            </span>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item v-permission="'editMenu'" :command="beforeHandleCommand(scope.row,'detail')">编辑
+                </el-dropdown-item>
+                <el-dropdown-item v-permission="'addMenu'" :command="beforeHandleCommand(scope.row,'password')">添加子菜单
+                </el-dropdown-item>
+                <el-dropdown-item v-permission="'delMenu'" :command="beforeHandleCommand(scope.row,'delete')">删除
+                </el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
         </template>
       </el-table-column>
       >
     </el-table>
 
   </div>
-  <div v-if="dialogVisible">
+  <el-drawer v-model="dialogVisible" title="添加子菜单" destroy-on-close>
     <menu-dialog :data="selectData" v-model:visible="dialogVisible"></menu-dialog>
-  </div>
+  </el-drawer>
 
 </template>
 <script>
-  import {Search} from '@element-plus/icons-vue'
+  import {Search, ArrowDown} from '@element-plus/icons-vue'
+  import {ElMessageBox} from 'element-plus'
   import {
     DeleteMenu,
     GetAllMenus
   } from '@/api/menus'
   import MenuDialog from './MenuDialog'
+  import {provide, reactive, ref, watch} from 'vue'
 
   export default {
     components: {
+      ArrowDown,
       Search,
       'menu-dialog': MenuDialog,
     },
-    data() {
-      return {
-        search: null,
-        dialogVisible: false,
-        menuInfo: {
-          name: '',
-          status: ''
-        },
-        // 表格数据
-        menuData: [],
-        // 点击编辑菜单时选择的数据
-        selectData: '',
+    setup() {
+      const search = ref(null)
+      const dialogVisible = ref(false)
+      const menuInfo = reactive({
+        name: '',
+        status: ''
+      })
+      const menuData = ref([])
+      const selectData = reactive({})
+
+      provide('menuData', menuData)
+
+      watch(dialogVisible, (newValue) => {
+        if (newValue === false) {
+          getMenuInfo()
+        }
+      })
+
+      const beforeHandleCommand = (row, command) => {
+        return {
+          row,
+          command
+        }
+      }
+      const handleCommand = (command) => {
+        let row = command.row
+        switch (command.command) {
+          case 'detail':
+            dialogVisible.value = true
+            Object.assign(selectData, row)
+            break
+          case 'password':
+            this.handleChangePwd(command.row)
+            break
+          case 'delete':
+            ElMessageBox.confirm('是否删除菜单：' + row.name, '删除菜单', {
+              type: 'warning'
+            }).then(() => {
+              DeleteMenu(row.id)
+              getMenuInfo()
+            }).catch()
+            break
+        }
       }
 
-    },
-    created() {
-      console.log('start to get all menu list')
-      this.getMenuInfo()
-    },
-    watch: {
-      dialogVisible(newValue) {
-        if (newValue === false) {
-          this.getMenuInfo()
-        }
-
-      },
-    },
-    methods: {
-      splitApis(apis) {
+      const splitApis = (apis) => {
         console.log('split')
         console.log(apis)
         return apis.split(',')
-      },
-      onSubmit() {
+      }
+
+      const onSubmit = () => {
         console.log('submit!')
-      },
-      handleEdit(row) {
-        this.dialogVisible = true
-        this.selectData = Object.assign({}, row)
-      },
-      handleDelete(id, name) {
-        this.$confirm('是否删除菜单：' + id + ': ' + name, '删除菜单', {
-          type: 'warning'
-        }).then(() => {
-          DeleteMenu(id)
-          this.getMenuInfo()
-        }).catch()
-      },
-      handleAdd(id, type = null) {
-        this.dialogVisible = true
-        if (id === null && type === null) {
-          console.log('添加父级菜单')
-          this.selectData = {
-            id: null,
-            parent_id: null,
-            name: '',
-            path: '',
-            component: 'Layout',
-            enable: '',
-            type: 'page'
+      }
 
-          }
-        } else if (id !== null && type === 'page') {
-          this.selectData = {
-            id: null,
-            parent_id: id,
-            name: '',
-            path: '',
-            component: '',
-            enable: '',
-            type: 'page'
 
-          }
-        } else if (id !== null && type === 'btn') {
-          this.selectData = {
-            id: null,
-            parent_id: id,
-            name: '',
-            path: '',
-            component: '',
-            enable: '',
-            type: 'button'
-          }
-        }
-      },
-      getMenuInfo() {
+      const handleDelete = (id, name) => {
+
+      }
+
+      const handleAdd = () => {
+        Object.assign(selectData, {
+          id: null,
+          parent_id: null,
+          name: '',
+          path: '',
+          component: null,
+          enable: '',
+          type: 'page'
+        })
+        dialogVisible.value = true
+      }
+
+      const getMenuInfo = () => {
         console.log('get menu info')
-        GetAllMenus(this.search).then(response => {
+        GetAllMenus(search.value).then(response => {
           console.log(response)
-          this.menuData = response
+          menuData.value = response
         }).catch(error => {
           this.$notify({
             title: '错误',
@@ -177,9 +178,30 @@
             type: 'error'
           })
         })
-      },
+      }
+
+      return {
+        search,
+        dialogVisible,
+        menuInfo,
+        // 表格数据
+        menuData,
+        // 点击编辑菜单时选择的数据
+        selectData,
+        beforeHandleCommand,
+        handleCommand,
+        splitApis,
+        onSubmit,
+        handleDelete,
+        handleAdd,
+        getMenuInfo
+      }
 
     },
+    created() {
+      console.log('start to get all menu list')
+      this.getMenuInfo()
+    }
   }
 </script>
 <style lang="">
