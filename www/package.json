@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
+    "serve": "vue-cli-service serve --mode dev",
+    "build": "vue-cli-service build --mod pro",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
@@ -21,7 +21,7 @@
     "pinia": "^2.0.14",
     "vue": "^3.2.37",
     "vue-echarts": "^6.0.3",
-    "vue-router": "^4.0.16"
+    "vue-router": "^4.0.15"
   },
   "devDependencies": {
     "@babel/eslint-parser": "^7.18.2",
