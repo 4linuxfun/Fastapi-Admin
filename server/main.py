@@ -15,10 +15,6 @@ app.include_router(roles.router, tags=['角色管理'], dependencies=[Depends(ch
 app.include_router(api.router, tags=['接口管理'], dependencies=[Depends(check_permission)])
 
 
-# app.include_router(assets.router, tags=['资产管理'], dependencies=[Depends(check_permission)])
-# app.include_router(category.router, tags=['类别管理'], dependencies=[Depends(check_permission)])
-
-
 @app.on_event("startup")
 def startup():
     """
