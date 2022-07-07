@@ -17,7 +17,7 @@ async def get_roles(id: Optional[int] = None, session: Session = Depends(get_ses
         # 添加新用户时无用户id
         roles = []
     else:
-        user = crud.user.get(session, id)
+        user = crud.internal.user.get(session, id)
         roles: List[int] = [role.id for role in user.roles]
     all_roles: List[Role] = session.exec(select(Role)).all()
     # roles_list = [role.name for role in all_roles]
@@ -30,7 +30,7 @@ async def get_roles(id: Optional[int] = None, session: Session = Depends(get_ses
 @router.get('/users/exist', summary='用户是否存在', status_code=status.HTTP_204_NO_CONTENT)
 async def check_uname_exist(name: str, session: Session = Depends(get_session)):
     try:
-        crud.user.check_name(session, name)
+        crud.internal.user.check_name(session, name)
     except NoResultFound:
         return
     else:
@@ -61,9 +61,9 @@ async def get_all_user(q: Optional[str] = None, direction: str = 'next', id: Opt
     :param session:
     :return:
     """
-    total = crud.user.search_total(session, q)
+    total = crud.internal.user.search_total(session, q)
     print(total)
-    users = crud.user.search(session, q, direction, id, limit, offset_page)
+    users = crud.internal.user.search(session, q, direction, id, limit, offset_page)
     users_list = [user.dict(exclude={"password"}) for user in users]
     print(users_list)
     return {
@@ -81,7 +81,7 @@ async def update_user(user_info: UserCreateWithRoles, session: Session = Depends
     :return:
     """
     print(user_info)
-    user: User = crud.user.insert(session, user_info)
+    user: User = crud.internal.user.insert(session, user_info)
     new_roles = [role.id for role in user.roles]
     for role in new_roles:
         casbin_enforcer.add_role_for_user(f'uid_{user.id}', f'role_{role}')
@@ -90,7 +90,7 @@ async def update_user(user_info: UserCreateWithRoles, session: Session = Depends
 
 @router.put('/users/password', summary='重置密码')
 async def update_password(user: UserUpdatePassword, session: Session = Depends(get_session)):
-    crud.user.update_passwd(session, uid=user.id, passwd=user.password)
+    crud.internal.user.update_passwd(session, uid=user.id, passwd=user.password)
 
 
 @router.put('/users/{uid}',
@@ -105,7 +105,7 @@ async def update_user(uid: int, user_info: UserUpdateWithRoles, session: Session
     """
     print('update...')
     print(user_info.dict(exclude_unset=True, exclude_none=True))
-    user = crud.user.update(session, uid, user_info)
+    user = crud.internal.user.update(session, uid, user_info)
     new_roles = [role.id for role in user.roles]
     casbin_enforcer.delete_roles_for_user(f'uid_{user.id}')
     for role in new_roles:

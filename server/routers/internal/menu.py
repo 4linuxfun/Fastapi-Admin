@@ -26,7 +26,7 @@ async def get_all_menu(q: Optional[str] = None, session: Session = Depends(get_s
 
 @router.get('/menus/tree_apis', summary='获取树形菜单接口')
 async def get_menu_apis(session: Session = Depends(get_session)):
-    apis = crud.api.get_tree(session)
+    apis = crud.internal.api.get_tree(session)
     print(apis)
     return apis
 
@@ -39,7 +39,7 @@ async def add_menu(menu: MenuWithUpdate, session: Session = Depends(get_session)
     :param session:
     :return:
     """
-    apis: List[Api] = crud.api.get_multi(session, menu.apis)
+    apis: List[Api] = crud.internal.api.get_multi(session, menu.apis)
     delattr(menu, "apis")
     db_obj = crud.menu.insert(session, Menu(**menu.dict()))
     db_obj.apis = apis
@@ -65,7 +65,7 @@ async def update_menu(menu: MenuWithUpdate, session: Session = Depends(get_sessi
         old_apis.append(tmp_api)
     print('old_apis is:')
     print(old_apis)
-    apis: List[Api] = crud.api.get_multi(session, menu.apis)
+    apis: List[Api] = crud.internal.api.get_multi(session, menu.apis)
     delattr(menu, "apis")
     new_obj: Menu = crud.menu.update(session, db_obj, menu)
     print(apis)
