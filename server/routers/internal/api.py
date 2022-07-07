@@ -1,8 +1,8 @@
 from typing import Optional
 from sqlmodel import Session
 from fastapi import APIRouter, Depends
-from ..db import get_session
-from .. import crud
+from server.db import get_session
+from ... import crud
 
 router = APIRouter(prefix='/api', )
 

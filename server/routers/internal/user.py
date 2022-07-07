@@ -2,12 +2,11 @@ from typing import Optional, List
 from sqlmodel import Session, select
 from sqlalchemy.exc import NoResultFound
 from fastapi import APIRouter, Depends, status, HTTPException
-from ..dependencies import casbin_enforcer
-from ..db import get_session
-from ..models import User, Role
-from ..models.user import UserCreateWithRoles, UserReadWithRoles, UserUpdateWithRoles, UserUpdatePassword
-from .. import crud
-from ..schemas import ApiResponse
+from ...dependencies import casbin_enforcer
+from ...db import get_session
+from ...models.internal import User, Role
+from ...models.internal.user import UserCreateWithRoles, UserReadWithRoles, UserUpdateWithRoles, UserUpdatePassword
+from ... import crud
 
 router = APIRouter(prefix='/api', )
 
@@ -42,7 +41,7 @@ async def check_uname_exist(name: str, session: Session = Depends(get_session)):
             summary='获取用户信息', response_model=UserReadWithRoles, response_model_exclude={'password'})
 async def get_user_info(uid: int, session: Session = Depends(get_session)):
     try:
-        user = crud.user.get(session, uid)
+        user = crud.internal.user.get(session, uid)
     except NoResultFound:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='用户不存在')
     return user

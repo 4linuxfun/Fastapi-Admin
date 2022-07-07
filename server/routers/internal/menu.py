@@ -2,13 +2,12 @@ from copy import deepcopy
 from typing import Optional, List
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlmodel import Session
-from ..db import get_session
-from ..models.menu import Menu, MenusWithChild, MenuWithUpdate, MenuRead
-from ..models.api import Api, ApiWithMenus
-from ..common import utils
-from ..schemas import ApiResponse
-from .. import crud
-from ..dependencies import casbin_enforcer
+from ...db import get_session
+from ...models.internal.menu import Menu, MenusWithChild, MenuWithUpdate, MenuRead
+from ...models.internal.api import Api, ApiWithMenus
+from ...common import utils
+from ... import crud
+from ...dependencies import casbin_enforcer
 
 router = APIRouter(prefix='/api')
 

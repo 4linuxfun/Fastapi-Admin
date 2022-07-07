@@ -1,9 +1,7 @@
 from typing import Optional, List
 from sqlmodel import Session, select
-from ..models.menu import Menu
-from .base import CRUDBase
-from .sysapi import api
-from ..dependencies import casbin_enforcer
+from server.models.internal.menu import Menu
+from ..base import CRUDBase
 
 
 class CRUDMenu(CRUDBase[Menu]):

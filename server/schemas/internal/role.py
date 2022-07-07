@@ -1,6 +1,6 @@
 from typing import List
 from pydantic import BaseModel
-from ..models import Role
+from models import Role
 
 
 class RoleInfo(BaseModel):

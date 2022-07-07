@@ -1,8 +1,8 @@
 from typing import List, Optional
 from sqlmodel import select, Session
-from ..models import Role, Menu, RoleMenu, Category
-from .base import CRUDBase
-from ..dependencies import casbin_enforcer
+from ...models.internal import Role, Menu, RoleMenu
+from ..base import CRUDBase
+from ...dependencies import casbin_enforcer
 
 
 class CRUDRole(CRUDBase[Role]):

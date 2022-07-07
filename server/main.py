@@ -1,8 +1,8 @@
 from sqlmodel import Session
 from fastapi import FastAPI, Depends
-from .routers import user, menu, roles, login, api
+from .routers.internal import api, login, user, menu, roles
 from .dependencies import check_permission
-from .models import Api
+from .models.internal.api import Api
 from .db import engine, get_or_create
 
 app = FastAPI()

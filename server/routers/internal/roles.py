@@ -2,14 +2,12 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 from sqlmodel import Session
-from ..dependencies import check_permission
-from ..db import get_session
-from .. import crud
-from ..models import Role, Menu
-from ..models.role import RoleWithMenus, RoleInsert, RoleUpdate
-from ..schemas import ApiResponse
-from ..schemas.role import RoleInfo
-from ..common.utils import menu_convert
+from ...dependencies import check_permission
+from ...db import get_session
+from ... import crud
+from ...models.internal import Role, Menu
+from ...models.internal.role import RoleWithMenus, RoleInsert, RoleUpdate
+from ...common.utils import menu_convert
 
 router = APIRouter(prefix='/api', dependencies=[Depends(check_permission), ])
 

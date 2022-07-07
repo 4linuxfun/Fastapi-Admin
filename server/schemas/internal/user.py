@@ -1,6 +1,6 @@
 from typing import List
 from pydantic import BaseModel
-from ..models import User
+from ...models.internal import User
 
 
 class UserInfo(BaseModel):

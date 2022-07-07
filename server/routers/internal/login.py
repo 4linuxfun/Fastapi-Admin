@@ -1,15 +1,15 @@
 from typing import List
 from fastapi import APIRouter, Depends
-from ..dependencies import check_token
-from ..db import get_session
+from ...dependencies import check_token
+from ...db import get_session
 from sqlmodel import Session, select
 from sqlalchemy.exc import NoResultFound
-from ..common.security import create_access_token
-from ..models import User, Menu
-from ..models.user import UserLogin, LoginResponse
-from ..schemas import ApiResponse
-from .. import crud
-from ..common.utils import menu_convert
+from ...common.security import create_access_token
+from ...models.internal import User, Menu
+from ...models.internal.user import UserLogin, LoginResponse
+from ...schemas import ApiResponse
+from ... import crud
+from ...common.utils import menu_convert
 
 router = APIRouter(prefix='/api')
 
@@ -23,7 +23,7 @@ async def login(login_form: UserLogin, session: Session = Depends(get_session)):
     :return:
     """
     try:
-        user = crud.user.login(session, login_form)
+        user = crud.internal.user.login(session, login_form)
     except NoResultFound:
         return ApiResponse(
             code=1,
@@ -52,11 +52,11 @@ async def get_permission(session: Session = Depends(get_session), token: dict = 
     """
     uid: List[int] = token['uid']
     print(f"uid is:{uid}")
-    user: User = crud.user.get(session, uid)
+    user: User = crud.internal.user.get(session, uid)
     print(user.roles)
     user_menus = []
     # admin组用户获取所有菜单列表
-    if crud.role.check_admin(session, uid):
+    if crud.internal.role.check_admin(session, uid):
         menu_list = session.exec(select(Menu)).all()
     else:
         for role in user.roles:

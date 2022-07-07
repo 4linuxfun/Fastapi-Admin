@@ -1,7 +1,7 @@
 from typing import List, Union
 from sqlmodel import select, Session, or_
-from ..models import Api
-from .base import CRUDBase
+from models import Api
+from crud.base import CRUDBase
 
 
 class CRUDAPI(CRUDBase[Api]):
