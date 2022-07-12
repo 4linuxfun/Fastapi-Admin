@@ -2,7 +2,7 @@ from typing import Optional, List
 from sqlmodel import Session, select
 from sqlalchemy.exc import NoResultFound
 from fastapi import APIRouter, Depends, status, HTTPException
-from ...dependencies import casbin_enforcer
+from ...dependencies import casbin_enforcer, Pagination
 from ...db import get_session
 from ...models.internal import User, Role
 from ...models.internal.user import UserCreateWithRoles, UserReadWithRoles, UserUpdateWithRoles, UserUpdatePassword
@@ -48,22 +48,17 @@ async def get_user_info(uid: int, session: Session = Depends(get_session)):
 
 
 @router.get('/users', summary="获取用户列表")
-async def get_all_user(q: Optional[str] = None, direction: str = 'next', id: Optional[int] = 0,
-                       limit: Optional[int] = None, offset_page: Optional[int] = None,
+async def get_all_user(search: Pagination = Depends(Pagination),
                        session: Session = Depends(get_session)):
     """
     获取“用户管理”页面的用户列表清单
-    :param q:查询指定用户
-    :param direction: 指令，next：下一页，prev：上一页,current:刷新当前页
-    :param id:对应id，根据direction去判断，next时表示start_id，prev时表示end_id，current时表示start_id,理论上ID可以为任何唯一性的自增项
-    :param limit: 页面显示多少个
-    :param offset_page: 偏移页面
+    :param search: Pagination实例，包含搜索的所有参数 偏移页面
     :param session:
     :return:
     """
-    total = crud.internal.user.search_total(session, q)
+    total = crud.internal.user.search_total(session, search.q)
     print(total)
-    users = crud.internal.user.search(session, q, direction, id, limit, offset_page)
+    users = crud.internal.user.search(session, search)
     users_list = [user.dict(exclude={"password"}) for user in users]
     print(users_list)
     return {
