@@ -30,7 +30,8 @@
       </el-table-column>
       <el-table-column label="操作">
         <template #default="scope">
-          <el-button v-permission="'editRole'" v-if="scope.row.name!='admin'" type="primary" size="small" @click="handleEdit(scope.row)">编辑
+          <el-button v-permission="'editRole'" v-if="scope.row.name!='admin'" type="primary" size="small"
+                     @click="handleEdit(scope.row)">编辑
           </el-button>
           <el-button v-permission="'delRole'" v-if="scope.row.name!='admin'" type="danger" size="small"
                      @click="handleDel(scope.row)">删除
@@ -72,12 +73,11 @@
         tableData,
         currentPage,
         pageSize,
+        orderModel,
         total,
-        firstId,
-        lastId,
         freshCurrentPage,
         handleSearch
-      } = usePagination('api/roles')
+      } = usePagination('/api/roles/search')
 
       console.log(tableData.value)
       return {
@@ -88,9 +88,8 @@
         tableData,
         currentPage,
         pageSize,
+        orderModel,
         total,
-        firstId,
-        lastId,
         freshCurrentPage,
         handleSearch
       }

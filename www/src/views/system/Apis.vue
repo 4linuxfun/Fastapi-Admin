@@ -1,16 +1,16 @@
 <template>
-  <el-row style="width:300px" :gutter="5">
-    <el-col :span="18">
-      <el-input v-model="search" placeholder="搜索" clearable @clear="handleSearch" @keyup.enter="handleSearch">
-        <template #append>
-          <el-button @click="handleSearch">
-            <el-icon>
-              <search/>
-            </el-icon>
-          </el-button>
-        </template>
-      </el-input>
-    </el-col>
+  <el-row>
+    <el-form :model="search" :inline="true">
+      <el-form-item label="标签">
+        <el-input v-model="search.tags"/>
+      </el-form-item>
+      <el-form-item label="方法">
+        <el-input v-model="search.method"/>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="handleSearch">搜索</el-button>
+      </el-form-item>
+    </el-form>
   </el-row>
   <div style="padding-top:10px">
     <el-table :data="tableData" border stripe :header-cell-style="{background:'#eef1f6',color:'#606266'}">
@@ -36,29 +36,38 @@
     ref
   } from 'vue'
   import usePagination from '@/composables/usePagination'
-  import {Search} from '@element-plus/icons-vue'
   import {GetSysApis} from '@/api/sysapi'
 
   export default {
     name: 'SystemApis',
-    components: {Search,},
     setup() {
       const formData = reactive({})
       const formSchema = reactive({})
       const dialogVisible = ref(false)
       const selectUser = reactive({})
+      const searchForm = {
+        tags: null,
+        path: null,
+        method: null,
+        summary: null,
+        type: {
+          tags: 'r_like',
+          path: 'a_like',
+          method: 'eq',
+          summary: 'a_like',
+        }
+      }
 
       const {
         search,
         tableData,
         currentPage,
         pageSize,
+        orderModel,
         total,
-        firstId,
-        lastId,
         freshCurrentPage,
         handleSearch
-      } = usePagination('/api/sysapis')
+      } = usePagination('/api/sysapis/search', searchForm)
 
       return {
         formData,
@@ -69,9 +78,8 @@
         selectUser,
         pageSize,
         currentPage,
+        orderModel,
         total,
-        lastId,
-        firstId,
         freshCurrentPage,
         handleSearch
       }
