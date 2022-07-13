@@ -1,4 +1,47 @@
 # 自封组件介绍
+## 分页查询
+```javascript
+// 定义查询字段，type字段定义各个查询字段的方式
+/*
+* type可用参数：
+* 'r_like':右like模糊查询
+* 'a_like':全模糊查询
+* 'l_like':左like模糊查询
+* 'eq':等于
+* 'ne':不等于
+* 'lt':小于
+* 'le':小于等于
+* 'gt':大于
+* 'ge':大于等于
+* */
+const searchForm = {
+        tags: null,
+        path: null,
+        method: null,
+        summary: null,
+        type: {
+          tags: 'r_like',
+          path: 'a_like',
+          method: 'eq',
+          summary: 'a_like',
+        }
+      }
+
+      /*usePagination(url,searchForm,orderModel)
+      * 
+      * */
+      const {
+        search,
+        tableData,
+        currentPage,
+        pageSize,
+        orderModel,
+        total,
+        freshCurrentPage,
+        handleSearch
+      } = usePagination('/api/sysapis', searchForm,'desc')
+```
+
 ## AutoFormDialog
 ### 调用
 ```
