@@ -5,7 +5,7 @@
 /*
 * type可用参数：
 * 'r_like':右like模糊查询
-* 'a_like':全模糊查询
+* 'like':全模糊查询
 * 'l_like':左like模糊查询
 * 'eq':等于
 * 'ne':不等于
@@ -21,9 +21,9 @@ const searchForm = {
         summary: null,
         type: {
           tags: 'r_like',
-          path: 'a_like',
+          path: 'like',
           method: 'eq',
-          summary: 'a_like',
+          summary: 'like',
         }
       }
 
