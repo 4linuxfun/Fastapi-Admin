@@ -35,12 +35,6 @@ class CRUDRole(CRUDBase[Role]):
             role_menus = []
         return role_menus
 
-    def search(self, session: Session, q: Optional[str] = None) -> List[Role]:
-        sql = select(self.model)
-        if q is not None:
-            sql = sql.where(self.model.name.like(f'%{q}%'))
-        return session.exec(sql).all()
-
     def update_menus(self, session: Session, db_obj: Role, menus: List[int]):
         """
         更新角色信息，还涉及到角色关联的menus

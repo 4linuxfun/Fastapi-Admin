@@ -1,17 +1,19 @@
 from typing import Optional
 from sqlmodel import Session
 from fastapi import APIRouter, Depends
-from ...dependencies import Pagination
 from ...db import get_session
 from ... import crud
+from ...schemas.internal.pagination import Pagination
+from ...schemas.internal.sysapi import ApiSearch
 
 router = APIRouter(prefix='/api', )
 
 
-@router.get('/sysapis', summary='获取API列表')
-async def get_sysapis(search: Pagination = Depends(Pagination),
+@router.post('/sysapis/search', summary='获取API列表')
+async def get_sysapis(search: Pagination[ApiSearch],
                       session: Session = Depends(get_session)):
-    total = crud.internal.api.search_total(session, search.q)
+    print(search)
+    total = crud.internal.api.search_total(session, search.search)
     print(total)
     sys_apis = crud.internal.api.search(session, search)
     return {

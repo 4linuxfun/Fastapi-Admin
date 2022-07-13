@@ -2,10 +2,12 @@ from typing import Optional, List
 from sqlmodel import Session, select
 from sqlalchemy.exc import NoResultFound
 from fastapi import APIRouter, Depends, status, HTTPException
-from ...dependencies import casbin_enforcer, Pagination
+from ...dependencies import casbin_enforcer
 from ...db import get_session
 from ...models.internal import User, Role
-from ...models.internal.user import UserCreateWithRoles, UserReadWithRoles, UserUpdateWithRoles, UserUpdatePassword
+from ...models.internal.user import UserCreateWithRoles, UserReadWithRoles, UserUpdateWithRoles, UserUpdatePassword, \
+    UserWithOutPasswd
+from ...schemas.internal.pagination import Pagination
 from ... import crud
 
 router = APIRouter(prefix='/api', )
@@ -47,8 +49,8 @@ async def get_user_info(uid: int, session: Session = Depends(get_session)):
     return user
 
 
-@router.get('/users', summary="获取用户列表")
-async def get_all_user(search: Pagination = Depends(Pagination),
+@router.post('/users/search', summary="获取用户列表")
+async def get_all_user(search: Pagination[UserWithOutPasswd],
                        session: Session = Depends(get_session)):
     """
     获取“用户管理”页面的用户列表清单
@@ -56,7 +58,7 @@ async def get_all_user(search: Pagination = Depends(Pagination),
     :param session:
     :return:
     """
-    total = crud.internal.user.search_total(session, search.q)
+    total = crud.internal.user.search_total(session, search.search)
     print(total)
     users = crud.internal.user.search(session, search)
     users_list = [user.dict(exclude={"password"}) for user in users]

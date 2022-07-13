@@ -1,7 +1,8 @@
 # 参考自：tiangolo/full-stack-fastapi-postgresql项目，部分代码为直接摘抄
-from typing import TypeVar, Generic, List, Type, Union, Optional
-from sqlmodel import Session, select, SQLModel, desc, func
-from ..dependencies import Pagination
+from copy import deepcopy
+from typing import TypeVar, Generic, List, Type, Any, Dict, Optional
+from sqlmodel import Session, select, SQLModel, func, desc
+from ..schemas.internal.pagination import Pagination
 
 ModelType = TypeVar('ModelType', bound=SQLModel)
 
@@ -41,50 +42,65 @@ class CRUDBase(Generic[ModelType]):
         db.commit()
         return obj
 
-    def _make_search(self, sql, q: Union[int, str]):
+    def _make_search(self, sql, search: Optional[Dict[str, Any]] = None):
         """
         用于构建专用的sql查询语句，子类需要重写此方法
         :param sql:
-        :param q:
+        :param search:
         :return:
         """
+        if search is None:
+            return sql
+        q = deepcopy(search)
+        filter_type: Dict[str, Any] = q.pop('type', None)
+        for key in q:
+            if (q[key] is not None) and (q[key]):
+                if filter_type[key] == 'l_like':
+                    sql = sql.where(getattr(self.model, key).like(f'%{q[key]}'))
+                elif filter_type[key] == 'r_like':
+                    sql = sql.where(getattr(self.model, key).like(f'{q[key]}%'))
+                elif filter_type[key] == 'like':
+                    sql = sql.where(getattr(self.model, key).like(f'%{q[key]}%'))
+                elif filter_type[key] == 'eq':
+                    sql = sql.where(getattr(self.model, key) == q[key])
+                elif filter_type[key] == 'ne':
+                    sql = sql.where(getattr(self.model, key) != q[key])
+                elif filter_type[key] == 'lt':
+                    sql = sql.where(getattr(self.model, key) < q[key])
+                elif filter_type[key] == 'le':
+                    sql = sql.where(getattr(self.model, key) <= q[key])
+                elif filter_type[key] == 'gt':
+                    sql = sql.where(getattr(self.model, key) > q[key])
+                elif filter_type[key] == 'ge':
+                    sql = sql.where(getattr(self.model, key) >= q[key])
         return sql
 
     def search(self, session: Session, search: Pagination):
         """
-        分页查询方法，返回limit限制数量的数据，并通过direction指令，确定是上一页、下一页、当前页数据
+        分页查询方法
         :param session:
         :param search: Pagination实例对象，包含各搜索参数
         :return:
         """
         sql = select(self.model)
-        print('sql')
-        sql = self._make_search(sql, search.q)
-        if search.direction == 'prev':
-            sql = sql.where(self.model.id < id)
-            sql = sql.order_by(desc(self.model.id)).limit(search.limit)
-        elif search.direction == 'next':
-            sql = sql.where(self.model.id > id)
-            sql = sql.order_by(self.model.id).limit(search.limit)
-        elif search.direction == 'current':
-            sql = sql.where(self.model.id >= id)
-            sql = sql.order_by(self.model.id).limit(search.limit)
-        elif search.direction == 'prev_page':
-            subquery = select(self.model.id).where(self.model.id < id).order_by(desc(self.model.id)).offset(
-                search.offset * search.limit).limit(1).subquery()
-            sql = sql.where(self.model.id >= subquery).order_by(self.model.id).limit(search.limit)
-            print(sql)
-        elif search.direction == 'next_page':
-            subquery = select(self.model.id).where(self.model.id > id).order_by(self.model.id).offset(
-                (search.offset - 1) * search.limit).limit(1).subquery()
-            sql = sql.where(self.model.id >= subquery).order_by(self.model.id).limit(search.limit)
-            print(sql)
+        sql = self._make_search(sql, search.search)
+        subquery = select(self.model.id)
+        subquery = self._make_search(subquery, search.search)
+        if search.model == 'desc':
+            subquery = subquery.order_by(desc(self.model.id))
+        else:
+            subquery = subquery.order_by(self.model.id)
+        subquery = subquery.offset(
+            (search.page - 1) * search.page_size).limit(1).subquery()
+        if search.model == 'desc':
+            sql = sql.where(self.model.id <= subquery).order_by(desc(self.model.id)).limit(search.page_size)
+        else:
+            sql = sql.where(self.model.id >= subquery).limit(search.page_size)
+        print(sql)
         results = session.exec(sql).all()
-        if search.direction == 'prev':
-            results = results[::-1]
         return results
 
-    def search_total(self, session: Session, q: Union[int, str]):
+    def search_total(self, session: Session, q: Dict[str, Any]):
         """
         每次进行分页查询的时候，都需要返回一个total值，表示对应搜索，现阶段数据库有多少内容，便于前端分页数
         :param session:

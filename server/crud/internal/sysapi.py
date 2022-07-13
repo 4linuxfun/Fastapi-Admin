@@ -17,14 +17,5 @@ class CRUDAPI(CRUDBase[Api]):
             tree_apis.append({'label': tag, 'options': child_apis})
         return tree_apis
 
-    # 重写父类的查询构建命令
-    def _make_search(self, sql, q: Union[int, str]):
-        if q is not None:
-            sql = sql.where(
-                or_(self.model.tags.like(f'%{q}%'), self.model.path.like(f'%{q}%'),
-                    self.model.method.like(f'%{q}%'),
-                    self.model.summary.like(f'%{q}%')))
-        return sql
-
 
 api = CRUDAPI(Api)

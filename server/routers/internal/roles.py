@@ -7,6 +7,8 @@ from ...db import get_session
 from ... import crud
 from ...models.internal import Role, Menu
 from ...models.internal.role import RoleWithMenus, RoleInsert, RoleUpdate
+from ...schemas.internal.pagination import Pagination
+from ...schemas.internal.roles import RoleSearch
 from ...common.utils import menu_convert
 
 router = APIRouter(prefix='/api', dependencies=[Depends(check_permission), ])
@@ -30,12 +32,12 @@ async def get_role_menus(id: Optional[int] = None, session: Session = Depends(ge
     }
 
 
-@router.get('/roles',
-            summary="查询角色")
-async def get_roles(q: Optional[str] = None, session: Session = Depends(get_session)):
-    total = crud.internal.role.search_total(session, q)
+@router.post('/roles/search',
+             summary="查询角色")
+async def get_roles(search: Pagination[RoleSearch], session: Session = Depends(get_session)):
+    total = crud.internal.role.search_total(session, search.search)
     print(total)
-    roles: List[Role] = crud.internal.role.search(session, q)
+    roles: List[Role] = crud.internal.role.search(session, search)
     role_with_menus: List[RoleWithMenus] = []
     for role in roles:
         new_role = RoleWithMenus(**role.dict(), menus=role.menus)

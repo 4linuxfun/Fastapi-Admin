@@ -1,28 +1,12 @@
 import json
 import base64
-from typing import Optional, Dict
+from typing import Optional, Dict, Any
 from fastapi import Header, HTTPException, Depends, Request, APIRouter
 from .common.security import token_decode
 from jose.exceptions import JWTError, ExpiredSignatureError
 from .db import engine
 import casbin_sqlalchemy_adapter
 import casbin
-
-
-class Pagination:
-    """
-    分页查询的解析
-    """
-    def __init__(self, q: Optional[str] = None, direction: str = 'next', id: Optional[int] = 0,
-                 limit: Optional[int] = None, offset_page: Optional[int] = None):
-        if q is None:
-            self.q = None
-        else:
-            self.q = json.loads(base64.b64decode(q))
-        self.direction = direction
-        self.id = id
-        self.limit = limit
-        self.offset = offset_page
 
 
 async def check_token(token: str = Header(..., alias="Authorization")):
