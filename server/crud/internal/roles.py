@@ -1,8 +1,8 @@
 from typing import List, Optional
 from sqlmodel import select, Session
-from ..models import Role, Menu, RoleMenu, Category
-from .base import CRUDBase
-from ..dependencies import casbin_enforcer
+from ...models.internal import Role, Menu, RoleMenu
+from ..base import CRUDBase
+from ...dependencies import casbin_enforcer
 
 
 class CRUDRole(CRUDBase[Role]):
@@ -34,12 +34,6 @@ class CRUDRole(CRUDBase[Role]):
         else:
             role_menus = []
         return role_menus
-
-    def search(self, session: Session, q: Optional[str] = None) -> List[Role]:
-        sql = select(self.model)
-        if q is not None:
-            sql = sql.where(self.model.name.like(f'%{q}%'))
-        return session.exec(sql).all()
 
     def update_menus(self, session: Session, db_obj: Role, menus: List[int]):
         """

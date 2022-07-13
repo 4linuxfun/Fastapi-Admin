@@ -1,6 +1,6 @@
 import os
 from typing import List
-from ..models.menu import MenusWithChild
+from ..models.internal.menu import MenusWithChild
 
 
 class MenuTree:

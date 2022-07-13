@@ -12,7 +12,7 @@
       </el-input>
     </el-col>
     <el-col :span="6">
-      <el-button v-permission="'addUser'" type="primary"  @click="handleAdd">添加新用户</el-button>
+      <el-button v-permission="'addUser'" type="primary" @click="handleAdd">添加新用户</el-button>
     </el-col>
   </el-row>
 
@@ -108,12 +108,11 @@
         tableData,
         currentPage,
         pageSize,
+        orderModel,
         total,
-        firstId,
-        lastId,
         freshCurrentPage,
         handleSearch
-      } = usePagination('/api/users')
+      } = usePagination('/api/users/search')
       return {
         formData,
         formSchema,
@@ -125,9 +124,8 @@
         selectUser,
         pageSize,
         currentPage,
+        orderModel,
         total,
-        lastId,
-        firstId,
         freshCurrentPage,
         handleSearch
       }

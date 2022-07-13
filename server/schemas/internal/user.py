@@ -1,6 +1,6 @@
-from typing import List
+from typing import List, Dict
 from pydantic import BaseModel
-from ..models import User
+from ...models.internal.user import UserWithOutPasswd, User
 
 
 class UserInfo(BaseModel):
@@ -11,3 +11,7 @@ class UserInfo(BaseModel):
 class UserLogin(BaseModel):
     username: str
     password: str
+
+
+class UserSearch(UserWithOutPasswd):
+    type: Dict[str, str]

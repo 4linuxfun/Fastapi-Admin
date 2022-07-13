@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "serve": "vue-cli-service serve",
-    "build": "vue-cli-service build",
+    "serve": "vue-cli-service serve --mode dev",
+    "build": "vue-cli-service build --mod pro",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
@@ -14,7 +14,7 @@
     "axios": "^0.27.2",
     "core-js": "^3.22.8",
     "echarts": "^5.3.1",
-    "element-plus": "^2.2.4",
+    "element-plus": "^2.2.5",
     "js-base64": "^3.7.2",
     "js-cookie": "^3.0.1",
     "jsonref": "^7.0.0",

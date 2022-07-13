@@ -1,8 +1,8 @@
 from sqlmodel import Session
 from fastapi import FastAPI, Depends
-from .routers import user, menu, roles, login, api
+from .routers.internal import api, login, user, menu, roles
 from .dependencies import check_permission
-from .models import Api
+from .models.internal.api import Api
 from .db import engine, get_or_create
 
 app = FastAPI()
@@ -13,10 +13,6 @@ app.include_router(user.router, tags=['用户管理'], dependencies=[Depends(che
 app.include_router(menu.router, tags=['菜单管理'], dependencies=[Depends(check_permission)])
 app.include_router(roles.router, tags=['角色管理'], dependencies=[Depends(check_permission)])
 app.include_router(api.router, tags=['接口管理'], dependencies=[Depends(check_permission)])
-
-
-# app.include_router(assets.router, tags=['资产管理'], dependencies=[Depends(check_permission)])
-# app.include_router(category.router, tags=['类别管理'], dependencies=[Depends(check_permission)])
 
 
 @app.on_event("startup")

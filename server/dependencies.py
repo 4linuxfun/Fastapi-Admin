@@ -1,18 +1,12 @@
 import json
 import base64
+from typing import Optional, Dict, Any
 from fastapi import Header, HTTPException, Depends, Request, APIRouter
 from .common.security import token_decode
 from jose.exceptions import JWTError, ExpiredSignatureError
-from sqlmodel import Session, select
-from .schemas.assets import SearchForm
 from .db import engine
 import casbin_sqlalchemy_adapter
 import casbin
-
-
-async def base_to_json(q: str) -> SearchForm:
-    search = json.loads(base64.b64decode(q))
-    return SearchForm(**search)
 
 
 async def check_token(token: str = Header(..., alias="Authorization")):

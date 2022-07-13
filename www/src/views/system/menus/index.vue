@@ -57,11 +57,11 @@
             </span>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item v-permission="'editMenu'" :command="beforeHandleCommand(scope.row,'detail')">编辑
+                <el-dropdown-item :command="beforeHandleCommand(scope.row,'detail')">编辑
                 </el-dropdown-item>
-                <el-dropdown-item v-permission="'addMenu'" :command="beforeHandleCommand(scope.row,'password')">添加子菜单
+                <el-dropdown-item  :command="beforeHandleCommand(scope.row,'password')">添加子菜单
                 </el-dropdown-item>
-                <el-dropdown-item v-permission="'delMenu'" :command="beforeHandleCommand(scope.row,'delete')">删除
+                <el-dropdown-item :command="beforeHandleCommand(scope.row,'delete')">删除
                 </el-dropdown-item>
               </el-dropdown-menu>
             </template>
