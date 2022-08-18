@@ -6,7 +6,7 @@ import {ElNotification} from 'element-plus'
 
 // 创建axios实例
 const service = axios.create({
-  baseURL: process.env.VUE_API_SERVER, // api 的 base_url
+  baseURL: process.env.VUE_APP_BASEURL, // api 的 base_url
   timeout: 60000 // 请求超时时间
 })
 
