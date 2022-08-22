@@ -59,7 +59,7 @@
               <el-dropdown-menu>
                 <el-dropdown-item :command="beforeHandleCommand(scope.row,'detail')">编辑
                 </el-dropdown-item>
-                <el-dropdown-item  :command="beforeHandleCommand(scope.row,'password')">添加子菜单
+                <el-dropdown-item :command="beforeHandleCommand(scope.row,'addSubPage')">添加子菜单
                 </el-dropdown-item>
                 <el-dropdown-item :command="beforeHandleCommand(scope.row,'delete')">删除
                 </el-dropdown-item>
@@ -124,8 +124,8 @@
             dialogVisible.value = true
             Object.assign(selectData, row)
             break
-          case 'password':
-            this.handleChangePwd(command.row)
+          case 'addSubPage':
+            handleAdd(row.id, 'subPage')
             break
           case 'delete':
             ElMessageBox.confirm('是否删除菜单：' + row.name, '删除菜单', {
@@ -148,20 +148,15 @@
         console.log('submit!')
       }
 
-
-      const handleDelete = (id, name) => {
-
-      }
-
-      const handleAdd = () => {
+      const handleAdd = (parentId = null, menuType = 'page') => {
         Object.assign(selectData, {
           id: null,
-          parent_id: null,
+          parent_id: parentId,
           name: '',
           path: '',
           component: null,
           enable: '',
-          type: 'page'
+          type: menuType
         })
         dialogVisible.value = true
       }
@@ -192,7 +187,6 @@
         handleCommand,
         splitApis,
         onSubmit,
-        handleDelete,
         handleAdd,
         getMenuInfo
       }
