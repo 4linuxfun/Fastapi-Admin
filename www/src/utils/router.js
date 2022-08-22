@@ -1,4 +1,5 @@
 import Layout from '@/views/Layout'
+import {shallowRef} from 'vue'
 
 // 通过服务端传回来的权限菜单列表，添加部分字段
 export function makeRouter(routers) { // 遍历后台传来的路由字符串，转换为组件对象
@@ -7,7 +8,7 @@ export function makeRouter(routers) { // 遍历后台传来的路由字符串，
 		console.log('name:'+route.name +' path:'+route.path)
 		//如果父节点有component字段
 		if (route.component === 'Layout') {
-			route.component = Layout
+			route.component = shallowRef(Layout)
 			// console.log('layout')
 		} else {
 			route.component = loadView(route.component)
