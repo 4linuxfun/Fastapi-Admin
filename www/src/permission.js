@@ -26,7 +26,7 @@ router.beforeEach((to) => {
 			if (store.asyncRoutes.length === 0) {
 				console.log('asyncroutes is not set')
 				store.getInfo().then(() => {
-					store.getPermission()
+					return store.getPermission()
 				}).then(() => {
 					let asyncRoutes = makeRouter(store.asyncRoutes)
 					for (let route of asyncRoutes) {
@@ -34,9 +34,7 @@ router.beforeEach((to) => {
 						console.log(route)
 						router.addRoute(route)
 					}
-
-					router.push({ path: to.fullPath, replace: true })
-
+					return { path: to.fullPath, replace: true }
 				}).catch((err) => {
 					console.log('用户权限拉取失败' + err);
 					store.logOut().then(() => {
