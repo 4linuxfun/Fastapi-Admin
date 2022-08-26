@@ -2,7 +2,7 @@
   <div class="login">
     <el-form ref="loginFormRef" :model="loginForm" :rules="loginRules" label-position="left" label-width="0px"
              class="login-form" @keyup.enter="handleLogin">
-      <h3 class="title">资产管理系统</h3>
+      <h2 class="login-title">Seraphim DevOps平台</h2>
       <el-form-item prop="username">
         <el-input v-model="loginForm.username" type="text" auto-complete="off" placeholder="请输入用户名">
           <template #prepend>
@@ -35,6 +35,7 @@
 </template>
 
 <script setup>
+  import {ElNotification} from 'element-plus'
   import {
     User,
     Lock
@@ -113,8 +114,8 @@
           })
         })
             .catch((error) => {
-              this.loading = false
-              this.$notify({
+              loading.value = false
+              ElNotification({
                 title: '错误！',
                 message: error,
                 type: 'error'
@@ -141,15 +142,17 @@
   height: 100%;
 }
 
-.title {
+.login-title {
   margin: 0px auto 40px auto;
   text-align: center;
-  color: #707070;
+  font-size: 30px;
+  font-weight: bold;
+  color: white;
 }
 
 .login-form {
   border-radius: 6px;
-  background: #99A9BF;
+  background:rgb(157, 59, 63);
   width: 365px;
   padding: 25px 25px 5px 25px;
 
