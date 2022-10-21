@@ -25,8 +25,8 @@
       <el-table-column prop="avatar" label="头像" align="center"/>
       <el-table-column label="状态" align="center">
         <template #default="scope">
-          <el-tag effect="dark" :type="scope.row.enable === 1?'success':'danger'">
-            {{ scope.row.enable === 1 ? '启用' : '禁用' }}
+          <el-tag effect="dark" :type="scope.row.enable === true?'success':'danger'">
+            {{ scope.row.enable === true ? '启用' : '禁用' }}
           </el-tag>
         </template>
       </el-table-column>
@@ -66,10 +66,10 @@
   </el-drawer>
 
 </template>
-<script>
+<script setup>
   import {
     reactive,
-    ref
+    ref, watch
   } from 'vue'
   import {
     ArrowDown,
@@ -83,137 +83,114 @@
     PostAddUser,
     DeleteUser, GetUserInfo
   } from '@/api/users'
+  import {ElMessage, ElMessageBox, ElNotification, ElPopconfirm} from 'element-plus'
 
-  export default {
-    name: 'UserPage',
-    components: {
-      ArrowDown,
-      Search,
-      'user-dialog': UserDialog,
-      ChangePasswd,
-      // 'auto-form-dialog': AutoFormDialog
-    },
-    setup() {
-      const formData = reactive({})
-      const formSchema = reactive({})
-      const dialogVisible = ref(false)
-      const detailVisible = ref(false)
-      const resetPasswdDialog = ref(false)
-      const selectUser = reactive({})
 
-      // 首次打开页面先进行初始化
+  const formData = reactive({})
+  const formSchema = reactive({})
+  const dialogVisible = ref(false)
+  const detailVisible = ref(false)
+  const resetPasswdDialog = ref(false)
+  const selectUser = reactive({})
 
-      const {
-        search,
-        tableData,
-        currentPage,
-        pageSize,
-        orderModel,
-        total,
-        freshCurrentPage,
-        handleSearch
-      } = usePagination('/api/users/search')
-      return {
-        formData,
-        formSchema,
-        search,
-        dialogVisible,
-        detailVisible,
-        resetPasswdDialog,
-        tableData,
-        selectUser,
-        pageSize,
-        currentPage,
-        orderModel,
-        total,
-        freshCurrentPage,
-        handleSearch
-      }
-    },
-    watch: {
-      detailVisible(newValue, oldValue) {
-        this.freshCurrentPage()
-      },
-    },
-    methods: {
-      handleChangePwd(user) {
-        this.resetPasswdDialog = true
-        this.selectUser = user
-      },
-      beforeHandleCommand(row, command) {
-        return {
-          row,
-          command
-        }
-      },
-      handleCommand(command) {
-        switch (command.command) {
-          case 'detail':
-            this.handleEdit(command.row.id)
-            break
-          case 'password':
-            this.handleChangePwd(command.row)
-            break
-          case 'delete':
-            this.handleDel(command.row)
-            break
-        }
-      },
-      handleEdit(uid) {
-        console.log(uid)
+  // 首次打开页面先进行初始化
 
-        GetUserInfo(uid).then(response => {
-          this.selectUser = response
-          this.detailVisible = true
-        })
+  const {
+    search,
+    tableData,
+    currentPage,
+    pageSize,
+    orderModel,
+    total,
+    freshCurrentPage,
+    handleSearch
+  } = usePagination('/api/users/search')
 
-        console.log(this.selectUser)
-      },
-
-      handleAdd() {
-        console.log('start to add user')
-        this.selectUser = {
-          id: null,
-          name: null,
-          email: '',
-          enable: 0,
-          avatar: '',
-          password: null,
-        }
-        console.log(this.selectUser)
-        this.detailVisible = true
-      },
-      handleSubmit() {
-        console.log(this.formData)
-        this.dialogVisible = false
-      },
-      handleDel(userInfo) {
-        if (userInfo.name === 'admin') {
-          this.$message({
-            message: 'admin用户无法删除',
-            type: 'warning'
-          })
-          return false
-        }
-        this.$confirm('是否确定要删除用户：' + userInfo.name, 'Warnning').then(() => {
-          DeleteUser(userInfo.id).then(() => {
-            this.$notify({
-              title: 'success',
-              message: userInfo.name + '用户删除成功',
-              type: 'success'
-            })
-            this.freshCurrentPage()
-          })
-        }).catch(() => {
-          this.$notify({
-            title: 'success',
-            message: '取消删除操作',
-            type: 'success'
-          })
-        })
-      }
-    },
+  function handleChangePwd(user) {
+    resetPasswdDialog.value = true
+    Object.assign(selectUser, user)
   }
+
+  function beforeHandleCommand(row, command) {
+    return {
+      row,
+      command
+    }
+  }
+
+  function handleCommand(command) {
+    switch (command.command) {
+      case 'detail':
+        handleEdit(command.row.id)
+        break
+      case 'password':
+        handleChangePwd(command.row)
+        break
+      case 'delete':
+        handleDel(command.row)
+        break
+    }
+  }
+
+  function handleEdit(uid) {
+    console.log(uid)
+    GetUserInfo(uid).then(response => {
+      Object.assign(selectUser, response)
+      detailVisible.value = true
+    })
+    console.log(selectUser)
+  }
+
+  function handleAdd() {
+    console.log('start to add user')
+    Object.assign(selectUser, {
+      id: null,
+      name: null,
+      email: '',
+      enable: 0,
+      avatar: '',
+      password: null,
+    })
+    console.log(selectUser)
+    detailVisible.value = true
+  }
+
+  function handleSubmit() {
+    console.log(formData)
+    dialogVisible.value = false
+  }
+
+  function handleDel(userInfo) {
+    if (userInfo.name === 'admin') {
+      ElMessage({
+        message: 'admin用户无法删除',
+        type: 'warning'
+      })
+      return false
+    }
+    ElMessageBox.confirm('是否确定要删除用户：' + userInfo.name, '警告', {type: 'warning'}).then(() => {
+      DeleteUser(userInfo.id).then(() => {
+        ElMessage({
+          title: 'success',
+          message: userInfo.name + '用户删除成功',
+          type: 'success'
+        })
+        freshCurrentPage()
+      })
+    }).catch(() => {
+      ElMessage({
+        title: 'success',
+        message: '取消删除操作',
+        type: 'warning'
+      })
+    })
+  }
+
+  watch(
+      detailVisible, (newValue, oldValue) => {
+        freshCurrentPage()
+      })
+
 </script>
 
 <style>
