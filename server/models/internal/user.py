@@ -1,5 +1,5 @@
 from typing import Optional, List, Literal, TYPE_CHECKING
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import SQLModel, Field, Relationship, Column, Integer, Boolean
 from .relationships import UserRole
 from .role import Role
 
@@ -8,14 +8,14 @@ if TYPE_CHECKING:
 
 
 class UserWithOutPasswd(SQLModel):
-    name: str = Field(..., min_length=5, max_length=50)
-    enable: int
-    avatar: Optional[str]
-    email: Optional[str]
+    name: str = Field(max_length=20, sa_column_kwargs={'comment': '用户名'})
+    enable: bool = Field(default=True, sa_column=Column(Boolean, comment='可用'))
+    avatar: Optional[str] = Field(max_length=100, sa_column_kwargs={'comment': '头像'})
+    email: Optional[str] = Field(max_length=20, sa_column_kwargs={'comment': '邮箱'})
 
 
 class UserBase(UserWithOutPasswd):
-    password: Optional[str]
+    password: Optional[str] = Field(max_length=50, sa_column_kwargs={'comment': '密码'})
     # age: Optional[int] = Field(..., title='年龄', lt=120)
 
 
@@ -35,7 +35,7 @@ class UserRoles(SQLModel):
 
 
 class User(UserBase, table=True):
-    id: int = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(sa_column=Column('id', Integer, primary_key=True, autoincrement=True))
     roles: List['Role'] = Relationship(back_populates="users", link_model=UserRole)
 
 

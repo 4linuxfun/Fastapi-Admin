@@ -5,8 +5,8 @@
     </el-form-item>
     <el-form-item label="状态">
       <el-radio-group v-model="selectData.enable">
-        <el-radio :label="0">禁用</el-radio>
-        <el-radio :label="1">启用</el-radio>
+        <el-radio :label=false>禁用</el-radio>
+        <el-radio :label=true>启用</el-radio>
       </el-radio-group>
     </el-form-item>
     <el-form-item label="角色">
@@ -25,67 +25,54 @@
 
 </template>
 
-<script>
+<script setup>
   import {
-    GetUserRoles,
-    GetUserExist, PostAddUser, PutNewUser
+    GetUserRoles, PostAddUser, PutNewUser
   } from '@/api/users'
-  import md5 from 'js-md5'
   import {ElNotification} from 'element-plus'
   import {reactive, ref, toRefs} from 'vue'
 
-  export default {
-    props: ['user', 'visible'],
-    emits: ['update:visible'],
-    setup(props, {emit}) {
-      const {user} = toRefs(props)
-      const selectData = reactive(JSON.parse(JSON.stringify(user.value)))
-      console.log(selectData)
-      const roleList = ref([])
-      const enableRoleList = ref([])
+  const props = defineProps(['user', 'visible'])
+  const emit = defineEmits(['update:visible'])
+  const {user} = toRefs(props)
+  const selectData = reactive(JSON.parse(JSON.stringify(user.value)))
+  console.log(selectData)
+  const roleList = ref([])
+  const enableRoleList = ref([])
 
-      const getRoles = (userId) => {
-        console.log(selectData)
-        GetUserRoles(userId).then((response) => {
-          roleList.value = response.roles
-          enableRoleList.value = response.enable
-        })
-      }
-
-      const handleUpdate = () => {
-        console.log(selectData)
-        // this.$emit('update:user', this.selectData, this.enableRoleList)
-        if (selectData.id === null) {
-          PostAddUser(selectData, enableRoleList.value).then(() => {
-            ElNotification({
-              title: 'success',
-              message: '用户新建成功',
-              type: 'success'
-            })
-          })
-        } else {
-          console.log(enableRoleList)
-          PutNewUser(selectData, enableRoleList.value).then(() => {
-            ElNotification({
-              title: 'success',
-              message: '用户更新成功',
-              type: 'success'
-            })
-          })
-        }
-        emit('update:visible', false)
-      }
-
-      getRoles(selectData.id)
-      return {
-        selectData,
-        roleList,
-        enableRoleList,
-        getRoles,
-        handleUpdate
-      }
-    }
+  const getRoles = (userId) => {
+    console.log(selectData)
+    GetUserRoles(userId).then((response) => {
+      roleList.value = response.roles
+      enableRoleList.value = response.enable
+    })
   }
+
+  const handleUpdate = () => {
+    console.log(selectData)
+    // this.$emit('update:user', this.selectData, this.enableRoleList)
+    if (selectData.id === null) {
+      PostAddUser(selectData, enableRoleList.value).then(() => {
+        ElNotification({
+          title: 'success',
+          message: '用户新建成功',
+          type: 'success'
+        })
+      })
+    } else {
+      console.log(enableRoleList)
+      PutNewUser(selectData, enableRoleList.value).then(() => {
+        ElNotification({
+          title: 'success',
+          message: '用户更新成功',
+          type: 'success'
+        })
+      })
+    }
+    emit('update:visible', false)
+  }
+
+  getRoles(selectData.id)
 </script>
 
 <style>

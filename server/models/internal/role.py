@@ -1,5 +1,5 @@
 from typing import Optional, List, TYPE_CHECKING
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import SQLModel, Field, Relationship, Column, Integer, Boolean
 from .relationships import RoleMenu, UserRole
 
 if TYPE_CHECKING:
@@ -8,14 +8,14 @@ if TYPE_CHECKING:
 
 
 class RoleBase(SQLModel):
-    name: str = Field(..., title="角色", description="请输入角色名")
-    description: str
-    enable: int
+    name: str = Field(max_length=20, sa_column_kwargs={'comment': '角色名'})
+    description: str = Field(max_length=100, sa_column_kwargs={'comment': '描述'})
+    enable: bool = Field(default=True, sa_column=Column(Boolean, comment='启用'))
 
 
 class Role(RoleBase, table=True):
     __tablename__ = "roles"
-    id: int = Field(default=None, primary_key=True)
+    id: Optional[int] = Field(sa_column=Column('id', Integer, primary_key=True, autoincrement=True))
     menus: List["Menu"] = Relationship(back_populates="roles", link_model=RoleMenu)
     users: List["User"] = Relationship(back_populates="roles", link_model=UserRole)
 

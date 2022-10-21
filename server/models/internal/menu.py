@@ -1,38 +1,36 @@
 from typing import Optional, List, Any, TYPE_CHECKING
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import SQLModel, Field, Relationship, Column, Boolean, Integer
 from .relationships import RoleMenu, MenuApis
 
 
 class MenuBase(SQLModel):
-    name: Optional[str]
-    path: Optional[str]
-    component: Optional[str]
-    type: Optional[str]
-    parent_id: Optional[int]
-    enable: int
+    id: Optional[int] = Field(sa_column=Column('id', Integer, primary_key=True, autoincrement=True))
+    name: str = Field(max_length=20, sa_column_kwargs={'comment': '菜单名'})
+    path: Optional[str] = Field(max_length=100, sa_column_kwargs={'comment': '路径'})
+    component: Optional[str] = Field(max_length=50, sa_column_kwargs={'comment': '组件'})
+    type: str = Field(max_length=10, sa_column_kwargs={'comment': '类型'})
+    parent_id: Optional[int] = Field(sa_column_kwargs={'comment': '父级ID'})
+    enable: bool = Field(default=True, sa_column=Column(Boolean, comment='启用'))
 
 
 class Menu(MenuBase, table=True):
-    id: Optional[int] = Field(primary_key=True)
     roles: List["Role"] = Relationship(back_populates="menus", link_model=RoleMenu)
     apis: List['Api'] = Relationship(back_populates='menus', link_model=MenuApis)
     # apis: List['Api'] = Relationship(back_populates="menus", link_model=MenuApi)
 
 
 class MenuRead(MenuBase):
-    id: int
     apis: List['Api'] = []
 
 
 class MenusWithChild(MenuBase):
-    id: int
     apis: List['Api'] = []
     children: List['MenusWithChild'] = []
 
 
 class MenuWithUpdate(MenuBase):
     # 更新菜单信息
-    id: Optional[int]
+    # id: Optional[int]
     apis: List[int] = []
 
 

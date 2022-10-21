@@ -1,34 +1,41 @@
 import os
-from typing import List
+from typing import List, Generic, Type, TypeVar
+from sqlmodel import SQLModel
 from ..models.internal.menu import MenusWithChild
 
+T = TypeVar('T', bound=SQLModel)
 
-class MenuTree:
-    def __init__(self, menu_list):
-        self.menu_list = []
-        for menu in menu_list:
-            self.menu_list.append(MenusWithChild(**menu.dict()))
+
+class Tree(Generic[T]):
+    """
+    用于构建树形嵌套字段，需要有parent_id字段做关联
+    """
+
+    def __init__(self, tree_list: List[T], model: Type[T]):
+        self.tree_list = []
+        for tree in tree_list:
+            self.tree_list.append(model(**tree.dict()))
 
     def get_root_node(self):
-        root_menus = []
-        for menu in self.menu_list:
-            if menu.type == 'page':
-                root_menus.append(menu)
-        return root_menus
+        root_tree = []
+        for tree in self.tree_list:
+            if not tree.parent_id:
+                root_tree.append(tree)
+        return root_tree
 
-    def get_children(self, parent_menu: MenusWithChild):
+    def get_children(self, parent_id: int) -> List[T]:
         children = []
-        for menu in self.menu_list:
-            if menu.parent_id == parent_menu.id:
-                menu.children = self.get_children(menu)
-                children.append(menu)
+        for tree in self.tree_list:
+            if tree.parent_id == parent_id:
+                tree.children.extend(self.get_children(tree.id))
+                children.append(tree)
         return children
 
-    def build(self):
-        root_menus = self.get_root_node()
-        for menu in root_menus:
-            menu.children = self.get_children(menu)
-        return root_menus
+    def build(self) -> List[T]:
+        root_tree = self.get_root_node()
+        for tree in root_tree:
+            tree.children.extend(self.get_children(tree.id))
+        return root_tree
 
 
 def menu_convert(menu_list) -> List[MenusWithChild]:
@@ -37,7 +44,7 @@ def menu_convert(menu_list) -> List[MenusWithChild]:
     :param menu_list:
     :return:
     """
-    return MenuTree(menu_list).build()
+    return Tree[MenusWithChild](menu_list, MenusWithChild).build()
 
 
 def update_model(old_model, new_model):
