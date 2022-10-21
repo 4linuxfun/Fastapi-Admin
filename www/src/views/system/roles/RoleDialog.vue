@@ -27,7 +27,7 @@
   </el-dialog>
 </template>
 
-<script>
+<script setup>
   import {ref, reactive} from 'vue'
   import {
     GetRoleEnableMenus,
@@ -36,88 +36,70 @@
   } from '@/api/roles'
   import {ElNotification} from 'element-plus'
 
-  export default {
-    props: ['role', 'visible'],
-    emits: ['update:visible'],
-    setup(props, {
-      emit
-    }) {
-      const selectData = reactive(props.role)
-      const menus = ref([])
-      const defaultProps = reactive({
-        children: 'children',
-        label: 'name'
-      })
-      const enables = ref([])
-      const category = ref([])
-      const categoryEnables = ref([])
+  const props = defineProps(['role', 'visible'])
+  const emit = defineEmits(['update:visible'])
+  const selectData = reactive(props.role)
+  const menus = ref([])
+  const defaultProps = reactive({
+    children: 'children',
+    label: 'name'
+  })
+  const enables = ref([])
+  const category = ref([])
+  const categoryEnables = ref([])
 
-      //tree的用法
-      const menuTree = ref(null)
+  //tree的用法
+  const menuTree = ref(null)
 
-      const GetInfo = () => {
-        console.log('id:' + selectData.id)
-        GetRoleEnableMenus(selectData.id).then((response) => {
-          console.log(response)
-          menus.value = response.menus
-          enables.value = response.enable
-        })
-      }
-
-      const handleUpdate = () => {
-        let checkedKeys = menuTree.value.getCheckedKeys().concat(menuTree.value.getHalfCheckedKeys())
-        console.log(checkedKeys)
-        selectData.menus = checkedKeys
-        console.log(selectData)
-        if (selectData.id === null) {
-          PostNewRoles(selectData).then(() => {
-            ElNotification({
-              title: 'success',
-              message: '角色新建成功',
-              type: 'success'
-            })
-          }).catch((error) => {
-            ElNotification({
-              title: 'error',
-              message: '角色新建失败：' + error,
-              type: 'error'
-            })
-          })
-        } else {
-          PutRoles(selectData).then(() => {
-            console.log('notification')
-            ElNotification({
-              title: 'success',
-              message: '角色更新成功',
-              type: 'success'
-            })
-          }).catch((error) => {
-            ElNotification({
-              title: 'error',
-              message: '失败：' + error,
-              type: 'error'
-            })
-          })
-        }
-
-        emit('update:visible', false)
-      }
-
-      GetInfo()
-      console.log(enables.value)
-      return {
-        menuTree,
-        selectData,
-        menus,
-        defaultProps,
-        enables,
-        category,
-        categoryEnables,
-        GetInfo,
-        handleUpdate
-      }
-    },
+  function GetInfo() {
+    console.log('id:' + selectData.id)
+    GetRoleEnableMenus(selectData.id).then((response) => {
+      console.log(response)
+      menus.value = response.menus
+      enables.value = response.enable
+    })
   }
+
+  function handleUpdate() {
+    let checkedKeys = menuTree.value.getCheckedKeys().concat(menuTree.value.getHalfCheckedKeys())
+    console.log(checkedKeys)
+    selectData.menus = checkedKeys
+    console.log(selectData)
+    if (selectData.id === null) {
+      PostNewRoles(selectData).then(() => {
+        ElNotification({
+          title: 'success',
+          message: '角色新建成功',
+          type: 'success'
+        })
+      }).catch((error) => {
+        ElNotification({
+          title: 'error',
+          message: '角色新建失败：' + error,
+          type: 'error'
+        })
+      })
+    } else {
+      PutRoles(selectData).then(() => {
+        console.log('notification')
+        ElNotification({
+          title: 'success',
+          message: '角色更新成功',
+          type: 'success'
+        })
+      }).catch((error) => {
+        ElNotification({
+          title: 'error',
+          message: '失败：' + error,
+          type: 'error'
+        })
+      })
+    }
+
+    emit('update:visible', false)
+  }
+
+  GetInfo()
 </script>
 
 <style>

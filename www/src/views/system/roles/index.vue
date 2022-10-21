@@ -23,8 +23,8 @@
       <el-table-column label="描述" prop="description"></el-table-column>
       <el-table-column label="状态">
         <template #default="scope">
-          <el-tag effect="dark" :type="scope.row.enable === 1?'success':'danger'">
-            {{ scope.row.enable === 1 ? '启用' : '禁用' }}
+          <el-tag effect="dark" :type="scope.row.enable === true?'success':'danger'">
+            {{ scope.row.enable === true ? '启用' : '禁用' }}
           </el-tag>
         </template>
       </el-table-column>
@@ -50,98 +50,75 @@
   </div>
 
 </template>
-<script>
-  import {ref} from 'vue'
+<script setup>
+  import {reactive, ref, watch} from 'vue'
   import {Search} from '@element-plus/icons-vue'
   import {GetRoles, DeleteRole} from '@/api/roles'
   import usePagination from '@/composables/usePagination'
   import RoleDialog from './RoleDialog.vue'
+  import {ElMessageBox, ElNotification} from 'element-plus'
 
-  export default {
-    name: 'RoleView',
-    components: {
-      Search,
-      'role-dialog': RoleDialog
-    },
-    setup() {
-      const dialogVisible = ref(false)
-      const selectRole = ref(null)
-      const addDialog = ref(false)
+  const dialogVisible = ref(false)
+  const selectRole = reactive({})
+  const addDialog = ref(false)
 
-      const {
-        search,
-        tableData,
-        currentPage,
-        pageSize,
-        orderModel,
-        total,
-        freshCurrentPage,
-        handleSearch
-      } = usePagination('/api/roles/search')
+  const {
+    search,
+    tableData,
+    currentPage,
+    pageSize,
+    orderModel,
+    total,
+    freshCurrentPage,
+    handleSearch
+  } = usePagination('/api/roles/search')
 
-      console.log(tableData.value)
-      return {
-        dialogVisible,
-        selectRole,
-        addDialog,
-        search,
-        tableData,
-        currentPage,
-        pageSize,
-        orderModel,
-        total,
-        freshCurrentPage,
-        handleSearch
-      }
-    },
+  console.log(tableData.value)
 
-    watch: {
-      dialogVisible(newValue) {
-        if (newValue === false) {
-          this.freshCurrentPage()
-        }
-      },
-    },
-    methods: {
-      handleEdit(role) {
-        console.log(role)
-        this.selectRole = Object.assign({}, role)
-        console.log(this.selectRole)
-        this.dialogVisible = true
-      },
+  watch(dialogVisible, (newValue) => {
+    if (newValue === false) {
+      freshCurrentPage()
+    }
+  })
 
-      handleDel(role) {
-        this.$confirm('是否确定要删除角色：' + role.name, 'Warnning').then(() => {
-          DeleteRole(role.id).then(() => {
-            this.$notify({
-              title: 'success',
-              message: '角色删除成功',
-              type: 'success'
-            })
-            this.freshCurrentPage()
-          })
-        }).catch(() => {
-          this.$notify({
-            title: 'success',
-            message: '取消删除操作',
-            type: 'success'
-          })
+  function handleEdit(role) {
+    console.log(role)
+    Object.assign(selectRole, role)
+    console.log(selectRole)
+    dialogVisible.value = true
+  }
+
+  function handleDel(role) {
+    ElMessageBox.confirm('是否确定要删除角色：' + role.name, 'Warnning', {type: 'warning'}).then(() => {
+      DeleteRole(role.id).then(() => {
+        ElNotification({
+          title: 'success',
+          message: '角色删除成功',
+          type: 'success'
         })
-
-      },
-      addRole() {
-        this.selectRole = {
-          id: null,
-          name: '',
-          description: '',
-          enable: ''
-        }
-        console.log(this.selectRole)
-        this.dialogVisible = true
-      }
-    },
+        freshCurrentPage()
+      })
+    }).catch(() => {
+      ElNotification({
+        title: 'success',
+        message: '取消删除操作',
+        type: 'success'
+      })
+    })
 
   }
+
+  function addRole() {
+    Object.assign(selectRole, {
+      id: null,
+      name: '',
+      description: '',
+      enable: ''
+    })
+    console.log(selectRole)
+    dialogVisible.value = true
+  }
+
 </script>
 <style lang="">
 
