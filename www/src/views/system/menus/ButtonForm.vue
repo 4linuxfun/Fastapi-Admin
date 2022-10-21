@@ -20,36 +20,24 @@
   </el-form-item>
   <el-form-item label="状态">
     <el-radio-group v-model="selectData.enable">
-      <el-radio :label="0">禁用</el-radio>
-      <el-radio :label="1">启用</el-radio>
+      <el-radio :label=false>禁用</el-radio>
+      <el-radio :label=true>启用</el-radio>
     </el-radio-group>
   </el-form-item>
 </template>
 
-<script>
+<script setup>
   import {toRefs, reactive, ref, inject} from 'vue'
   import useMenu from '@/composables/useMenu'
 
-  export default {
-    name: 'ButtonForm',
-    props: ['form', 'totalApiLists'],
-    emits: ['update:form'],
-    setup(props, {emit}) {
-      const {form} = toRefs(props)
-      const loading = ref(false)
+  const props = defineProps(['form', 'totalApiLists'])
+  const emit = defineEmits(['update:form'])
 
-      const menuData = inject('menuData')
-      const {selectData, selectApis, cascaderMenu} = useMenu(form.value, menuData.value, emit)
+  const {form} = toRefs(props)
+  const loading = ref(false)
 
-      return {
-        selectData,
-        menuData,
-        cascaderMenu,
-        loading,
-        selectApis
-      }
-    },
-  }
+  const menuData = inject('menuData')
+  const {selectData, selectApis, cascaderMenu} = useMenu(form.value, menuData.value, emit)
 </script>
 
 <style scoped>

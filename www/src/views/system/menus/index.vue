@@ -42,8 +42,8 @@
       </el-table-column>
       <el-table-column prop="enable" label="状态" width="80">
         <template #default="scope">
-          <el-tag effect="dark" :type="scope.row.enable === 1?'success':'danger'">
-            {{ scope.row.enable === 1 ? '启用' : '禁用' }}
+          <el-tag effect="dark" :type="scope.row.enable === true?'success':'danger'">
+            {{ scope.row.enable === true ? '启用' : '禁用' }}
           </el-tag>
         </template>
       </el-table-column>
@@ -77,7 +77,7 @@
   </el-drawer>
 
 </template>
-<script>
+<script setup>
   import {Search, ArrowDown} from '@element-plus/icons-vue'
   import {ElMessageBox} from 'element-plus'
   import {
@@ -87,116 +87,87 @@
   import MenuDialog from './MenuDialog'
   import {provide, reactive, ref, watch} from 'vue'
 
-  export default {
-    components: {
-      ArrowDown,
-      Search,
-      'menu-dialog': MenuDialog,
-    },
-    setup() {
-      const search = ref(null)
-      const dialogVisible = ref(false)
-      const menuInfo = reactive({
-        name: '',
-        status: ''
-      })
-      const menuData = ref([])
-      const selectData = reactive({})
+  const search = ref(null)
+  const dialogVisible = ref(false)
+  const menuInfo = reactive({
+    name: '',
+    status: ''
+  })
+  const menuData = ref([])
+  const selectData = reactive({})
 
-      provide('menuData', menuData)
+  provide('menuData', menuData)
 
-      watch(dialogVisible, (newValue) => {
-        if (newValue === false) {
-          getMenuInfo()
-        }
-      })
+  watch(dialogVisible, (newValue) => {
+    if (newValue === false) {
+      getMenuInfo()
+    }
+  })
 
-      const beforeHandleCommand = (row, command) => {
-        return {
-          row,
-          command
-        }
-      }
-      const handleCommand = (command) => {
-        let row = command.row
-        switch (command.command) {
-          case 'detail':
-            dialogVisible.value = true
-            Object.assign(selectData, row)
-            break
-          case 'addSubPage':
-            handleAdd(row.id, 'subPage')
-            break
-          case 'delete':
-            ElMessageBox.confirm('是否删除菜单：' + row.name, '删除菜单', {
-              type: 'warning'
-            }).then(() => {
-              DeleteMenu(row.id)
-              getMenuInfo()
-            }).catch()
-            break
-        }
-      }
-
-      const splitApis = (apis) => {
-        console.log('split')
-        console.log(apis)
-        return apis.split(',')
-      }
-
-      const onSubmit = () => {
-        console.log('submit!')
-      }
-
-      const handleAdd = (parentId = null, menuType = 'page') => {
-        Object.assign(selectData, {
-          id: null,
-          parent_id: parentId,
-          name: '',
-          path: '',
-          component: null,
-          enable: '',
-          type: menuType
-        })
-        dialogVisible.value = true
-      }
-
-      const getMenuInfo = () => {
-        console.log('get menu info')
-        GetAllMenus(search.value).then(response => {
-          console.log(response)
-          menuData.value = response
-        }).catch(error => {
-          this.$notify({
-            title: '错误',
-            message: error,
-            type: 'error'
-          })
-        })
-      }
-
-      return {
-        search,
-        dialogVisible,
-        menuInfo,
-        // 表格数据
-        menuData,
-        // 点击编辑菜单时选择的数据
-        selectData,
-        beforeHandleCommand,
-        handleCommand,
-        splitApis,
-        onSubmit,
-        handleAdd,
-        getMenuInfo
-      }
-
-    },
-    created() {
-      console.log('start to get all menu list')
-      this.getMenuInfo()
+  const beforeHandleCommand = (row, command) => {
+    return {
+      row,
+      command
     }
   }
+  const handleCommand = (command) => {
+    let row = command.row
+    switch (command.command) {
+      case 'detail':
+        dialogVisible.value = true
+        Object.assign(selectData, row)
+        break
+      case 'addSubPage':
+        handleAdd(row.id, 'subPage')
+        break
+      case 'delete':
+        ElMessageBox.confirm('是否删除菜单：' + row.name, '删除菜单', {
+          type: 'warning'
+        }).then(() => {
+          DeleteMenu(row.id)
+          getMenuInfo()
+        }).catch()
+        break
+    }
+  }
+
+  const splitApis = (apis) => {
+    console.log('split')
+    console.log(apis)
+    return apis.split(',')
+  }
+
+  const onSubmit = () => {
+    console.log('submit!')
+  }
+
+  const handleAdd = (parentId = null, menuType = 'page') => {
+    Object.assign(selectData, {
+      id: null,
+      parent_id: parentId,
+      name: '',
+      path: '',
+      component: null,
+      enable: '',
+      type: menuType
+    })
+    dialogVisible.value = true
+  }
+
+  const getMenuInfo = () => {
+    console.log('get menu info')
+    GetAllMenus(search.value).then(response => {
+      console.log(response)
+      menuData.value = response
+    }).catch(error => {
+      this.$notify({
+        title: '错误',
+        message: error,
+        type: 'error'
+      })
+    })
+  }
+  getMenuInfo()
 </script>
 <style lang="">
 

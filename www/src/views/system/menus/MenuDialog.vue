@@ -7,7 +7,7 @@
         <el-radio-button label="btn">按钮</el-radio-button>
       </el-radio-group>
     </el-form-item>
-    <component :is="selectData.type" v-model:form="selectData" :totalApiLists="totalApiLists"></component>
+    <component :is="currentType" v-model:form="selectData" :totalApiLists="totalApiLists"></component>
     <el-form-item>
       <el-button @click="$emit('update:visible', false)">取消</el-button>
       <!-- 更新和添加按钮触发的事件都是一样的，只是提交数据时id字段为空，此需要服务端通过此字段去判断添加还是更新 -->
@@ -19,7 +19,7 @@
   <!-- 编辑按钮对话框内容 -->
 </template>
 
-<script>
+<script setup>
   import {
     PostNewMenu,
     PutMenu,
@@ -33,47 +33,49 @@
   import ButtonForm from './ButtonForm'
   import {ElNotification} from 'element-plus'
 
-  export default {
-    components: {
-      'page': MenuForm,
-      'subPage': MenuForm,
-      'btn': ButtonForm
-    },
-    props: ['data', 'visible'],
-    emits: ['update:visible'],
-    setup(props, {
-      emit
-    }) {
-      const selectData = reactive(props.data)
-      const totalApiLists = ref([])
+  const currentType = ref(null)
 
-      GetMenuTreeApis().then(response => {
-        totalApiLists.value = response
-      })
+  const props = defineProps(['data', 'visible'])
+  const emit = defineEmits(['update:visible'])
+  const selectData = reactive(props.data)
+  const totalApiLists = ref([])
 
-      const handleUpdate = () => {
-        console.log(selectData)
-        if (selectData.id === null) {
-          console.log('新建菜单')
-          PostNewMenu(selectData)
-        } else {
-          PutMenu(selectData).then(response => {
-            ElNotification({
-              message: '更新成功',
-              type: 'success'
-            })
-          })
-        }
-        emit('update:visible', false)
-      }
+  GetMenuTreeApis().then(response => {
+    totalApiLists.value = response
+  })
 
-      return {
-        selectData,
-        totalApiLists,
-        handleUpdate,
-      }
-    },
+  function changeType(value) {
+    if (value === 'btn') {
+      currentType.value = ButtonForm
+    } else {
+      currentType.value = MenuForm
+    }
   }
+
+  const handleUpdate = () => {
+    console.log(selectData)
+    if (selectData.id === null) {
+      console.log('新建菜单')
+      PostNewMenu(selectData)
+    } else {
+      PutMenu(selectData).then(response => {
+        ElNotification({
+          message: '更新成功',
+          type: 'success'
+        })
+      })
+    }
+    emit('update:visible', false)
+  }
+
+
+  watch(() => selectData.type, (newValue, preValue) => {
+    changeType(newValue)
+  })
+
+  onMounted(()=>{
+    changeType(selectData.type)
+  })
 </script>
 
 <style>
