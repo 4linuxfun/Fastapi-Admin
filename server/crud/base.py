@@ -75,14 +75,18 @@ class CRUDBase(Generic[ModelType]):
                     sql = sql.where(getattr(self.model, key) >= q[key])
         return sql
 
-    def search(self, session: Session, search: Pagination):
+    def search(self, session: Session, search: Pagination, columns: Optional[List] = None):
         """
         分页查询方法
         :param session:
         :param search: Pagination实例对象，包含各搜索参数
+        :param columns: 查询返回指定columns
         :return:
         """
-        sql = select(self.model)
+        if columns is None:
+            sql = select(self.model)
+        else:
+            sql = select(*columns)
         sql = self._make_search(sql, search.search)
         subquery = select(self.model.id)
         subquery = self._make_search(subquery, search.search)
