@@ -40,7 +40,6 @@ class PermissionCheck:
         print('permission check')
         request_permission = f"{request.method}:{request.url.path}"
         print(request_permission)
-        self.e.load_policy()
         if self.e.enforce(f'uid_{uid}', request.url.path, request.method):
             print('拥有权限')
             return True
