@@ -1,8 +1,7 @@
 from sqlmodel import create_engine, SQLModel, Session, select
+from .settings import settings
 
-SQLALCHEMY_DATABASE_URL = "mysql+pymysql://root:1234567890@192.168.137.129/simple_sam"
-
-engine = create_engine(SQLALCHEMY_DATABASE_URL, future=False)
+engine = create_engine(settings.DATABASE_URI, future=False)
 
 
 def init_db():
