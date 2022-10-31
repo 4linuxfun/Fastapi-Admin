@@ -14,8 +14,3 @@ class UserRole(SQLModel, table=True):
     user_id: int = Field(foreign_key="user.id", primary_key=True)
     role_id: int = Field(foreign_key="roles.id", primary_key=True)
 
-
-class MenuApis(SQLModel, table=True):
-    __tablename__ = 'menu_apis'
-    menu_id: int = Field(foreign_key='menu.id', primary_key=True)
-    api_id: int = Field(foreign_key='sys_api.id', primary_key=True)

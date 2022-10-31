@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
+from fastapi import Request, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.security.utils import get_authorization_scheme_param
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from ..settings import settings
@@ -13,8 +15,31 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-def hash_password(password):
-    return pwd_context.hash(password)
+def auth_check(request: Request):
+    """
+    检查是否有token信息，并在request.state中添加uid值
+    :param request:
+    :return:
+    """
+    for url in settings.NO_VERIFY_URL:
+        if url == request.url.path.lower():
+            print(f"{request.url.path} 在白名单中，不需要权限验证")
+            return True
+    authorization: str = request.headers.get("Authorization")
+    schema, param = get_authorization_scheme_param(authorization)
+    if not authorization or schema.lower() != "bearer":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authenticated")
+
+    try:
+        playload = jwt.decode(param, settings.SECRET_KEY, settings.ALGORITHM)
+    except jwt.ExpiredSignatureError as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+    except JWTError as e:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
+
+    uid = playload.get('uid')
+    # 在Request对象中设置用户对象，这样在其他地方就能通过request.state.uid获取当前用户id了
+    request.state.uid = uid
 
 
 def create_access_token(data):
@@ -30,27 +55,5 @@ def create_access_token(data):
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = token_encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
     return encoded_jwt
-
-
-def token_encode(to_encode, secret_key, algorithm):
-    """
-    token加密
-    :param to_encode:
-    :param secret_key:
-    :param algorithm:
-    :return:
-    """
-    return jwt.encode(to_encode, secret_key, algorithm)
-
-
-def token_decode(token, secret_key=settings.SECRET_KEY, algorithm=settings.ALGORITHM):
-    """
-    token解密
-    :param token:
-    :param secret_key:
-    :param algorithm:
-    :return:
-    """
-    return jwt.decode(token, secret_key, algorithm)

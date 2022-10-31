@@ -7,7 +7,7 @@
         <el-radio-button label="btn">按钮</el-radio-button>
       </el-radio-group>
     </el-form-item>
-    <component :is="currentType" v-model:form="selectData" :totalApiLists="totalApiLists"></component>
+    <component :is="currentType" v-model:form="selectData"></component>
     <el-form-item>
       <el-button @click="$emit('update:visible', false)">取消</el-button>
       <!-- 更新和添加按钮触发的事件都是一样的，只是提交数据时id字段为空，此需要服务端通过此字段去判断添加还是更新 -->
@@ -22,8 +22,7 @@
 <script setup>
   import {
     PostNewMenu,
-    PutMenu,
-    GetMenuTreeApis
+    PutMenu
   } from '@/api/menus'
   import {
     ref,
@@ -38,11 +37,6 @@
   const props = defineProps(['data', 'visible'])
   const emit = defineEmits(['update:visible'])
   const selectData = reactive(props.data)
-  const totalApiLists = ref([])
-
-  GetMenuTreeApis().then(response => {
-    totalApiLists.value = response
-  })
 
   function changeType(value) {
     if (value === 'btn') {

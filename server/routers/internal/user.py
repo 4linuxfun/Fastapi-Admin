@@ -2,8 +2,9 @@ from typing import Optional, List
 from sqlmodel import Session, select
 from sqlalchemy.exc import NoResultFound
 from fastapi import APIRouter, Depends, status, HTTPException
-from ...dependencies import casbin_enforcer
-from ...db import get_session
+from ...settings import casbin_enforcer
+from ...common.auth_casbin import Authority
+from ...common.database import get_session
 from ...models.internal import User, Role
 from ...models.internal.user import UserCreateWithRoles, UserReadWithRoles, UserUpdateWithRoles, UserUpdatePassword, \
     UserWithOutPasswd
@@ -14,7 +15,7 @@ router = APIRouter(prefix='/api', )
 
 
 @router.get('/users/roles', summary='获取角色')
-async def get_roles(id: Optional[int] = None, session: Session = Depends(get_session, )):
+async def get_roles(id: Optional[int] = None, session: Session = Depends(get_session)):
     if id is None:
         # 添加新用户时无用户id
         roles = []
@@ -69,7 +70,7 @@ async def get_all_user(search: Pagination[UserWithOutPasswd],
     }
 
 
-@router.post('/users', summary="新建用户")
+@router.post('/users', summary="新建用户",dependencies=[Depends(Authority("user:add"))])
 async def update_user(user_info: UserCreateWithRoles, session: Session = Depends(get_session)):
     """
     更新用户信息的所有操作，可涉及更新用户名、密码、角色等
@@ -85,13 +86,13 @@ async def update_user(user_info: UserCreateWithRoles, session: Session = Depends
     return user
 
 
-@router.put('/users/password', summary='重置密码')
+@router.put('/users/password', summary='重置密码', dependencies=[Depends(Authority('user:reset'))])
 async def update_password(user: UserUpdatePassword, session: Session = Depends(get_session)):
     crud.internal.user.update_passwd(session, uid=user.id, passwd=user.password)
 
 
 @router.put('/users/{uid}',
-            summary='更新用户', status_code=status.HTTP_204_NO_CONTENT)
+            summary='更新用户', dependencies=[Depends(Authority("user:update"))],status_code=status.HTTP_204_NO_CONTENT)
 async def update_user(uid: int, user_info: UserUpdateWithRoles, session: Session = Depends(get_session)):
     """
     更新用户信息的所有操作，可涉及更新用户名、密码、角色等
@@ -110,7 +111,7 @@ async def update_user(uid: int, user_info: UserUpdateWithRoles, session: Session
     return user
 
 
-@router.delete('/users/{uid}', summary='删除用户', status_code=status.HTTP_204_NO_CONTENT)
+@router.delete('/users/{uid}', summary='删除用户',dependencies=[Depends(Authority("user:del"))], status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(uid: int, session: Session = Depends(get_session)):
     try:
         user = session.exec(select(User).where(User.id == uid)).one()

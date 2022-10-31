@@ -2,7 +2,7 @@ from typing import List, Optional
 from sqlmodel import select, Session
 from ...models.internal import Role, Menu, RoleMenu
 from ..base import CRUDBase
-from ...dependencies import casbin_enforcer
+from ...settings import casbin_enforcer
 
 
 class CRUDRole(CRUDBase[Role]):
@@ -49,11 +49,10 @@ class CRUDRole(CRUDBase[Role]):
         casbin_enforcer.delete_permissions_for_user(f'role_{db_obj.id}')
         print(db_menus)
         for menu in db_menus:
-            if len(menu.apis) == 0:
-                continue
-            for api in menu.apis:
-                print(f'增加权限:role_{db_obj.id},{api.path},{api.method}')
-                casbin_enforcer.add_permission_for_user(f'role_{db_obj.id}', api.path, api.method)
+            if menu.auth is not None:
+                model, act = menu.auth.split(':')
+                print(f'增加权限:role_{db_obj.id},{model},{act}')
+                casbin_enforcer.add_permission_for_user(f'role_{db_obj.id}', model, act)
         session.add(db_obj)
         session.commit()
         session.refresh(db_obj)

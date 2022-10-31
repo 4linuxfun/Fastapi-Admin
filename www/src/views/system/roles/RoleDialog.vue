@@ -10,8 +10,8 @@
       </el-form-item>
       <el-form-item label="状态">
         <el-radio-group v-model="selectData.enable">
-          <el-radio :label="0">禁用</el-radio>
-          <el-radio :label="1">启用</el-radio>
+          <el-radio :label=false>禁用</el-radio>
+          <el-radio :label=true>启用</el-radio>
         </el-radio-group>
       </el-form-item>
       <el-form-item label="菜单权限">

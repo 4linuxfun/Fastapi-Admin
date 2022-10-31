@@ -2,8 +2,8 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 from sqlmodel import Session
-from ...dependencies import check_permission
-from ...db import get_session
+from ...common.auth_casbin import Authority
+from ...common.database import get_session
 from ... import crud
 from ...models.internal import Role, Menu
 from ...models.internal.role import RoleWithMenus, RoleInsert, RoleUpdate
@@ -11,7 +11,7 @@ from ...schemas.internal.pagination import Pagination
 from ...schemas.internal.roles import RoleSearch
 from ...common.utils import menu_convert
 
-router = APIRouter(prefix='/api', dependencies=[Depends(check_permission), ])
+router = APIRouter(prefix='/api')
 
 
 @router.get('/roles/enable-menus', summary='获取角色菜单')
@@ -48,7 +48,7 @@ async def get_roles(search: Pagination[RoleSearch], session: Session = Depends(g
     }
 
 
-@router.post('/roles', summary="新建角色")
+@router.post('/roles', summary="新建角色", dependencies=[Depends(Authority('role:add'))])
 async def add_roles(role_info: RoleInsert, session: Session = Depends(get_session)):
     print(role_info)
     enable_menus = role_info.menus
@@ -58,7 +58,7 @@ async def add_roles(role_info: RoleInsert, session: Session = Depends(get_sessio
     return db_obj
 
 
-@router.put('/roles', summary="更新角色")
+@router.put('/roles', summary="更新角色", dependencies=[Depends(Authority('role:update'))])
 async def update_roles(role_info: RoleUpdate, session: Session = Depends(get_session)):
     print(role_info)
     if role_info.name == 'admin':
@@ -71,7 +71,8 @@ async def update_roles(role_info: RoleUpdate, session: Session = Depends(get_ses
     return db_obj
 
 
-@router.delete('/roles/{id}', summary='删除角色', status_code=status.HTTP_204_NO_CONTENT)
+@router.delete('/roles/{id}', summary='删除角色', dependencies=[Depends(Authority('role:del'))],
+               status_code=status.HTTP_204_NO_CONTENT)
 async def del_role(id: int, session: Session = Depends(get_session)):
     db_obj = crud.internal.role.get(session, id)
     if db_obj.name == 'admin':

@@ -8,15 +8,8 @@
                  placeholder="请选择父菜单" style="width:100%">
     </el-cascader>
   </el-form-item>
-  <el-form-item label="授权标识" prop="path" :rules="[{required:true,message:'请填写按钮授权标识'}]">
-    <el-input v-model="selectData.path"></el-input>
-  </el-form-item>
-  <el-form-item label="关联API接口">
-    <el-select v-model="selectApis" filterable multiple placeholder="选择接口" style="width:100%">
-      <el-option-group v-for="group in totalApiLists" :key="group.label" :label="group.label">
-        <el-option v-for="item in group.options" :key="item.id" :label="item.summary" :value="item.id"></el-option>
-      </el-option-group>
-    </el-select>
+  <el-form-item label="权限标识" prop="path" :rules="[{required:true,message:'请填写按钮授权标识'}]">
+    <el-input v-model="selectData.auth"></el-input>
   </el-form-item>
   <el-form-item label="状态">
     <el-radio-group v-model="selectData.enable">
@@ -30,14 +23,14 @@
   import {toRefs, reactive, ref, inject} from 'vue'
   import useMenu from '@/composables/useMenu'
 
-  const props = defineProps(['form', 'totalApiLists'])
+  const props = defineProps(['form',])
   const emit = defineEmits(['update:form'])
 
   const {form} = toRefs(props)
   const loading = ref(false)
 
   const menuData = inject('menuData')
-  const {selectData, selectApis, cascaderMenu} = useMenu(form.value, menuData.value, emit)
+  const {selectData, cascaderMenu} = useMenu(form.value, menuData.value, emit)
 </script>
 
 <style scoped>

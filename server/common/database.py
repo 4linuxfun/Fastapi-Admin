@@ -1,7 +1,5 @@
 from sqlmodel import create_engine, SQLModel, Session, select
-from .settings import settings
-
-engine = create_engine(settings.DATABASE_URI, future=False)
+from ..settings import engine
 
 
 def init_db():

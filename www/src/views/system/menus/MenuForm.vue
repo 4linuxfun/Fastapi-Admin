@@ -19,13 +19,6 @@
   <el-form-item v-else label="URL地址">
     <el-input v-model="selectData.url"></el-input>
   </el-form-item>
-  <el-form-item label="关联API接口">
-    <el-select v-model="selectApis" filterable multiple placeholder="选择接口" style="width:100%">
-      <el-option-group v-for="group in totalApiLists" :key="group.label" :label="group.label">
-        <el-option v-for="item in group.options" :key="item.id" :label="item.summary" :value="item.id"></el-option>
-      </el-option-group>
-    </el-select>
-  </el-form-item>
   <el-form-item label="状态">
     <el-radio-group v-model="selectData.enable">
       <el-radio :label=false>禁用</el-radio>
@@ -48,14 +41,13 @@
 
       const menuData = inject('menuData')
 
-      const {selectData, selectApis, cascaderMenu} = useMenu(form.value, menuData.value, emit)
+      const {selectData, cascaderMenu} = useMenu(form.value, menuData.value, emit)
 
 
       return {
         selectData,
         menuData,
         cascaderMenu,
-        selectApis,
         loading,
       }
     },
