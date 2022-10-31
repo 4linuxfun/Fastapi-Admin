@@ -11,13 +11,13 @@
   <el-form-item label="菜单路径" prop="path" :rules="[{required:true,message:'请填写菜单路径'}]">
     <el-input v-model="selectData.path"></el-input>
   </el-form-item>
-  <el-form-item v-if="selectData.type !== 'btn'" label="前端组件" prop="component"
+  <el-form-item label="前端组件" prop="component"
                 :rules="[{required:true,message:'一级菜单填写Layout'}]">
     <!-- <el-input v-if="selectData.parent_id == null" v-model="selectData.component" disabled></el-input> -->
     <el-input v-model="selectData.component"></el-input>
   </el-form-item>
-  <el-form-item v-else label="URL地址">
-    <el-input v-model="selectData.url"></el-input>
+  <el-form-item label="排序" prop="sort" :rules="[{type:'float',message:'请输入数字'}]">
+    <el-input v-model="selectData.sort"/>
   </el-form-item>
   <el-form-item label="状态">
     <el-radio-group v-model="selectData.enable">

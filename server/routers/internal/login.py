@@ -54,15 +54,15 @@ async def get_permission(request: Request, session: Session = Depends(get_sessio
     user: User = crud.internal.user.get(session, uid)
     print(user.roles)
     user_menus = []
-    user_btns = []
     # admin组用户获取所有菜单列表
     if uid == 1 or crud.internal.role.check_admin(session, uid):
-        menu_list = session.exec(select(Menu).where(Menu.type != 'btn')).all()
+        menu_list = session.exec(select(Menu).where(Menu.type != 'btn').order_by(Menu.sort)).all()
         btn_list = session.exec(select(Menu.auth).where(Menu.type == 'btn').where(Menu.auth.is_not(None))).all()
     else:
         for role in user.roles:
             user_menus.extend([menu.id for menu in role.menus])
-        menu_list = session.exec(select(Menu).where(Menu.id.in_(set(user_menus))).where(Menu.type != 'btn')).all()
+        menu_list = session.exec(
+            select(Menu).where(Menu.id.in_(set(user_menus))).where(Menu.type != 'btn').order_by(Menu.sort)).all()
         btn_list = session.exec(select(Menu.auth).where(Menu.id.in_(set(user_menus))).where(Menu.type == 'btn')).all()
     print('menulist')
     print(menu_list)
