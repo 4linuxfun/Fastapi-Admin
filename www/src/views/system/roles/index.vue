@@ -5,14 +5,14 @@
         <template #append>
           <el-button @click="handleSearch">
             <el-icon>
-              <search/>
+              <Search/>
             </el-icon>
           </el-button>
         </template>
       </el-input>
     </el-col>
     <el-col :span="6">
-      <el-button v-permission="'addRole'" type="primary" @click="addRole">添加新角色</el-button>
+      <el-button v-permission="'role:add'" type="primary" @click="addRole">添加新角色</el-button>
     </el-col>
   </el-row>
 
@@ -30,10 +30,10 @@
       </el-table-column>
       <el-table-column label="操作">
         <template #default="scope">
-          <el-button v-permission="'editRole'" v-if="scope.row.name!='admin'" type="primary" size="small"
+          <el-button v-permission="'role:update'" v-if="scope.row.name!='admin'" type="primary" size="small"
                      @click="handleEdit(scope.row)">编辑
           </el-button>
-          <el-button v-permission="'delRole'" v-if="scope.row.name!='admin'" type="danger" size="small"
+          <el-button v-permission="'role:del'" v-if="scope.row.name!='admin'" type="danger" size="small"
                      @click="handleDel(scope.row)">删除
           </el-button>
         </template>

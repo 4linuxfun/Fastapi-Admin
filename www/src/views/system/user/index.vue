@@ -5,14 +5,14 @@
         <template #append>
           <el-button @click="handleSearch">
             <el-icon>
-              <search/>
+              <Search/>
             </el-icon>
           </el-button>
         </template>
       </el-input>
     </el-col>
     <el-col :span="6">
-      <el-button v-permission="'addUser'" type="primary" @click="handleAdd">添加新用户</el-button>
+      <el-button v-permission="'user:add'" type="primary" @click="handleAdd">添加新用户</el-button>
     </el-col>
   </el-row>
 

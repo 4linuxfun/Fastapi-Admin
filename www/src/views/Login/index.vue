@@ -2,7 +2,7 @@
   <div class="login">
     <el-form ref="loginFormRef" :model="loginForm" :rules="loginRules" label-position="left" label-width="0px"
              class="login-form" @keyup.enter="handleLogin">
-      <h2 class="login-title">Seraphim DevOps平台</h2>
+      <h2 class="login-title">FastAPI Admin后台</h2>
       <el-form-item prop="username">
         <el-input v-model="loginForm.username" type="text" auto-complete="off" placeholder="请输入用户名">
           <template #prepend>
@@ -152,7 +152,7 @@
 
 .login-form {
   border-radius: 6px;
-  background:rgb(157, 59, 63);
+  background:#B3C0D1;
   width: 365px;
   padding: 25px 25px 5px 25px;
 

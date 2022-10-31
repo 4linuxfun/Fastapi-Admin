@@ -17,30 +17,9 @@ export const useStore = defineStore('user', {
         name: '',
         avatar: '',
         asyncRoutes: [],
+        buttons:[],
       }
 
-    },
-    getters: {
-      buttons(state) {
-        let btns = []
-
-        function findAllBtn(list) {
-          list.forEach(val => {
-            if (val.type !== 'btn') {
-              if (val.children && val.children.length > 0) {
-                findAllBtn(val.children)
-              }
-            } else {
-              btns.push(val.path)
-            }
-          })
-        }
-
-        findAllBtn(state.asyncRoutes)
-        console.log('button:')
-        console.log(btns)
-        return btns
-      },
     },
 
     actions: {
@@ -88,7 +67,8 @@ export const useStore = defineStore('user', {
           GetUserPermission().then(response => {
             console.log('permission response is:')
             console.log(response)
-            this.asyncRoutes = response
+            this.asyncRoutes = response.menus
+            this.buttons = response.btns
             resolve(response)
           }).catch(error => {
             reject(error)

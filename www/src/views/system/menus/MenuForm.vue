@@ -11,20 +11,13 @@
   <el-form-item label="菜单路径" prop="path" :rules="[{required:true,message:'请填写菜单路径'}]">
     <el-input v-model="selectData.path"></el-input>
   </el-form-item>
-  <el-form-item v-if="selectData.type !== 'btn'" label="前端组件" prop="component"
+  <el-form-item label="前端组件" prop="component"
                 :rules="[{required:true,message:'一级菜单填写Layout'}]">
     <!-- <el-input v-if="selectData.parent_id == null" v-model="selectData.component" disabled></el-input> -->
     <el-input v-model="selectData.component"></el-input>
   </el-form-item>
-  <el-form-item v-else label="URL地址">
-    <el-input v-model="selectData.url"></el-input>
-  </el-form-item>
-  <el-form-item label="关联API接口">
-    <el-select v-model="selectApis" filterable multiple placeholder="选择接口" style="width:100%">
-      <el-option-group v-for="group in totalApiLists" :key="group.label" :label="group.label">
-        <el-option v-for="item in group.options" :key="item.id" :label="item.summary" :value="item.id"></el-option>
-      </el-option-group>
-    </el-select>
+  <el-form-item label="排序" prop="sort" :rules="[{type:'float',message:'请输入数字'}]">
+    <el-input v-model="selectData.sort"/>
   </el-form-item>
   <el-form-item label="状态">
     <el-radio-group v-model="selectData.enable">
@@ -48,14 +41,13 @@
 
       const menuData = inject('menuData')
 
-      const {selectData, selectApis, cascaderMenu} = useMenu(form.value, menuData.value, emit)
+      const {selectData, cascaderMenu} = useMenu(form.value, menuData.value, emit)
 
 
       return {
         selectData,
         menuData,
         cascaderMenu,
-        selectApis,
         loading,
       }
     },

@@ -6,22 +6,23 @@
         <template #append>
           <el-button @click="getMenuInfo">
             <el-icon>
-              <search/>
+              <Search/>
             </el-icon>
           </el-button>
         </template>
       </el-input>
     </el-col>
     <el-col :span="6">
-      <el-button v-permission="'addMenu'" type="primary" @click="handleAdd">新增</el-button>
+      <el-button v-permission="'menu:add'" type="primary" @click="handleAdd">新建菜单</el-button>
     </el-col>
   </el-row>
   <div style="padding-top:10px">
-    <el-table :data="menuData" style="width: 100%; margin-bottom: 20px;" row-key="id" border stripe
+    <el-table :data="menuData"
+              style="width: 100%; margin-bottom: 20px;" row-key="id" border stripe
               :header-cell-style="{background:'#eef1f6',color:'#606266'}">
       <!--      <el-table-column prop="id" label="主键" width="180"/>-->
-      <el-table-column prop="name" label="名称" width="180"/>
-      <el-table-column prop="type" label="类型" width="100" align="center">
+      <el-table-column prop="name" label="菜单名称" width="180"/>
+      <el-table-column prop="type" label="菜单类型" width="100" align="center">
         <template #default="scope">
           <el-tag effect="dark" v-if="scope.row.type === 'page'" type='info'>
             一级菜单
@@ -34,12 +35,7 @@
       </el-table-column>
       <el-table-column prop="path" label="路径" width="180"/>
       <el-table-column prop="component" label="组件" width="180"/>
-      <el-table-column prop="apis" label="关联API权限" align="center">
-        <template #default="scope">
-          <el-tag v-for="api in scope.row.apis" type='info' :key="api.id">{{ api.tags }}-{{ api.summary }}
-          </el-tag>
-        </template>
-      </el-table-column>
+      <el-table-column prop="sort" label="排序" align="center"/>
       <el-table-column prop="enable" label="状态" width="80">
         <template #default="scope">
           <el-tag effect="dark" :type="scope.row.enable === true?'success':'danger'">
@@ -131,16 +127,6 @@
     }
   }
 
-  const splitApis = (apis) => {
-    console.log('split')
-    console.log(apis)
-    return apis.split(',')
-  }
-
-  const onSubmit = () => {
-    console.log('submit!')
-  }
-
   const handleAdd = (parentId = null, menuType = 'page') => {
     Object.assign(selectData, {
       id: null,
@@ -148,6 +134,7 @@
       name: '',
       path: '',
       component: null,
+      auth: '',
       enable: '',
       type: menuType
     })

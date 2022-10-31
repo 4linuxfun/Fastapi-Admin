@@ -1,6 +1,6 @@
 from typing import Optional, List
 from sqlmodel import Session, select
-from server.models.internal.menu import Menu
+from ...models.internal.menu import Menu
 from ..base import CRUDBase
 
 
@@ -9,6 +9,7 @@ class CRUDMenu(CRUDBase[Menu]):
         sql = select(self.model)
         if q is not None:
             sql = sql.where(self.model.name.like(f'%{q}%'))
+        sql = sql.order_by(self.model.sort)
         return session.exec(sql).all()
 
     def update(self, session: Session, db_obj, obj_in: Menu):

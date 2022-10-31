@@ -19,7 +19,7 @@
 <script setup>
   import MenuList from '../components/MenuList'
   import HeaderContent from '@/components/HeaderContent'
-  
+
 </script>
 
 <style>
