@@ -1,19 +1,19 @@
 from typing import List
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, status
 from ...common.database import get_session
 from sqlmodel import Session, select
 from sqlalchemy.exc import NoResultFound
+from ...common.response_code import ApiResponse
 from ...common.security import create_access_token
 from ...models.internal import User, Menu
 from ...models.internal.user import UserLogin, LoginResponse
-from ...schemas import ApiResponse
 from ... import crud
 from ...common.utils import menu_convert
 
 router = APIRouter(prefix='/api')
 
 
-@router.post('/login', summary="登录验证", response_model=LoginResponse)
+@router.post('/login', summary="登录验证", response_model=ApiResponse[LoginResponse])
 async def login(login_form: UserLogin, session: Session = Depends(get_session)):
     """
     处理登录请求，返回{token:xxxxx}，判断用户密码是否正确
@@ -25,9 +25,8 @@ async def login(login_form: UserLogin, session: Session = Depends(get_session)):
         user = crud.internal.user.login(session, login_form)
     except NoResultFound:
         return ApiResponse(
-            code=1,
-            message='error',
-            data="用户密码错误，或账号已禁用"
+            code=status.HTTP_400_BAD_REQUEST,
+            message='用户名或密码错误',
         )
     user_roles = []
     for role in user.roles:
@@ -37,14 +36,17 @@ async def login(login_form: UserLogin, session: Session = Depends(get_session)):
     access_token = create_access_token(
         data={"uid": user.id}
     )
-    return {"uid": user.id,
-            "token": access_token}
+    return ApiResponse(
+        data={"uid": user.id,
+              "token": access_token}
+    )
 
 
 @router.get('/permission', summary='获取权限')
 async def get_permission(request: Request, session: Session = Depends(get_session)):
     """
     用户权限请求，返回拥有权限的菜单列表，前端根据返回的菜单列表信息，合成菜单项
+    :param request:
     :param session:
     :param token:
     :return:
@@ -69,7 +71,9 @@ async def get_permission(request: Request, session: Session = Depends(get_sessio
     user_menus = menu_convert(menu_list)
 
     print(user_menus)
-    return {
-        'menus': user_menus,
-        'btns': btn_list
-    }
+    return ApiResponse(
+        data={
+            'menus': user_menus,
+            'btns': btn_list
+        }
+    )

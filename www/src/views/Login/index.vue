@@ -108,19 +108,11 @@
         console.log('dispatch login store actions')
         store.logIn(user).then(() => {
           console.log('login ok,start to redirect to home')
-          loading.value = false
           router.push({
             path: '/dashboard'
           })
         })
-            .catch((error) => {
-              loading.value = false
-              ElNotification({
-                title: '错误！',
-                message: error,
-                type: 'error'
-              })
-            })
+        loading.value = false
       } else {
         console.log('提交错误!')
         return false
@@ -152,7 +144,7 @@
 
 .login-form {
   border-radius: 6px;
-  background:#B3C0D1;
+  background: #B3C0D1;
   width: 365px;
   padding: 25px 25px 5px 25px;
 
