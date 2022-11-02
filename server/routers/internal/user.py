@@ -3,6 +3,7 @@ from sqlmodel import Session, select
 from sqlalchemy.exc import NoResultFound
 from fastapi import APIRouter, Depends, status, HTTPException
 from ...settings import casbin_enforcer
+from ...common.response_code import ApiResponse
 from ...common.auth_casbin import Authority
 from ...common.database import get_session
 from ...models.internal import User, Role
@@ -24,10 +25,12 @@ async def get_roles(id: Optional[int] = None, session: Session = Depends(get_ses
         roles: List[int] = [role.id for role in user.roles]
     all_roles: List[Role] = session.exec(select(Role)).all()
     # roles_list = [role.name for role in all_roles]
-    return {
-        'roles': all_roles,
-        'enable': roles
-    }
+    return ApiResponse(
+        data={
+            'roles': all_roles,
+            'enable': roles
+        }
+    )
 
 
 @router.get('/users/exist', summary='用户是否存在', status_code=status.HTTP_204_NO_CONTENT)
@@ -41,13 +44,16 @@ async def check_uname_exist(name: str, session: Session = Depends(get_session)):
 
 
 @router.get('/users/{uid}',
-            summary='获取用户信息', response_model=UserReadWithRoles, response_model_exclude={'password'})
+            summary='获取用户信息', response_model=ApiResponse[UserReadWithRoles])
 async def get_user_info(uid: int, session: Session = Depends(get_session)):
     try:
         user = crud.internal.user.get(session, uid)
     except NoResultFound:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='用户不存在')
-    return user
+        ApiResponse(code=status.HTTP_400_BAD_REQUEST, message='用户不存在')
+    else:
+        return ApiResponse(
+            data=user
+        )
 
 
 @router.post('/users/search', summary="获取用户列表")
@@ -64,13 +70,15 @@ async def get_all_user(search: Pagination[UserWithOutPasswd],
     users = crud.internal.user.search(session, search)
     users_list = [user.dict(exclude={"password"}) for user in users]
     print(users_list)
-    return {
-        'total': total,
-        'data': users_list
-    }
+    return ApiResponse(
+        data={
+            'total': total,
+            'data': users_list
+        }
+    )
 
 
-@router.post('/users', summary="新建用户",dependencies=[Depends(Authority("user:add"))])
+@router.post('/users', summary="新建用户", dependencies=[Depends(Authority("user:add"))])
 async def update_user(user_info: UserCreateWithRoles, session: Session = Depends(get_session)):
     """
     更新用户信息的所有操作，可涉及更新用户名、密码、角色等
@@ -92,7 +100,8 @@ async def update_password(user: UserUpdatePassword, session: Session = Depends(g
 
 
 @router.put('/users/{uid}',
-            summary='更新用户', dependencies=[Depends(Authority("user:update"))],status_code=status.HTTP_204_NO_CONTENT)
+            summary='更新用户', dependencies=[Depends(Authority("user:update"))],
+            status_code=status.HTTP_204_NO_CONTENT)
 async def update_user(uid: int, user_info: UserUpdateWithRoles, session: Session = Depends(get_session)):
     """
     更新用户信息的所有操作，可涉及更新用户名、密码、角色等
@@ -111,7 +120,8 @@ async def update_user(uid: int, user_info: UserUpdateWithRoles, session: Session
     return user
 
 
-@router.delete('/users/{uid}', summary='删除用户',dependencies=[Depends(Authority("user:del"))], status_code=status.HTTP_204_NO_CONTENT)
+@router.delete('/users/{uid}', summary='删除用户', dependencies=[Depends(Authority("user:del"))],
+               status_code=status.HTTP_204_NO_CONTENT)
 async def delete_user(uid: int, session: Session = Depends(get_session)):
     try:
         user = session.exec(select(User).where(User.id == uid)).one()

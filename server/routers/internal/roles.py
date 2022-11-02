@@ -2,6 +2,7 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 from sqlmodel import Session
+from ...common.response_code import ApiResponse
 from ...common.auth_casbin import Authority
 from ...common.database import get_session
 from ... import crud
@@ -26,10 +27,12 @@ async def get_role_menus(id: Optional[int] = None, session: Session = Depends(ge
     menu_list: List[Menu] = crud.internal.role.get_all_menus(session)
     user_menus = menu_convert(menu_list)
     role_menus = crud.internal.role.get_enable_menus(session, id)
-    return {
-        "menus": user_menus,
-        "enable": role_menus
-    }
+    return ApiResponse(
+        data={
+            "menus": user_menus,
+            "enable": role_menus
+        }
+    )
 
 
 @router.post('/roles/search',
@@ -42,33 +45,41 @@ async def get_roles(search: Pagination[RoleSearch], session: Session = Depends(g
     for role in roles:
         new_role = RoleWithMenus(**role.dict(), menus=role.menus)
         role_with_menus.append(new_role)
-    return {
-        'total': total,
-        'data': role_with_menus
-    }
+    return ApiResponse(
+        data={
+            'total': total,
+            'data': role_with_menus
+        }
+    )
 
 
-@router.post('/roles', summary="新建角色", dependencies=[Depends(Authority('role:add'))])
+@router.post('/roles', summary="新建角色", response_model=ApiResponse[Role],
+             dependencies=[Depends(Authority('role:add'))])
 async def add_roles(role_info: RoleInsert, session: Session = Depends(get_session)):
     print(role_info)
     enable_menus = role_info.menus
     delattr(role_info, 'menus')
     db_obj = crud.internal.role.insert(session, Role(**role_info.dict()))
     crud.internal.role.update_menus(session, db_obj, enable_menus)
-    return db_obj
+    return ApiResponse(
+        data=db_obj
+    )
 
 
-@router.put('/roles', summary="更新角色", dependencies=[Depends(Authority('role:update'))])
+@router.put('/roles', summary="更新角色", response_model=ApiResponse[Role],
+            dependencies=[Depends(Authority('role:update'))])
 async def update_roles(role_info: RoleUpdate, session: Session = Depends(get_session)):
     print(role_info)
     if role_info.name == 'admin':
-        raise HTTPException(status_code=403, detail='admin权限组无法更新信息')
+        ApiResponse(code=status.HTTP_400_BAD_REQUEST, message='admin权限组无法更新信息')
     db_obj = crud.internal.role.get(session, role_info.id)
     enable_menus = role_info.menus
     delattr(role_info, 'menus')
     db_obj = crud.internal.role.update(session, db_obj, role_info)
     crud.internal.role.update_menus(session, db_obj, enable_menus)
-    return db_obj
+    return ApiResponse(
+        data=db_obj
+    )
 
 
 @router.delete('/roles/{id}', summary='删除角色', dependencies=[Depends(Authority('role:del'))],
