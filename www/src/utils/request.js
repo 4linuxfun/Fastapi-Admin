@@ -65,7 +65,16 @@ service.interceptors.response.use(
         filename
       }
     }
-    return response.data
+    if (response.data.code >= 200 && response.data.code < 300) {
+      return response.data.data
+    } else {
+      console.log('response error')
+      ElNotification({
+        title: '错误',
+        message: response.data.message,
+        type: 'error'
+      })
+    }
   },
   error => {
     let code = 0
