@@ -1,4 +1,5 @@
 from typing import Optional, List, Literal, TYPE_CHECKING
+from pydantic import BaseModel
 from sqlmodel import SQLModel, Field, Relationship, Column, Integer, Boolean
 from .relationships import UserRole
 from .role import Role
@@ -19,7 +20,7 @@ class UserBase(UserWithOutPasswd):
     # age: Optional[int] = Field(..., title='年龄', lt=120)
 
 
-class UserRead(UserBase):
+class UserRead(UserWithOutPasswd):
     # get请求时返回的数据模型，response_model使用模型
     id: int
 
