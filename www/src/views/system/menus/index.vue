@@ -21,7 +21,7 @@
               style="width: 100%; margin-bottom: 20px;" row-key="id" border stripe
               :header-cell-style="{background:'#eef1f6',color:'#606266'}">
       <!--      <el-table-column prop="id" label="主键" width="180"/>-->
-      <el-table-column prop="name" label="菜单名称" width="180"/>
+      <el-table-column prop="name" label="菜单名称" width="180" align="center"/>
       <el-table-column prop="type" label="菜单类型" width="100" align="center">
         <template #default="scope">
           <el-tag effect="dark" v-if="scope.row.type === 'page'" type='info'>
@@ -33,10 +33,17 @@
           <el-tag effect="dark" v-else type="warning">按钮</el-tag>
         </template>
       </el-table-column>
-      <el-table-column prop="path" label="路径" width="180"/>
-      <el-table-column prop="component" label="组件" width="180"/>
+      <el-table-column prop="icon" label="图标" width="100" align="center">
+        <template #default="scope">
+          <el-icon v-if="scope.row.icon">
+            <component :is="scope.row.icon"/>
+          </el-icon>
+        </template>
+      </el-table-column>
+      <el-table-column prop="path" label="路径" width="180" align="center"/>
+      <el-table-column prop="component" label="组件" width="180" align="center"/>
       <el-table-column prop="sort" label="排序" align="center"/>
-      <el-table-column prop="enable" label="状态" width="80">
+      <el-table-column prop="enable" label="状态" width="80" align="center">
         <template #default="scope">
           <el-tag effect="dark" :type="scope.row.enable === true?'success':'danger'">
             {{ scope.row.enable === true ? '启用' : '禁用' }}

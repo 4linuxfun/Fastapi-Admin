@@ -6,6 +6,7 @@ from .relationships import RoleMenu
 class MenuBase(SQLModel):
     id: Optional[int] = Field(sa_column=Column('id', Integer, primary_key=True, autoincrement=True))
     name: str = Field(max_length=20, sa_column_kwargs={'comment': '菜单名'})
+    icon: Optional[str] = Field(max_length=50, sa_column_kwargs={'comment': 'Icon图标'})
     path: Optional[str] = Field(max_length=100, sa_column_kwargs={'comment': '路径'})
     component: Optional[str] = Field(max_length=50, sa_column_kwargs={'comment': '组件'})
     auth: Optional[str] = Field(max_length=50, sa_column_kwargs={'comment': '授权标识'})
