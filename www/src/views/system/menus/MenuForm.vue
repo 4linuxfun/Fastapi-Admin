@@ -18,10 +18,15 @@
   </el-form-item>
   <el-form-item label="菜单图标" prop="icon">
     <el-input v-model="selectData.icon">
+      <template #prepend>
+        <el-icon>
+          <component :is="selectData.icon"/>
+        </el-icon>
+      </template>
       <template #append>
         <el-button @click="dialogVisible=true">
           <el-icon>
-            <Setting/>
+            <Search/>
           </el-icon>
         </el-button>
       </template>
