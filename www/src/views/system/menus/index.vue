@@ -88,7 +88,7 @@
     GetAllMenus
   } from '@/api/menus'
   import MenuDialog from './MenuDialog'
-  import {provide, reactive, ref, watch} from 'vue'
+  import {provide, reactive, ref, shallowRef, watch} from 'vue'
 
   const search = ref(null)
   const dialogVisible = ref(false)
@@ -96,7 +96,7 @@
     name: '',
     status: ''
   })
-  const menuData = ref([])
+  const menuData = shallowRef([])
   const selectData = reactive({})
 
   provide('menuData', menuData)

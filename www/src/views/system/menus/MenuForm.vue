@@ -71,7 +71,10 @@
   const loading = ref(false)
   const menuData = inject('menuData')
   const {selectData, cascaderMenu} = useMenu(form.value, menuData.value, emit)
-  const elementIcons = reactive({
+  const selectIcon = ref(null)
+  const activeTab = ref('System')
+
+  const elementIcons = {
     System: ['Plus', 'Minus', 'CirclePlus', 'Search', 'Female', 'Male', 'Aim',
       'House', 'FullScreen', 'Loading', 'Link', 'Service', 'Pointer', 'Star',
       'Notification', 'Connection', 'ChatDotRound', 'Setting', 'Clock', 'Position', 'Discount',
@@ -100,9 +103,8 @@
       'VideoCameraFilled', 'PictureFilled', 'Platform', 'CameraFilled', 'BellFilled'],
     Traffic: ['Location', 'LocationInformation', 'DeleteLocation', 'Coordinate', 'Bicycle', 'OfficeBuilding', 'School',
       'Guide', 'AddLocation', 'MapLocation', 'Place', 'LocationFilled', 'Van']
-  })
-  const selectIcon = ref(null)
-  const activeTab = ref('System')
+  }
+
 
 </script>
 

@@ -26,13 +26,13 @@
   } from '@/api/menus'
   import {
     ref,
-    reactive, onMounted, computed, watch
+    reactive, onMounted, computed, watch, shallowRef
   } from 'vue'
   import MenuForm from './MenuForm'
   import ButtonForm from './ButtonForm'
   import {ElNotification} from 'element-plus'
 
-  const currentType = ref(null)
+  const currentType = shallowRef(null)
 
   const props = defineProps(['data', 'visible'])
   const emit = defineEmits(['update:visible'])
@@ -67,7 +67,7 @@
     changeType(newValue)
   })
 
-  onMounted(()=>{
+  onMounted(() => {
     changeType(selectData.type)
   })
 </script>
