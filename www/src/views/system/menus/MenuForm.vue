@@ -32,8 +32,8 @@
       </template>
     </el-input>
   </el-form-item>
-  <el-form-item label="排序" prop="sort" :rules="[{type:'float',message:'请输入数字'}]">
-    <el-input v-model="selectData.sort"/>
+  <el-form-item label="排序" prop="sort">
+    <el-input-number v-model="selectData.sort" :step="0.1"/>
   </el-form-item>
   <el-form-item label="状态">
     <el-radio-group v-model="selectData.enable">
