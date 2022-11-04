@@ -16,7 +16,14 @@
       </el-form-item>
       <el-form-item label="菜单权限">
         <el-tree ref="menuTree" :data="menus" :props="defaultProps" accordion show-checkbox node-key="id"
-                 :default-checked-keys="enables" check-strictly/>
+                 :default-checked-keys="enables" check-strictly>
+          <template #default="{data}">
+            <el-icon v-if="data.icon">
+              <component :is="data.icon"/>
+            </el-icon>
+            <span>{{data.name}}</span>
+          </template>
+        </el-tree>
       </el-form-item>
       <el-form-item>
         <el-button @click="$emit('update:visible', false)">取消</el-button>
