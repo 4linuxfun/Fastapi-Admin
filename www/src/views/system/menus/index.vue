@@ -21,7 +21,7 @@
               style="width: 100%; margin-bottom: 20px;" row-key="id" border stripe
               :header-cell-style="{background:'#eef1f6',color:'#606266'}">
       <!--      <el-table-column prop="id" label="主键" width="180"/>-->
-      <el-table-column prop="name" label="菜单名称" width="180" align="center"/>
+      <el-table-column prop="name" label="菜单名称" width="180" align="left" header-align="center"/>
       <el-table-column prop="type" label="菜单类型" width="100" align="center">
         <template #default="scope">
           <el-tag effect="dark" v-if="scope.row.type === 'page'" type='info'>
