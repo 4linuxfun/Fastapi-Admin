@@ -16,7 +16,14 @@
       </el-form-item>
       <el-form-item label="菜单权限">
         <el-tree ref="menuTree" :data="menus" :props="defaultProps" accordion show-checkbox node-key="id"
-                 :default-checked-keys="enables" check-strictly></el-tree>
+                 :default-checked-keys="enables" check-strictly>
+          <template #default="{data}">
+            <el-icon v-if="data.icon">
+              <component :is="data.icon"/>
+            </el-icon>
+            <span>{{data.name}}</span>
+          </template>
+        </el-tree>
       </el-form-item>
       <el-form-item>
         <el-button @click="$emit('update:visible', false)">取消</el-button>
@@ -42,7 +49,8 @@
   const menus = ref([])
   const defaultProps = reactive({
     children: 'children',
-    label: 'name'
+    label: 'name',
+    class: customNodeClass
   })
   const enables = ref([])
   const category = ref([])
@@ -99,8 +107,19 @@
     emit('update:visible', false)
   }
 
+  function customNodeClass(data,node){
+    if (data.type === "subPage"){
+      return 'is-btn'
+    }
+    return null
+  }
+
   GetInfo()
 </script>
 
 <style>
+.el-tree-node.is-expanded.is-btn > .el-tree-node__children{
+  display: flex;
+  flex-direction: row;
+}
 </style>

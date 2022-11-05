@@ -18,17 +18,22 @@
   </el-form-item>
   <el-form-item label="菜单图标" prop="icon">
     <el-input v-model="selectData.icon">
+      <template #prepend>
+        <el-icon>
+          <component :is="selectData.icon"/>
+        </el-icon>
+      </template>
       <template #append>
         <el-button @click="dialogVisible=true">
           <el-icon>
-            <Setting/>
+            <Search/>
           </el-icon>
         </el-button>
       </template>
     </el-input>
   </el-form-item>
-  <el-form-item label="排序" prop="sort" :rules="[{type:'float',message:'请输入数字'}]">
-    <el-input v-model="selectData.sort"/>
+  <el-form-item label="排序" prop="sort">
+    <el-input-number v-model="selectData.sort" :step="0.1"/>
   </el-form-item>
   <el-form-item label="状态">
     <el-radio-group v-model="selectData.enable">
@@ -71,7 +76,10 @@
   const loading = ref(false)
   const menuData = inject('menuData')
   const {selectData, cascaderMenu} = useMenu(form.value, menuData.value, emit)
-  const elementIcons = reactive({
+  const selectIcon = ref(null)
+  const activeTab = ref('System')
+
+  const elementIcons = {
     System: ['Plus', 'Minus', 'CirclePlus', 'Search', 'Female', 'Male', 'Aim',
       'House', 'FullScreen', 'Loading', 'Link', 'Service', 'Pointer', 'Star',
       'Notification', 'Connection', 'ChatDotRound', 'Setting', 'Clock', 'Position', 'Discount',
@@ -100,9 +108,8 @@
       'VideoCameraFilled', 'PictureFilled', 'Platform', 'CameraFilled', 'BellFilled'],
     Traffic: ['Location', 'LocationInformation', 'DeleteLocation', 'Coordinate', 'Bicycle', 'OfficeBuilding', 'School',
       'Guide', 'AddLocation', 'MapLocation', 'Place', 'LocationFilled', 'Van']
-  })
-  const selectIcon = ref(null)
-  const activeTab = ref('System')
+  }
+
 
 </script>
 
