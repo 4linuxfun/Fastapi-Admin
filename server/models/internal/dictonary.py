@@ -14,6 +14,11 @@ class DataDict(DataDictBase, table=True):
     dict_items: List["DictItem"] = Relationship(back_populates="dict")
 
 
+class DataDictSearch(SQLModel):
+    name: Optional[str]
+    code: Optional[str]
+
+
 class DictBase(SQLModel):
     name: str = Field(max_length=50, sa_column_kwargs={'comment': '名称'})
     data: str = Field(max_length=100, sa_column_kwargs={'comment': '数据值'})
@@ -36,3 +41,17 @@ class DictRead(DictBase):
 
 class DictUpdate(DictBase):
     id: Optional[int]
+
+
+class DictItemSearch(SQLModel):
+    dict_id: int
+    name: Optional[str]
+    data: Optional[str]
+    enable: Optional[bool]
+
+
+class DictItemSearchFilter(SQLModel):
+    dict_id: str
+    name: str
+    data: str
+    enable: str

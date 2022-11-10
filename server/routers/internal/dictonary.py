@@ -2,8 +2,8 @@ from typing import Optional, List
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlmodel import Session
 from ...schemas.internal.pagination import Pagination
-from ...models.internal.dictonary import DataDict, DictRead, DictBase, DictUpdate, DictItem
-from ...schemas.internal.dictonary import DictSearch, DictItemSearch
+from ...models.internal.dictonary import DataDict, DictRead, DictUpdate, DictItem, DataDictSearch, \
+    DictItemSearch, DictItemSearchFilter
 from ...common.response_code import ApiResponse, SearchResponse
 from ...common.database import get_session
 from ... import crud
@@ -13,8 +13,9 @@ router = APIRouter(prefix='/api')
 
 @router.post('/dict/item/search', summary="字典列表查询", response_model=ApiResponse[SearchResponse[DictRead]])
 async def search_items(search: Pagination[DictItemSearch], session: Session = Depends(get_session)):
-    total = crud.internal.dict_item.search_total(session, search.search)
-    items: List[DictRead] = crud.internal.dict_item.search(session, search)
+    filter_type = DictItemSearchFilter(dict_id='eq', name='like', enable='bool', data='like')
+    total = crud.internal.dict_item.search_total(session, search.search, filter_type.dict())
+    items: List[DictRead] = crud.internal.dict_item.search(session, search, filter_type.dict())
     item_list = [DictRead.from_orm(item) for item in items]
     return ApiResponse(
         data={
@@ -56,9 +57,10 @@ async def add_dict(data_dict: DataDict, session: Session = Depends(get_session))
 
 @router.post('/dict/search',
              summary="查询数据字典")
-async def get_dicts(search: Pagination[DictSearch], session: Session = Depends(get_session)):
-    total = crud.internal.data_dict.search_total(session, search.search)
-    dicts: List[DataDict] = crud.internal.data_dict.search(session, search)
+async def get_dicts(search: Pagination[DataDictSearch], session: Session = Depends(get_session)):
+    filter_type = DataDictSearch(name='like', code='like')
+    total = crud.internal.data_dict.search_total(session, search.search, filter_type.dict())
+    dicts: List[DataDict] = crud.internal.data_dict.search(session, search, filter_type.dict())
     return ApiResponse(
         data={
             'total': total,
