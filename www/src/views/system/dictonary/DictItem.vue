@@ -2,12 +2,15 @@
   <!--  字典列表页面，用于显示、查询、新增、编辑字典元素-->
   <el-row>
     <el-row>
-      <el-form v-model="search" :inline="true">
-        <el-form-item label="名称">
+      <el-form :model="search" :inline="true" ref="searchRef">
+        <el-form-item label="名称" prop="name">
           <el-input style="width: 100px" v-model="search.name"/>
         </el-form-item>
-        <el-form-item label="状态">
-          <el-input style="width: 100px" v-model="search.enable"/>
+        <el-form-item label="状态" prop="enable">
+          <el-select v-model="search.enable" style="width: 100px">
+            <el-option label="正常" :value="true"/>
+            <el-option label="禁用" :value="false"/>
+          </el-select>
         </el-form-item>
         <el-form-item>
           <el-button type="primary" @click="handleSearch">
@@ -16,7 +19,10 @@
             </el-icon>
             搜索
           </el-button>
-          <el-button>重置</el-button>
+          <el-button type="primary" @click="handleReset">
+            <el-icon>
+              <RefreshRight/>
+            </el-icon>重置</el-button>
         </el-form-item>
       </el-form>
     </el-row>
@@ -35,13 +41,15 @@
       <template #default="scope">
         <el-button text type="primary"
                    class="item_button"
-                   @click="handleEdit(scope.row)" :icon="Edit">编辑</el-button>
+                   @click="handleEdit(scope.row)" :icon="Edit">编辑
+        </el-button>
         <el-divider direction="vertical"/>
         <el-popconfirm title="确定要删除此元素吗？" @confirm="handleDel(scope.row.id)">
           <template #reference>
             <el-button text type="danger"
                        class="item_button"
-                       :icon="Delete">删除</el-button>
+                       :icon="Delete">删除
+            </el-button>
           </template>
         </el-popconfirm>
 
@@ -71,16 +79,13 @@
   const props = defineProps(['id'])
   const addItemDialog = ref(false)
   const selectItem = ref(null)
+  const searchRef = ref(null)
 
   let searchForm = {
     dict_id: props.id,
     name: null,
     data: null,
-    type: {
-      dict_id: 'eq',
-      name: 'like',
-      code: 'like',
-    }
+    enable: null
   }
 
 
@@ -108,9 +113,14 @@
     addItemDialog.value = true
   }
 
+  function handleReset() {
+    searchRef.value.resetFields()
+  }
+
   function handleEdit(dictItem) {
     selectItem.value = dictItem
     addItemDialog.value = true
+    console.log(search.value)
   }
 
   function handleDel(itemId) {
@@ -136,7 +146,7 @@
 </script>
 
 <style scoped>
-.item_button{
+.item_button {
   padding: 0;
 }
 </style>

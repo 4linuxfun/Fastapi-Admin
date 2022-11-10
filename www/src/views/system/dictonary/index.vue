@@ -1,6 +1,6 @@
 <template>
   <el-row>
-    <el-form inline :model="search">
+    <el-form inline :model="search" ref="searchRef">
       <el-form-item label="字典名称" prop="name">
         <el-input v-model="search.name"/>
       </el-form-item>
@@ -9,7 +9,12 @@
       </el-form-item>
       <el-form-item>
         <el-button type="primary" :icon="Search" @click="handleSearch">查询</el-button>
-        <el-button>重置</el-button>
+        <el-button type="primary" @click="handleReset">
+          <el-icon>
+            <RefreshRight/>
+          </el-icon>
+          重置
+        </el-button>
       </el-form-item>
     </el-form>
   </el-row>
@@ -79,6 +84,7 @@
   const itemDrawer = ref(false)
   const dialogTitle = ref(null)
   const selectDict = ref(null)
+  const searchRef = ref(null)
 
   const searchForm = {
     name: null,
@@ -110,6 +116,11 @@
     addDialog.value = true
   }
 
+  function handleReset() {
+    searchRef.value.resetFields()
+    handleSearch()
+  }
+
   function handleEdit(dict) {
     dialogTitle.value = '编辑数据字典'
     selectDict.value = dict
@@ -129,7 +140,7 @@
 </script>
 
 <style scoped>
-.custom_pagination{
+.custom_pagination {
   margin-top: 10px;
   padding-left: 0;
 }
