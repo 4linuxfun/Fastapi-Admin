@@ -41,8 +41,8 @@
     </el-table>
   </div>
   <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :total="total" background
-                 layout="prev,pager,next"
-                 prev-text="上一页" next-text="下一页"
+                 layout="total,prev,pager,next,sizes,jumper"
+                 style="margin-top: 10px;"
   />
 
   <div v-if="dialogVisible">
