@@ -54,7 +54,7 @@ class CRUDBase(Generic[ModelType]):
         q = deepcopy(search)
         filter_type: Dict[str, Any] = q.pop('type', None)
         for key in q:
-            if (q[key] is not None) and (q[key]):
+            if (key in filter_type.keys()) and (q[key] is not None) and (q[key]):
                 if filter_type[key] == 'l_like':
                     sql = sql.where(getattr(self.model, key).like(f'%{q[key]}'))
                 elif filter_type[key] == 'r_like':
