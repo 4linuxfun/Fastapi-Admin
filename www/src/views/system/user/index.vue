@@ -58,7 +58,7 @@
     <change-passwd :user='selectUser' v-model:visible="resetPasswdDialog"/>
   </el-dialog>
 
-  <el-drawer v-model="detailVisible" title="用户详情" destroy-on-close>
+  <el-drawer v-model="detailVisible" title="编辑用户" destroy-on-close>
     <user-dialog :user='selectUser' v-model:visible='detailVisible'/>
   </el-drawer>
 

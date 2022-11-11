@@ -4,10 +4,7 @@
       <el-input v-model="selectData.name" :disabled="selectData.id !== null"></el-input>
     </el-form-item>
     <el-form-item label="状态">
-      <el-radio-group v-model="selectData.enable">
-        <el-radio :label=false>禁用</el-radio>
-        <el-radio :label=true>启用</el-radio>
-      </el-radio-group>
+      <el-switch v-model="selectData.enable"  style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"/>
     </el-form-item>
     <el-form-item label="角色">
       <el-checkbox-group v-model="enableRoleList">
@@ -30,7 +27,8 @@
     GetUserRoles, PostAddUser, PutNewUser
   } from '@/api/users'
   import {ElNotification} from 'element-plus'
-  import {reactive, ref, toRefs} from 'vue'
+  import {onMounted, reactive, ref, toRefs} from 'vue'
+  import {GetDictItems} from '@/api/dictonary'
 
   const props = defineProps(['user', 'visible'])
   const emit = defineEmits(['update:visible'])
@@ -39,6 +37,7 @@
   console.log(selectData)
   const roleList = ref([])
   const enableRoleList = ref([])
+  const selectOptions = ref(null)
 
   const getRoles = (userId) => {
     console.log(selectData)
@@ -72,7 +71,13 @@
     emit('update:visible', false)
   }
 
-  getRoles(selectData.id)
+  onMounted(() => {
+    GetDictItems('enable_code').then(response => {
+      selectOptions.value = response
+    })
+    getRoles(selectData.id)
+  })
+
 </script>
 
 <style>
