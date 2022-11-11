@@ -17,12 +17,6 @@ class CRUDUser(CRUDBase[User]):
         sql = select(self.model).where(self.model.name == name)
         return session.exec(sql).one()
 
-    # 重写父类的查询构建命令
-    def _make_search(self, sql, q: Union[int, str]):
-        if q is not None:
-            sql = sql.where(self.model.name.like(f'%{q}%'))
-        return sql
-
     def insert(self, session: Session, user_info: UserInfo) -> User:
         updated_user = User(**user_info.user.dict())
         user_roles = role.get_roles_by_id(session, user_info.roles)

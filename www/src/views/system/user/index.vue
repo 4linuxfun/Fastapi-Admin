@@ -1,19 +1,24 @@
 <template>
-  <el-row style="width:300px" :gutter="5">
-    <el-col :span="18">
-      <el-input v-model="search" placeholder="搜索" clearable>
-        <template #append>
-          <el-button @click="handleSearch">
-            <el-icon>
-              <Search/>
-            </el-icon>
-          </el-button>
-        </template>
-      </el-input>
-    </el-col>
-    <el-col :span="6">
-      <el-button v-permission="'user:add'" type="primary" @click="handleAdd">添加新用户</el-button>
-    </el-col>
+  <el-row>
+    <el-form :model="search" :inline="true" ref="searchRef">
+      <el-form-item label="用户名" prop="name">
+        <el-input v-model="search.name"/>
+      </el-form-item>
+      <el-form-item label="邮箱" prop="email">
+        <el-input v-model="search.email"/>
+      </el-form-item>
+      <el-form-item label="状态" prop="enable">
+        <el-select v-model="search.enable" style="width: 100px">
+          <el-option label="启用" :value="true"/>
+          <el-option label="禁用" :value="false"/>
+        </el-select>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="handleSearch" :icon="Search">搜索</el-button>
+        <el-button type="primary" @click="handleReset" :icon="RefreshRight">重置</el-button>
+        <el-button v-permission="'user:add'" type="primary" @click="handleAdd" :icon="Plus">添加新用户</el-button>
+      </el-form-item>
+    </el-form>
   </el-row>
 
   <div style="padding-top:10px">
@@ -32,22 +37,15 @@
       </el-table-column>
       <el-table-column label="操作" align="center">
         <template #default="scope">
-          <el-dropdown @command="handleCommand">
-            <span style="color: deepskyblue">
-              更多<el-icon>
-              <arrow-down/>
-            </el-icon>
-            </span>
-            <template #dropdown>
-              <el-dropdown-menu>
-                <el-dropdown-item :command="beforeHandleCommand(scope.row,'detail')">详情</el-dropdown-item>
-                <el-dropdown-item :command="beforeHandleCommand(scope.row,'password')">密码</el-dropdown-item>
-                <el-dropdown-item :command="beforeHandleCommand(scope.row,'delete')">删除</el-dropdown-item>
-              </el-dropdown-menu>
-            </template>
-          </el-dropdown>
-          <!--          <el-button type="primary" size="small" @click="handleEdit(scope.row.id)">编辑</el-button>-->
-          <!--          <el-button type="danger" size="small" @click="handleDel(scope.row)">删除</el-button>-->
+          <el-button style="padding: 0;" text type="primary" @click="handleEdit(scope.row.id)" :icon="Edit">编辑
+          </el-button>
+          <el-divider direction="vertical"/>
+          <el-button style="padding: 0;" text type="primary" @click="handleChangePwd(scope.row)" :icon="Unlock">
+            重置密码
+          </el-button>
+          <el-divider direction="vertical"/>
+          <el-button style="padding: 0;" text type="danger" @click="handleDel(scope.row)" :icon="Delete">删除
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -72,8 +70,8 @@
     ref, watch
   } from 'vue'
   import {
-    ArrowDown,
-    Search
+    ArrowDown, Edit, Delete, Unlock,
+    Search, RefreshRight, Plus
   } from '@element-plus/icons-vue'
   import UserDialog from './UserDialog.vue'
   import ChangePasswd from './ChangePasswd'
@@ -92,6 +90,13 @@
   const detailVisible = ref(false)
   const resetPasswdDialog = ref(false)
   const selectUser = reactive({})
+  const searchRef = ref(null)
+
+  const searchForm = {
+    name: null,
+    email: null,
+    enable: null
+  }
 
   // 首次打开页面先进行初始化
 
@@ -104,33 +109,18 @@
     total,
     freshCurrentPage,
     handleSearch
-  } = usePagination('/api/users/search')
+  } = usePagination('/api/users/search', searchForm)
+
+  function handleReset() {
+    searchRef.value.resetFields()
+    handleSearch()
+  }
 
   function handleChangePwd(user) {
     resetPasswdDialog.value = true
     Object.assign(selectUser, user)
   }
 
-  function beforeHandleCommand(row, command) {
-    return {
-      row,
-      command
-    }
-  }
-
-  function handleCommand(command) {
-    switch (command.command) {
-      case 'detail':
-        handleEdit(command.row.id)
-        break
-      case 'password':
-        handleChangePwd(command.row)
-        break
-      case 'delete':
-        handleDel(command.row)
-        break
-    }
-  }
 
   function handleEdit(uid) {
     console.log(uid)
@@ -155,10 +145,6 @@
     detailVisible.value = true
   }
 
-  function handleSubmit() {
-    console.log(formData)
-    dialogVisible.value = false
-  }
 
   function handleDel(userInfo) {
     if (userInfo.name === 'admin') {
@@ -188,7 +174,9 @@
 
   watch(
       detailVisible, (newValue, oldValue) => {
-        freshCurrentPage()
+        if (newValue === false) {
+          freshCurrentPage()
+        }
       })
 
 </script>

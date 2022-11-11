@@ -65,9 +65,9 @@ async def get_all_user(search: Pagination[UserWithOutPasswd],
     :param session:
     :return:
     """
-    total = crud.internal.user.search_total(session, search.search)
+    total = crud.internal.user.search_total(session, search.search, {'name': 'like', 'enable': 'bool'})
     print(total)
-    users = crud.internal.user.search(session, search)
+    users = crud.internal.user.search(session, search, {'name': 'like', 'enable': 'bool'})
     users_list = [user.dict(exclude={"password"}) for user in users]
     print(users_list)
     return ApiResponse(
@@ -97,11 +97,11 @@ async def update_user(user_info: UserCreateWithRoles, session: Session = Depends
 @router.put('/users/password', summary='重置密码', dependencies=[Depends(Authority('user:reset'))])
 async def update_password(user: UserUpdatePassword, session: Session = Depends(get_session)):
     crud.internal.user.update_passwd(session, uid=user.id, passwd=user.password)
+    return ApiResponse()
 
 
 @router.put('/users/{uid}',
-            summary='更新用户', dependencies=[Depends(Authority("user:update"))],
-            status_code=status.HTTP_204_NO_CONTENT)
+            summary='更新用户', dependencies=[Depends(Authority("user:update"))])
 async def update_user(uid: int, user_info: UserUpdateWithRoles, session: Session = Depends(get_session)):
     """
     更新用户信息的所有操作，可涉及更新用户名、密码、角色等
@@ -110,18 +110,16 @@ async def update_user(uid: int, user_info: UserUpdateWithRoles, session: Session
     :param session:
     :return:
     """
-    print('update...')
     print(user_info.dict(exclude_unset=True, exclude_none=True))
     user = crud.internal.user.update(session, uid, user_info)
     new_roles = [role.id for role in user.roles]
     casbin_enforcer.delete_roles_for_user(f'uid_{user.id}')
     for role in new_roles:
         casbin_enforcer.add_role_for_user(f'uid_{user.id}', f'role_{role}')
-    return user
+    return ApiResponse()
 
 
-@router.delete('/users/{uid}', summary='删除用户', dependencies=[Depends(Authority("user:del"))],
-               status_code=status.HTTP_204_NO_CONTENT)
+@router.delete('/users/{uid}', summary='删除用户', dependencies=[Depends(Authority("user:del"))])
 async def delete_user(uid: int, session: Session = Depends(get_session)):
     try:
         user = session.exec(select(User).where(User.id == uid)).one()
@@ -130,3 +128,4 @@ async def delete_user(uid: int, session: Session = Depends(get_session)):
     casbin_enforcer.delete_roles_for_user(f'uid_{user.id}')
     session.delete(user)
     session.commit()
+    return ApiResponse()
