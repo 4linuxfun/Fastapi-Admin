@@ -1,10 +1,10 @@
 <template>
   <el-form v-model="form" label-width="100px">
     <el-form-item label="名称" prop="name">
-      <el-input v-model="form.name"/>
+      <el-input v-model="form.label"/>
     </el-form-item>
     <el-form-item label="数据值" prop="data">
-      <el-input v-model="form.data"/>
+      <el-input v-model="form.value"/>
     </el-form-item>
     <el-form-item label="描述" prop="desc">
       <el-input v-model="form.desc"/>

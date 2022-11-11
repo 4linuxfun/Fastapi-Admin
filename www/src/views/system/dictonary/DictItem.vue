@@ -3,13 +3,13 @@
   <el-row>
     <el-row>
       <el-form :model="search" :inline="true" ref="searchRef">
-        <el-form-item label="名称" prop="name">
-          <el-input style="width: 100px" v-model="search.name"/>
+        <el-form-item label="名称" prop="label">
+          <el-input style="width: 100px" v-model="search.label"/>
         </el-form-item>
         <el-form-item label="状态" prop="enable">
           <el-select v-model="search.enable" style="width: 100px">
-            <el-option label="正常" :value="true"/>
-            <el-option label="禁用" :value="false"/>
+            <el-option label="正常" :value="1"/>
+            <el-option label="禁用" :value="0"/>
           </el-select>
         </el-form-item>
         <el-form-item>
@@ -35,8 +35,8 @@
 
 
   <el-table :data="tableData" border style="margin-top: 10px">
-    <el-table-column label="名称" prop="name"/>
-    <el-table-column label="数据值" prop="data"/>
+    <el-table-column label="名称" prop="label"/>
+    <el-table-column label="数据值" prop="value"/>
     <el-table-column label="操作">
       <template #default="scope">
         <el-button text type="primary"
@@ -83,8 +83,8 @@
 
   let searchForm = {
     dict_id: props.id,
-    name: null,
-    data: null,
+    label: null,
+    value: null,
     enable: null
   }
 
@@ -103,8 +103,8 @@
   function handleAdd() {
     selectItem.value = {
       id: null,
-      name: null,
-      data: null,
+      label: null,
+      value: null,
       desc: null,
       sort: null,
       enable: true,
