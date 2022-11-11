@@ -13,7 +13,7 @@ router = APIRouter(prefix='/api')
 
 @router.post('/dict/item/search', summary="字典列表查询", response_model=ApiResponse[SearchResponse[DictRead]])
 async def search_items(search: Pagination[DictItemSearch], session: Session = Depends(get_session)):
-    filter_type = DictItemSearchFilter(dict_id='eq', name='like', enable='bool', data='like')
+    filter_type = DictItemSearchFilter(dict_id='eq', label='like', enable='eq', value='like')
     total = crud.internal.dict_item.search_total(session, search.search, filter_type.dict())
     items: List[DictRead] = crud.internal.dict_item.search(session, search, filter_type.dict())
     item_list = [DictRead.from_orm(item) for item in items]
@@ -45,6 +45,15 @@ async def update_dict_item(dict_item: DictUpdate, session: Session = Depends(get
 async def del_dict_item(item_id: int, session: Session = Depends(get_session)):
     crud.internal.dict_item.delete(session, item_id)
     return ApiResponse()
+
+
+@router.get("/dict/{dict_code}", summary="获取数据字典", response_model=ApiResponse[List[DictRead]],
+            response_model_exclude={'data': {'__all__': {'desc', 'sort', 'enable'}}})
+async def get_dict(dict_code: str, session: Session = Depends(get_session)):
+    dict_items: List[DictItem] = crud.internal.dict_item.get_items_by_code(session, dict_code)
+    return ApiResponse(
+        data=[DictRead.from_orm(item) for item in dict_items]
+    )
 
 
 @router.post("/dict", summary="新建数据字典", response_model=ApiResponse[DataDict])
