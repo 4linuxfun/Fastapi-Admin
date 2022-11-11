@@ -1,24 +1,25 @@
 <template>
-  <el-row style="width:300px" :gutter="5">
-    <el-col :span="18">
-      <el-input v-model="search" placeholder="搜索" clearable>
-        <template #append>
-          <el-button @click="handleSearch">
-            <el-icon>
-              <Search/>
-            </el-icon>
-          </el-button>
-        </template>
-      </el-input>
-    </el-col>
-    <el-col :span="6">
-      <el-button v-permission="'role:add'" type="primary" @click="addRole">添加新角色</el-button>
-    </el-col>
+  <el-row>
+    <el-form :model="search" inline ref="searchRef">
+      <el-form-item label="角色名称" prop="name">
+        <el-input v-model="search.name"/>
+      </el-form-item>
+      <el-form-item label="状态" prop="enable">
+        <auto-dict type="select" code="enable_code" v-model:value="search.enable" style="width: 100px"/>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="handleSearch" :icon="Search">
+          搜索
+        </el-button>
+        <el-button type="primary" @click="handleReset" :icon="RefreshRight">重置</el-button>
+        <el-button v-permission="'role:add'" type="primary" @click="addRole" :icon="Plus">添加新角色</el-button>
+      </el-form-item>
+    </el-form>
   </el-row>
 
   <div style="padding-top:10px">
     <el-table :data="tableData" border stripe :header-cell-style="{background:'#eef1f6',color:'#606266'}">
-      <el-table-column label="角色ID" prop="id"></el-table-column>
+      <el-table-column label="#" type="index"></el-table-column>
       <el-table-column label="角色名称" prop="name"></el-table-column>
       <el-table-column label="描述" prop="description"></el-table-column>
       <el-table-column label="状态">
@@ -41,8 +42,8 @@
     </el-table>
   </div>
   <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :total="total" background
-                 layout="prev,pager,next"
-                 prev-text="上一页" next-text="下一页"
+                 layout="total,prev,pager,next,sizes,jumper"
+                 style="margin-top: 10px;"
   />
 
   <div v-if="dialogVisible">
@@ -51,16 +52,24 @@
 
 </template>
 <script setup>
-  import {reactive, ref, watch} from 'vue'
-  import {Search} from '@element-plus/icons-vue'
+  import {onMounted, reactive, ref, watch} from 'vue'
+  import {Search, RefreshRight, Plus} from '@element-plus/icons-vue'
   import {GetRoles, DeleteRole} from '@/api/roles'
   import usePagination from '@/composables/usePagination'
   import RoleDialog from './RoleDialog.vue'
   import {ElMessageBox, ElNotification} from 'element-plus'
+  import AutoDict from '@/components/AutoDict'
 
   const dialogVisible = ref(false)
   const selectRole = reactive({})
   const addDialog = ref(false)
+  const searchRef = ref(null)
+  const selectOptions = ref(null)
+
+  const searchForm = {
+    name: null,
+    enable: null
+  }
 
   const {
     search,
@@ -71,15 +80,19 @@
     total,
     freshCurrentPage,
     handleSearch
-  } = usePagination('/api/roles/search')
+  } = usePagination('/api/roles/search', searchForm)
 
-  console.log(tableData.value)
 
   watch(dialogVisible, (newValue) => {
     if (newValue === false) {
       freshCurrentPage()
     }
   })
+
+  function handleReset() {
+    searchRef.value.resetFields()
+    handleSearch()
+  }
 
   function handleEdit(role) {
     console.log(role)

@@ -36,10 +36,7 @@
     <el-input-number v-model="selectData.sort" :step="0.1"/>
   </el-form-item>
   <el-form-item label="状态">
-    <el-radio-group v-model="selectData.enable">
-      <el-radio :label=false>禁用</el-radio>
-      <el-radio :label=true>启用</el-radio>
-    </el-radio-group>
+    <auto-dict v-model:value="selectData.enable" type="switch" code="enable_code"/>
   </el-form-item>
 
   <!--  icon选择对话框-->
@@ -68,6 +65,7 @@
 <script setup>
   import {toRefs, reactive, ref, watch, inject, computed} from 'vue'
   import useMenu from '@/composables/useMenu'
+  import AutoDict from '@/components/AutoDict'
 
   const props = defineProps(['form', 'totalApiLists'])
   const emit = defineEmits(['update:form'])

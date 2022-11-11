@@ -9,10 +9,7 @@
         <el-input v-model="selectData.description"></el-input>
       </el-form-item>
       <el-form-item label="状态">
-        <el-radio-group v-model="selectData.enable">
-          <el-radio :label=false>禁用</el-radio>
-          <el-radio :label=true>启用</el-radio>
-        </el-radio-group>
+       <auto-dict v-model:value="selectData.enable" type="switch" code="enable_code"/>
       </el-form-item>
       <el-form-item label="菜单权限">
         <el-tree ref="menuTree" :data="menus" :props="defaultProps" accordion show-checkbox node-key="id"
@@ -42,6 +39,7 @@
     PostNewRoles,
   } from '@/api/roles'
   import {ElNotification} from 'element-plus'
+  import AutoDict from '@/components/AutoDict'
 
   const props = defineProps(['role', 'visible'])
   const emit = defineEmits(['update:visible'])
@@ -53,8 +51,6 @@
     class: customNodeClass
   })
   const enables = ref([])
-  const category = ref([])
-  const categoryEnables = ref([])
 
   //tree的用法
   const menuTree = ref(null)

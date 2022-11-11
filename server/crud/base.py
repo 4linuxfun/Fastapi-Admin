@@ -42,19 +42,19 @@ class CRUDBase(Generic[ModelType]):
         db.commit()
         return obj
 
-    def _make_search(self, sql, search: Optional[Dict[str, Any]] = None):
+    def _make_search(self, sql, search: Optional[Dict[str, Any]] = None, filter_type: Optional[Dict[str, str]] = None):
         """
         用于构建专用的sql查询语句，子类需要重写此方法
         :param sql:
         :param search:
+        :param filter_type:指定的各属性值判断形式
         :return:
         """
         if search is None:
             return sql
         q = deepcopy(search)
-        filter_type: Dict[str, Any] = q.pop('type', None)
         for key in q:
-            if (q[key] is not None) and (q[key]):
+            if (key in filter_type.keys()) and (q[key] is not None):
                 if filter_type[key] == 'l_like':
                     sql = sql.where(getattr(self.model, key).like(f'%{q[key]}'))
                 elif filter_type[key] == 'r_like':
@@ -75,11 +75,13 @@ class CRUDBase(Generic[ModelType]):
                     sql = sql.where(getattr(self.model, key) >= q[key])
         return sql
 
-    def search(self, session: Session, search: Pagination, columns: Optional[List] = None):
+    def search(self, session: Session, search: Pagination, filter_type: Optional[Dict[str, str]] = None,
+               columns: Optional[List] = None):
         """
         分页查询方法
         :param session:
         :param search: Pagination实例对象，包含各搜索参数
+        :param filter_type: 指定的各属性值判断形式
         :param columns: 查询返回指定columns
         :return:
         """
@@ -87,9 +89,9 @@ class CRUDBase(Generic[ModelType]):
             sql = select(self.model)
         else:
             sql = select(*columns)
-        sql = self._make_search(sql, search.search)
+        sql = self._make_search(sql, search.search, filter_type)
         subquery = select(self.model.id)
-        subquery = self._make_search(subquery, search.search)
+        subquery = self._make_search(subquery, search.search, filter_type)
         if search.model == 'desc':
             subquery = subquery.order_by(desc(self.model.id))
         else:
@@ -104,14 +106,15 @@ class CRUDBase(Generic[ModelType]):
         results = session.exec(sql).all()
         return results
 
-    def search_total(self, session: Session, q: Dict[str, Any]):
+    def search_total(self, session: Session, q: Dict[str, Any], filter_type: Optional[Dict[str, str]] = None):
         """
         每次进行分页查询的时候，都需要返回一个total值，表示对应搜索，现阶段数据库有多少内容，便于前端分页数
         :param session:
         :param q:
+        :param filter_type: 字段过滤形式
         :return:
         """
         sql = select(func.count(self.model.id))
-        sql = self._make_search(sql, q)
-        print(sql)
+        sql = self._make_search(sql, q, filter_type)
+        print(str(sql))
         return session.execute(sql).scalar()

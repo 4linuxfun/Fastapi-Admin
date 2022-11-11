@@ -1,5 +1,7 @@
-# simple_ams
-简单的资产管理系统
+# Fastapi Admin
+前后端分离项目实现的一个后端管理框架
+* 前端：vue3 + element plus
+* 后端：fastapi + sqlmodel
 
 **个人学习项目，只会对明显的bug进行修复，不会进行过多新功能的更新**
 
@@ -17,103 +19,106 @@
 uvicorn server.main:app --reload
 ```
 
+## 约束
+1. 后端数据库对于布尔值的传递统一数据库设置为tinyint，0为假，1为真
+2. 前端所有bool都0为假，1为真
 
 # 功能实现介绍
-## 权限分配
-实力有限，实现简化的权限分配功能，思路如下：
+
+## 分页查询实现
 ### 前端
-1. 页面下的按钮需要权限管控的按钮，单独列出，再对这个按钮做权限分配
-2. 在“菜单管理”中对应页面下添加“按钮”，**路径**字段需要跟到时候做权限判断时对应
-3. 进入“角色管理”页面，分配对应的角色，可选择页面的按钮
-    **NOTICE：**上级页面需要手动勾选，不然登录无法带出来
-4. 给按钮增加**v-if**判断语法，用法如下：
-    ```
-     v-if="$route.meta.import === true"
-    ```
+```js
+<!-- 导入分页相关方法 -->
+import usePagination from '@/composables/usePagination'
+
+<!-- 定义一个搜索字段 -->
+const searchForm = {
+    name: null,
+    email: null,
+    enable: null
+  }
+
+  <!-- 传入查询相关字段信息 -->
+  const {
+    search,
+    tableData,
+    currentPage,
+    pageSize,
+    orderModel,
+    total,
+    freshCurrentPage,
+    handleSearch
+  } = usePagination('/api/users/search', searchForm)
+```
 
 ### 后端
-* 用户请求权限，返回子页面带meta元素，示例如下：
-    ```
-        [
-            {
-                "id": 1,
-                "component": 'Layout,
-                "parent_id": null,
-                "url": null,
-                "path": "/assets",
-                "name": "资产管理",
-                "type": "page",
-                "enable": 1,
-                "children": [
-                    {
-                        "id": 2,
-                        "parent_id": 1,
-                        "url": null,
-                        "path": "add",
-                        "name": "增加资产",
-                        "type": "page",
-                        "enable": 1
-                    },
-                    {
-                        "id": 11,
-                        "parent_id": 1,
-                        "url": null,
-                        "path": "system",
-                        "name": "系统",
-                        "type": "page",
-                        "enable": 1,
-                        <!-- meta元素中的import、outpu对应不同按钮的权限 -->
-                        "meta": {
-                            "import": true,
-                            "output": true
-                        }
-                    }
-                ]
-            },
-            {
-                "id": 3,
-                "component":  "Layout",
-                "parent_id": null,
-                "url": null,
-                "path": "/system",
-                "name": "系统管理",
-                "type": "page",
-                "enable": 1,
-                "children": [
-                    {
-                        "id": 4,
-                        "parent_id": 3,
-                        "url": null,
-                        "path": "user",
-                        "name": "用户管理",
-                        "type": "page",
-                        "enable": 1
-                    },
-                    {
-                        "id": 6,
-                        "parent_id": 3,
-                        "url": null,
-                        "path": "roles",
-                        "name": "角色管理",
-                        "type": "page",
-                        "enable": 1
-                    },
-                    {
-                        "id": 7,
-                        "parent_id": 3,
-                        "url": null,
-                        "path": "menus",
-                        "name": "菜单管理",
-                        "type": "page",
-                        "enable": 1
-                    }
-                ]
-            }
-        ]
-    ```
+定义了一个分页模型
+```python
+from typing import Optional, Generic, TypeVar
+from pydantic import BaseModel
 
-## 资产信息的动态字段设计
-充分利用MySQL的JSON字段特性，把动态字段放入JSON数据类型中。
-### 导入细节
-批量导入时，分为两类：1. 固定字段的列，2. 动态字段的列。
-对于**动态字段的列**，通过pandas函数拼接成str，然后进行格式转换导入。
+T = TypeVar('T')
+
+
+class Pagination(BaseModel, Generic[T]):
+    search: T
+    page: Optional[int] = 1
+    page_size: Optional[int] = 10
+    model: Optional[str] = 'asc'
+```
+
+使用
+```python
+@router.post('/dict/item/search', summary="字典列表查询", response_model=ApiResponse[SearchResponse[DictRead]])
+async def search_items(search: Pagination[DictItemSearch], session: Session = Depends(get_session)):
+    # 需要定义一个filter_type，用于区分各个字段的匹配形式，可用为：l_like、r_like、like、eq、ne、lt、le、gt、ge
+    filter_type = DictItemSearchFilter(dict_id='eq', label='like', enable='eq', value='like')
+    total = crud.internal.dict_item.search_total(session, search.search, filter_type.dict())
+    items: List[DictRead] = crud.internal.dict_item.search(session, search, filter_type.dict())
+    # 转义下数据类型，不然在执行return的时候，会去获取外键、关联字段相关的内容，容易造成数据量过多等问题
+    item_list = [DictRead.from_orm(item) for item in items]
+    return ApiResponse(
+        data={
+            'total': total,
+            'data': item_list
+        }
+
+    )
+```
+
+## 权限管控
+通过casbin实现简化的权限管控功能，思路如下：
+1. 对于不需要token验证的，写入settings的APISettings.NO_VERIFY_URL中
+2. 对于需要权限管控的接口，写入casbin中，并且对需要权限验证的接口使用casbin验证
+3. 前端通过权限字段，进行显示
+4. 只能对按钮级别的功能实现权限管控
+5. 页面管控，只是后端返回菜单列表，前端根据菜单列表进行显示，后端没有对页面进行权限管控
+
+### 前端
+v-permission定义了权限标识，当拥有权限时，可以页面上能显示按钮，同时，后端也会进行权限的判断。
+```js
+   <el-button v-permission="'role:update'" v-if="scope.row.name!='admin'" type="primary" size="small"
+                     @click="handleEdit(scope.row)">编辑
+          </el-button>
+```
+### 后端
+```python
+@router.put('/roles', summary="更新角色", response_model=ApiResponse[Role],
+            dependencies=[Depends(Authority('role:update'))])
+async def update_roles(role_info: RoleUpdate, session: Session = Depends(get_session)):
+    print(role_info)
+    if role_info.name == 'admin':
+        ApiResponse(code=status.HTTP_400_BAD_REQUEST, message='admin权限组无法更新信息')
+    db_obj = crud.internal.role.get(session, role_info.id)
+    enable_menus = role_info.menus
+    delattr(role_info, 'menus')
+    db_obj = crud.internal.role.update(session, db_obj, role_info)
+    crud.internal.role.update_menus(session, db_obj, enable_menus)
+    return ApiResponse(
+        data=db_obj
+    )
+```
+
+
+### 参考项目：
+* https://github.com/xingxingzaixian/FastAPI-MySQL-Tortoise-Casbin
