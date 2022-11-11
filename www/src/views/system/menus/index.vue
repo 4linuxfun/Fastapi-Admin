@@ -1,21 +1,9 @@
 // 菜单管理页面，用于创建菜单关系：菜单名、菜单页面、二级菜单。。。等等
 <template>
-  <el-row style="width:300px" :gutter="5">
-    <el-col :span="18">
-      <el-input v-model="search" placeholder="搜索" clearable>
-        <template #append>
-          <el-button @click="getMenuInfo">
-            <el-icon>
-              <Search/>
-            </el-icon>
-          </el-button>
-        </template>
-      </el-input>
-    </el-col>
-    <el-col :span="6">
-      <el-button v-permission="'menu:add'" type="primary" @click="handleAdd">新建菜单</el-button>
-    </el-col>
+  <el-row>
+    <el-button v-permission="'menu:add'" type="primary" @click="handleAdd" :icon="Plus">新建菜单</el-button>
   </el-row>
+  
   <div style="padding-top:10px">
     <el-table :data="menuData"
               style="width: 100%; margin-bottom: 20px;" row-key="id" border stripe
@@ -81,7 +69,7 @@
 
 </template>
 <script setup>
-  import {Search, ArrowDown} from '@element-plus/icons-vue'
+  import {Plus, ArrowDown} from '@element-plus/icons-vue'
   import {ElMessageBox} from 'element-plus'
   import {
     DeleteMenu,
@@ -90,7 +78,6 @@
   import MenuDialog from './MenuDialog'
   import {provide, reactive, ref, shallowRef, watch} from 'vue'
 
-  const search = ref(null)
   const dialogVisible = ref(false)
   const menuInfo = reactive({
     name: '',
@@ -150,7 +137,7 @@
 
   const getMenuInfo = () => {
     console.log('get menu info')
-    GetAllMenus(search.value).then(response => {
+    GetAllMenus().then(response => {
       console.log(response)
       menuData.value = response
     }).catch(error => {

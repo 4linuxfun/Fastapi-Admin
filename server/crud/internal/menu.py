@@ -5,10 +5,8 @@ from ..base import CRUDBase
 
 
 class CRUDMenu(CRUDBase[Menu]):
-    def search(self, session: Session, q: Optional = None) -> List[Menu]:
+    def search_menus(self, session: Session) -> List[Menu]:
         sql = select(self.model)
-        if q is not None:
-            sql = sql.where(self.model.name.like(f'%{q}%'))
         sql = sql.order_by(self.model.sort)
         return session.exec(sql).all()
 

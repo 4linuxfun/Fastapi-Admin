@@ -12,10 +12,10 @@ from ...settings import casbin_enforcer
 router = APIRouter(prefix='/api')
 
 
-@router.get('/menus', summary="查询菜单", response_model=ApiResponse[List[MenusWithChild]])
-async def get_all_menu(q: Optional[str] = None, session: Session = Depends(get_session)):
+@router.get('/menus', summary="列出菜单", response_model=ApiResponse[List[MenusWithChild]])
+async def get_all_menu(session: Session = Depends(get_session)):
     # 复用crud.get_menu_list,默认role为admin就是返回所有的菜单列表
-    menu_list: List[Menu] = crud.menu.search(session, q)
+    menu_list: List[Menu] = crud.menu.search_menus(session)
     user_menus = utils.menu_convert(menu_list)
     return ApiResponse(
         data=user_menus
