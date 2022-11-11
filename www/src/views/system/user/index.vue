@@ -9,8 +9,7 @@
       </el-form-item>
       <el-form-item label="状态" prop="enable">
         <el-select v-model="search.enable" style="width: 100px">
-          <el-option label="启用" :value="true"/>
-          <el-option label="禁用" :value="false"/>
+          <el-option v-for="item in selectOptions" :key="item.value" :label="item.label" :value="item.value"/>
         </el-select>
       </el-form-item>
       <el-form-item>
@@ -66,6 +65,7 @@
 </template>
 <script setup>
   import {
+    onMounted,
     reactive,
     ref, watch
   } from 'vue'
@@ -81,6 +81,7 @@
     PostAddUser,
     DeleteUser, GetUserInfo
   } from '@/api/users'
+  import {GetDictItems} from '@/api/dictonary'
   import {ElMessage, ElMessageBox, ElNotification, ElPopconfirm} from 'element-plus'
 
 
@@ -91,6 +92,7 @@
   const resetPasswdDialog = ref(false)
   const selectUser = reactive({})
   const searchRef = ref(null)
+  const selectOptions = ref(null)
 
   const searchForm = {
     name: null,
@@ -179,6 +181,11 @@
         }
       })
 
+  onMounted(() => {
+    GetDictItems('enable_code').then(response => {
+      selectOptions.value = response
+    })
+  })
 </script>
 
 <style>

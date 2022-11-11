@@ -65,9 +65,9 @@ async def get_all_user(search: Pagination[UserWithOutPasswd],
     :param session:
     :return:
     """
-    total = crud.internal.user.search_total(session, search.search, {'name': 'like', 'enable': 'bool'})
+    total = crud.internal.user.search_total(session, search.search, {'name': 'like', 'enable': 'eq'})
     print(total)
-    users = crud.internal.user.search(session, search, {'name': 'like', 'enable': 'bool'})
+    users = crud.internal.user.search(session, search, {'name': 'like', 'enable': 'eq'})
     users_list = [user.dict(exclude={"password"}) for user in users]
     print(users_list)
     return ApiResponse(
