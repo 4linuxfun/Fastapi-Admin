@@ -71,7 +71,7 @@
     EditPen,
     Setting
   } from '@element-plus/icons-vue'
-  import {onMounted, ref} from 'vue'
+  import {onMounted, ref, watch} from 'vue'
   import usePagination from '@/composables/usePagination'
   import AddDict from '@/views/system/dictonary/AddDict'
   import DictItem from '@/views/system/dictonary/DictItem'
@@ -132,6 +132,12 @@
     selectDict.value = dict
     itemDrawer.value = true
   }
+
+  watch(addDialog,(newValue)=>{
+    if(newValue === false){
+      freshCurrentPage()
+    }
+  })
 
   onMounted(() => {
     freshCurrentPage()
