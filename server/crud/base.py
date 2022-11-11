@@ -73,9 +73,6 @@ class CRUDBase(Generic[ModelType]):
                     sql = sql.where(getattr(self.model, key) > q[key])
                 elif filter_type[key] == 'ge':
                     sql = sql.where(getattr(self.model, key) >= q[key])
-                elif filter_type[key] == 'bool':
-                    key_value = 1 if q[key] else 0
-                    sql = sql.where(getattr(self.model, key) == key_value)
         return sql
 
     def search(self, session: Session, search: Pagination, filter_type: Optional[Dict[str, str]] = None,
@@ -119,4 +116,5 @@ class CRUDBase(Generic[ModelType]):
         """
         sql = select(func.count(self.model.id))
         sql = self._make_search(sql, q, filter_type)
+        print(str(sql))
         return session.execute(sql).scalar()
