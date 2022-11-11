@@ -11,7 +11,11 @@ class CRUDDict(CRUDBase[DataDict]):
 
 
 class CRUDItem(CRUDBase[DictItem]):
-    pass
+    def get_items_by_code(self, db: Session, code: str):
+        dict_id = select(DataDict.id).where(DataDict.code == code).subquery()
+        sql = select(self.model).where(self.model.dict_id == dict_id).where(self.model.enable == 1).order_by(
+            self.model.id)
+        return db.exec(sql).all()
 
 
 data_dict = CRUDDict(DataDict)
