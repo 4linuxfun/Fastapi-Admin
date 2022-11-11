@@ -37,9 +37,9 @@ async def get_role_menus(id: Optional[int] = None, session: Session = Depends(ge
 @router.post('/roles/search',
              summary="查询角色")
 async def get_roles(search: Pagination[RoleBase], session: Session = Depends(get_session)):
-    total = crud.internal.role.search_total(session, search.search, {'name': 'like', 'enable': 'bool'})
+    total = crud.internal.role.search_total(session, search.search, {'name': 'like', 'enable': 'eq'})
     print(total)
-    roles: List[Role] = crud.internal.role.search(session, search, {'name': 'like', 'enable': 'bool'})
+    roles: List[Role] = crud.internal.role.search(session, search, {'name': 'like', 'enable': 'eq'})
     role_with_menus: List[RoleWithMenus] = []
     for role in roles:
         new_role = RoleWithMenus(**role.dict(), menus=role.menus)
