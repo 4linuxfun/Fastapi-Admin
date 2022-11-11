@@ -3,7 +3,7 @@
   <el-row>
     <el-button v-permission="'menu:add'" type="primary" @click="handleAdd" :icon="Plus">新建菜单</el-button>
   </el-row>
-  
+
   <div style="padding-top:10px">
     <el-table :data="menuData"
               style="width: 100%; margin-bottom: 20px;" row-key="id" border stripe
