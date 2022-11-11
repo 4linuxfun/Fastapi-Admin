@@ -20,8 +20,8 @@ class DataDictSearch(SQLModel):
 
 
 class DictBase(SQLModel):
-    name: str = Field(max_length=50, sa_column_kwargs={'comment': '名称'})
-    data: str = Field(max_length=100, sa_column_kwargs={'comment': '数据值'})
+    label: str = Field(max_length=50, sa_column_kwargs={'comment': '名称'})
+    value: str = Field(max_length=100, sa_column_kwargs={'comment': '数据值'})
     desc: Optional[str] = Field(max_length=100, sa_column_kwargs={'comment': '描述'})
     sort: Optional[int] = Field(sa_column_kwargs={'comment': '排序值，越小越靠前'})
     enable: bool = Field(default=True, sa_column=Column(Boolean, comment='是否启用'))
@@ -52,6 +52,6 @@ class DictItemSearch(SQLModel):
 
 class DictItemSearchFilter(SQLModel):
     dict_id: str
-    name: str
-    data: str
+    label: str
+    value: str
     enable: str
