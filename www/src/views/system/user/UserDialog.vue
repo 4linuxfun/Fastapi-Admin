@@ -4,7 +4,7 @@
       <el-input v-model="selectData.name" :disabled="selectData.id !== null"></el-input>
     </el-form-item>
     <el-form-item label="状态">
-      <el-switch v-model="selectData.enable"  style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"/>
+      <auto-dict type="switch" code="enable_code" v-model:value="selectData.enable" />
     </el-form-item>
     <el-form-item label="角色">
       <el-checkbox-group v-model="enableRoleList">
@@ -29,6 +29,7 @@
   import {ElNotification} from 'element-plus'
   import {onMounted, reactive, ref, toRefs} from 'vue'
   import {GetDictItems} from '@/api/dictonary'
+  import AutoDict from '@/components/AutoDict'
 
   const props = defineProps(['user', 'visible'])
   const emit = defineEmits(['update:visible'])
@@ -72,9 +73,6 @@
   }
 
   onMounted(() => {
-    GetDictItems('enable_code').then(response => {
-      selectOptions.value = response
-    })
     getRoles(selectData.id)
   })
 

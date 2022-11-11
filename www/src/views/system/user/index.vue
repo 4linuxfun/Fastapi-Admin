@@ -8,9 +8,7 @@
         <el-input v-model="search.email"/>
       </el-form-item>
       <el-form-item label="状态" prop="enable">
-        <el-select v-model="search.enable" style="width: 100px">
-          <el-option v-for="item in selectOptions" :key="item.value" :label="item.label" :value="item.value"/>
-        </el-select>
+        <auto-dict type="select" code="enable_code" v-model:value="search.enable" style="width: 100px"/>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="handleSearch" :icon="Search">搜索</el-button>
@@ -70,24 +68,20 @@
     ref, watch
   } from 'vue'
   import {
-    ArrowDown, Edit, Delete, Unlock,
+    Edit, Delete, Unlock,
     Search, RefreshRight, Plus
   } from '@element-plus/icons-vue'
   import UserDialog from './UserDialog.vue'
   import ChangePasswd from './ChangePasswd'
   import usePagination from '@/composables/usePagination'
   import {
-    PutNewUser,
-    PostAddUser,
     DeleteUser, GetUserInfo
   } from '@/api/users'
   import {GetDictItems} from '@/api/dictonary'
   import {ElMessage, ElMessageBox, ElNotification, ElPopconfirm} from 'element-plus'
+  import AutoDict from '@/components/AutoDict'
 
 
-  const formData = reactive({})
-  const formSchema = reactive({})
-  const dialogVisible = ref(false)
   const detailVisible = ref(false)
   const resetPasswdDialog = ref(false)
   const selectUser = reactive({})
@@ -181,11 +175,6 @@
         }
       })
 
-  onMounted(() => {
-    GetDictItems('enable_code').then(response => {
-      selectOptions.value = response
-    })
-  })
 </script>
 
 <style>
