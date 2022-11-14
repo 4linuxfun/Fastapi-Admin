@@ -17,21 +17,32 @@
 <script setup>
 
   import {reactive} from 'vue'
-  import {PostNewDict} from '@/api/dictonary'
+  import {PostNewDict, PutDict} from '@/api/dictonary'
   import {ElNotification} from 'element-plus'
 
-  const props = defineProps(['dict','visible'])
+  const props = defineProps(['dict', 'visible'])
   const emit = defineEmits(['update:visible'])
   const form = reactive(props.dict)
 
   function handleAdd() {
-    PostNewDict(form).then(() => {
-      ElNotification({
-        title: 'success',
-        message: '数据字典添加成功',
-        type: 'success'
+    if (form.id === null) {
+      PostNewDict(form).then(() => {
+        ElNotification({
+          title: 'success',
+          message: '数据字典添加成功',
+          type: 'success'
+        })
       })
-    })
+    } else {
+      PutDict(form).then(() => {
+        ElNotification({
+          title: 'success',
+          message: '数据字典更新成功',
+          type: 'success'
+        })
+      })
+    }
+
     emit('update:visible', false)
   }
 
