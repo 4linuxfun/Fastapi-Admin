@@ -25,9 +25,9 @@ class CRUDBase(Generic[ModelType]):
         db.refresh(obj_in)
         return obj_in
 
-    def update(self, db: Session, db_obj, obj_in):
+    def update(self, db: Session, db_obj: ModelType, new_obj: ModelType):
         # SQLModel直接使用的pydantic的dict方法，没有轮询SQLModel封装的__sqlmodel_relationships__，对于外键的更新，只能手动指定
-        update_date = obj_in.dict()
+        update_date = new_obj.dict()
         print(update_date)
         for field in update_date:
             setattr(db_obj, field, update_date[field])
