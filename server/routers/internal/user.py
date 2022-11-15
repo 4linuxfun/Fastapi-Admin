@@ -78,7 +78,8 @@ async def get_all_user(search: Pagination[UserWithOutPasswd],
     )
 
 
-@router.post('/users', summary="新建用户", dependencies=[Depends(Authority("user:add"))])
+@router.post('/users', summary="新建用户", dependencies=[Depends(Authority("user:add"))],
+             response_model=ApiResponse[UserWithOutPasswd])
 async def update_user(user_info: UserCreateWithRoles, session: Session = Depends(get_session)):
     """
     更新用户信息的所有操作，可涉及更新用户名、密码、角色等
@@ -91,7 +92,9 @@ async def update_user(user_info: UserCreateWithRoles, session: Session = Depends
     new_roles = [role.id for role in user.roles]
     for role in new_roles:
         casbin_enforcer.add_role_for_user(f'uid_{user.id}', f'role_{role}')
-    return user
+    return ApiResponse(
+        data=user
+    )
 
 
 @router.put('/users/password', summary='重置密码', dependencies=[Depends(Authority('user:reset'))])
