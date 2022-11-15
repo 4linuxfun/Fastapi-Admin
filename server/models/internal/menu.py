@@ -11,7 +11,7 @@ class MenuBase(SQLModel):
     component: Optional[str] = Field(max_length=50, sa_column_kwargs={'comment': '组件'})
     auth: Optional[str] = Field(max_length=50, sa_column_kwargs={'comment': '授权标识'})
     type: str = Field(max_length=10, sa_column_kwargs={'comment': '类型'})
-    parent_id: Optional[int] = Field(sa_column_kwargs={'comment': '父级ID'})
+    parent_id: Optional[int] = Field(default=None, sa_column_kwargs={'comment': '父级ID'})
     sort: Optional[float] = Field(sa_column_kwargs={'comment': '菜单排序'})
     enable: bool = Field(default=True, sa_column=Column(Boolean, comment='启用'))
 
