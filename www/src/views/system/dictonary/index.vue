@@ -89,10 +89,6 @@
   const searchForm = {
     name: null,
     code: null,
-    type: {
-      name: 'like',
-      code: 'like',
-    }
   }
 
   const {
@@ -109,6 +105,7 @@
   function handleAdd() {
     dialogTitle.value = '添加数据字典'
     selectDict.value = {
+      id: null,
       name: null,
       code: null,
       desc: null
@@ -133,8 +130,8 @@
     itemDrawer.value = true
   }
 
-  watch(addDialog,(newValue)=>{
-    if(newValue === false){
+  watch(addDialog, (newValue) => {
+    if (newValue === false) {
       freshCurrentPage()
     }
   })
