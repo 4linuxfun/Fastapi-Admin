@@ -10,6 +10,12 @@
     <el-switch v-model="modelValue" @change="handleUpdate"
                style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"/>
   </template>
+
+  <template v-else-if="type === 'checkbox'">
+    <el-checkbox-group v-model="modelValue" @change="handleUpdate">
+      <el-checkbox v-for="item in itemArray" :key="item.value" :label="item.value">{{item.label}}</el-checkbox>
+    </el-checkbox-group>
+  </template>
 </template>
 
 <script setup>
@@ -18,7 +24,7 @@
 
   const props = defineProps(['type', 'code', 'modelValue'])
   const emit = defineEmits(['update:modelValue'])
-  const {type, modelValue, code} = toRefs(props)
+  const {type, code, modelValue} = toRefs(props)
   const itemArray = ref(null)
 
   function handleUpdate(currentValue) {
