@@ -36,7 +36,7 @@
     <el-input-number v-model="selectData.sort" :step="0.1"/>
   </el-form-item>
   <el-form-item label="状态">
-    <auto-dict v-model:value="selectData.enable" type="switch" code="enable_code"/>
+    <auto-dict v-model="selectData.enable" type="switch" code="enable_code"/>
   </el-form-item>
 
   <!--  icon选择对话框-->
@@ -67,7 +67,7 @@
   import useMenu from '@/composables/useMenu'
   import AutoDict from '@/components/AutoDict'
 
-  const props = defineProps(['form', 'totalApiLists'])
+  const props = defineProps(['form', ])
   const emit = defineEmits(['update:form'])
   const {form} = toRefs(props)
   const dialogVisible = ref(false)
@@ -107,7 +107,7 @@
     Traffic: ['Location', 'LocationInformation', 'DeleteLocation', 'Coordinate', 'Bicycle', 'OfficeBuilding', 'School',
       'Guide', 'AddLocation', 'MapLocation', 'Place', 'LocationFilled', 'Van']
   }
-
+  
 
 </script>
 

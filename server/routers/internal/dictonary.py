@@ -64,6 +64,15 @@ async def add_dict(data_dict: DataDict, session: Session = Depends(get_session))
     )
 
 
+@router.put("/dict", summary="更新数据字典", response_model=ApiResponse[DataDict])
+async def add_dict(data_dict: DataDict, session: Session = Depends(get_session)):
+    db_obj = crud.internal.data_dict.get(session, data_dict.id)
+    obj = crud.internal.data_dict.update(session, db_obj, data_dict)
+    return ApiResponse(
+        data=obj
+    )
+
+
 @router.post('/dict/search',
              summary="查询数据字典")
 async def get_dicts(search: Pagination[DataDictSearch], session: Session = Depends(get_session)):

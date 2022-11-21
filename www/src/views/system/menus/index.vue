@@ -1,7 +1,7 @@
 // 菜单管理页面，用于创建菜单关系：菜单名、菜单页面、二级菜单。。。等等
 <template>
   <el-row>
-    <el-button v-permission="'menu:add'" type="primary" @click="handleAdd" :icon="Plus">新建菜单</el-button>
+    <el-button v-permission="'menu:add'" type="primary" @click="handleAdd()" :icon="Plus">新建菜单</el-button>
   </el-row>
 
   <div style="padding-top:10px">
@@ -129,7 +129,7 @@
       path: '',
       component: null,
       auth: '',
-      enable: '',
+      enable: 0,
       type: menuType
     })
     dialogVisible.value = true
