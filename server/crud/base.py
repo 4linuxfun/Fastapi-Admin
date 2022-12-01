@@ -1,5 +1,6 @@
 # 参考自：tiangolo/full-stack-fastapi-postgresql项目，部分代码为直接摘抄
 from copy import deepcopy
+from loguru import logger
 from typing import TypeVar, Generic, List, Type, Any, Dict, Optional
 from sqlmodel import Session, select, SQLModel, func, desc
 from ..schemas.internal.pagination import Pagination
@@ -28,7 +29,7 @@ class CRUDBase(Generic[ModelType]):
     def update(self, db: Session, db_obj: ModelType, new_obj: ModelType):
         # SQLModel直接使用的pydantic的dict方法，没有轮询SQLModel封装的__sqlmodel_relationships__，对于外键的更新，只能手动指定
         update_date = new_obj.dict()
-        print(update_date)
+        logger.debug(update_date)
         for field in update_date:
             setattr(db_obj, field, update_date[field])
         db.add(db_obj)
@@ -102,7 +103,7 @@ class CRUDBase(Generic[ModelType]):
             sql = sql.where(self.model.id <= subquery).order_by(desc(self.model.id)).limit(search.page_size)
         else:
             sql = sql.where(self.model.id >= subquery).limit(search.page_size)
-        print(sql)
+        logger.debug(sql)
         results = session.exec(sql).all()
         return results
 
@@ -116,5 +117,5 @@ class CRUDBase(Generic[ModelType]):
         """
         sql = select(func.count(self.model.id))
         sql = self._make_search(sql, q, filter_type)
-        print(str(sql))
+        logger.debug(str(sql))
         return session.execute(sql).scalar()

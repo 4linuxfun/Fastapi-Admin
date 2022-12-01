@@ -1,4 +1,5 @@
 from typing import List, Optional
+from loguru import logger
 from sqlmodel import select, Session
 from ...models.internal import Role, Menu, RoleMenu
 from ..base import CRUDBase
@@ -43,15 +44,15 @@ class CRUDRole(CRUDBase[Role]):
         :param menus:
         :return:
         """
-        print(db_obj.menus)
+        logger.debug(db_obj.menus)
         db_menus = session.exec(select(Menu).where(Menu.id.in_(menus))).all()
         db_obj.menus = db_menus
         casbin_enforcer.delete_permissions_for_user(f'role_{db_obj.id}')
-        print(db_menus)
+        logger.debug(db_menus)
         for menu in db_menus:
             if menu.auth is not None:
                 model, act = menu.auth.split(':')
-                print(f'增加权限:role_{db_obj.id},{model},{act}')
+                logger.debug(f'增加权限:role_{db_obj.id},{model},{act}')
                 casbin_enforcer.add_permission_for_user(f'role_{db_obj.id}', model, act)
         session.add(db_obj)
         session.commit()

@@ -1,4 +1,5 @@
 from typing import Optional, List
+from loguru import logger
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 from sqlmodel import Session
@@ -38,7 +39,7 @@ async def get_role_menus(id: Optional[int] = None, session: Session = Depends(ge
              summary="查询角色")
 async def get_roles(search: Pagination[RoleBase], session: Session = Depends(get_session)):
     total = crud.internal.role.search_total(session, search.search, {'name': 'like', 'enable': 'eq'})
-    print(total)
+    logger.debug(total)
     roles: List[Role] = crud.internal.role.search(session, search, {'name': 'like', 'enable': 'eq'})
     role_with_menus: List[RoleWithMenus] = []
     for role in roles:
@@ -55,7 +56,7 @@ async def get_roles(search: Pagination[RoleBase], session: Session = Depends(get
 @router.post('/roles', summary="新建角色", response_model=ApiResponse[Role],
              dependencies=[Depends(Authority('role:add'))])
 async def add_roles(role_info: RoleInsert, session: Session = Depends(get_session)):
-    print(role_info)
+    logger.debug(role_info)
     enable_menus = role_info.menus
     delattr(role_info, 'menus')
     db_obj = crud.internal.role.insert(session, Role(**role_info.dict()))
@@ -68,7 +69,7 @@ async def add_roles(role_info: RoleInsert, session: Session = Depends(get_sessio
 @router.put('/roles', summary="更新角色", response_model=ApiResponse[Role],
             dependencies=[Depends(Authority('role:update'))])
 async def update_roles(role_info: RoleUpdate, session: Session = Depends(get_session)):
-    print(role_info)
+    logger.debug(role_info)
     if role_info.name == 'admin':
         ApiResponse(code=status.HTTP_400_BAD_REQUEST, message='admin权限组无法更新信息')
     db_obj = crud.internal.role.get(session, role_info.id)

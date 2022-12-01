@@ -1,3 +1,4 @@
+from loguru import logger
 from fastapi import Request, HTTPException
 from ..settings import casbin_enforcer
 
@@ -12,5 +13,5 @@ class Authority:
             return True
         model, act = self.policy.split(':')
         if not casbin_enforcer.enforce(f'uid_{request.state.uid}', model, act):
-            print('没有权限')
+            logger.warning(f'uid_{request.state.uid} {model} {act} 没有权限')
             raise HTTPException(status_code=403, detail="没有权限")
