@@ -50,7 +50,7 @@ class CRUDRole(CRUDBase[Role]):
         casbin_enforcer.delete_permissions_for_user(f'role_{db_obj.id}')
         logger.debug(db_menus)
         for menu in db_menus:
-            if menu.auth is not None:
+            if (menu.auth is not None) and menu.auth:
                 model, act = menu.auth.split(':')
                 logger.debug(f'增加权限:role_{db_obj.id},{model},{act}')
                 casbin_enforcer.add_permission_for_user(f'role_{db_obj.id}', model, act)
