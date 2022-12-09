@@ -77,13 +77,14 @@ class CRUDBase(Generic[ModelType]):
         return sql
 
     def search(self, session: Session, search: Pagination, filter_type: Optional[Dict[str, str]] = None,
-               columns: Optional[List] = None):
+               columns: Optional[List] = None, order_col: Optional[str] = 'id'):
         """
         分页查询方法
         :param session:
         :param search: Pagination实例对象，包含各搜索参数
         :param filter_type: 指定的各属性值判断形式
         :param columns: 查询返回指定columns
+        :param order_col: order排序列名，默认id，此col需要为自增id
         :return:
         """
         if columns is None:
@@ -91,18 +92,19 @@ class CRUDBase(Generic[ModelType]):
         else:
             sql = select(*columns)
         sql = self._make_search(sql, search.search, filter_type)
-        subquery = select(self.model.id)
+        subquery = select(getattr(self.model, order_col))
         subquery = self._make_search(subquery, search.search, filter_type)
         if search.model == 'desc':
-            subquery = subquery.order_by(desc(self.model.id))
+            subquery = subquery.order_by(desc(getattr(self.model, order_col)))
         else:
-            subquery = subquery.order_by(self.model.id)
+            subquery = subquery.order_by(getattr(self.model, order_col))
         subquery = subquery.offset(
             (search.page - 1) * search.page_size).limit(1).subquery()
         if search.model == 'desc':
-            sql = sql.where(self.model.id <= subquery).order_by(desc(self.model.id)).limit(search.page_size)
+            sql = sql.where(getattr(self.model, order_col) <= subquery).order_by(desc(getattr(self.model, order_col))).limit(
+                search.page_size)
         else:
-            sql = sql.where(self.model.id >= subquery).limit(search.page_size)
+            sql = sql.where(getattr(self.model, order_col) >= subquery).limit(search.page_size)
         logger.debug(sql)
         results = session.exec(sql).all()
         return results
