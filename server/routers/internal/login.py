@@ -1,4 +1,5 @@
 from typing import List
+from loguru import logger
 from fastapi import APIRouter, Depends, Request, status
 from ...common.database import get_session
 from sqlmodel import Session, select
@@ -52,9 +53,9 @@ async def get_permission(request: Request, session: Session = Depends(get_sessio
     :return:
     """
     uid: int = request.state.uid
-    print(f"uid is:{uid}")
+    logger.debug(f"uid is:{uid}")
     user: User = crud.internal.user.get(session, uid)
-    print(user.roles)
+    logger.debug(user.roles)
     user_menus = []
     # admin组用户获取所有菜单列表
     if uid == 1 or crud.internal.role.check_admin(session, uid):
@@ -66,11 +67,9 @@ async def get_permission(request: Request, session: Session = Depends(get_sessio
         menu_list = session.exec(
             select(Menu).where(Menu.id.in_(set(user_menus))).where(Menu.type != 'btn').order_by(Menu.sort)).all()
         btn_list = session.exec(select(Menu.auth).where(Menu.id.in_(set(user_menus))).where(Menu.type == 'btn')).all()
-    print('menulist')
-    print(menu_list)
     user_menus = menu_convert(menu_list)
 
-    print(user_menus)
+    logger.debug(f"user menus:{user_menus}")
     return ApiResponse(
         data={
             'menus': user_menus,

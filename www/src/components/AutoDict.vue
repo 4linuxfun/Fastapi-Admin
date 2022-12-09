@@ -12,29 +12,84 @@
   </template>
 
   <template v-else-if="type === 'checkbox'">
+    <el-checkbox v-model="checkAll" :indeterminate="isIndeterminate" @change="handleCheckAllChange">全选</el-checkbox>
     <el-checkbox-group v-model="modelValue" @change="handleUpdate">
-      <el-checkbox v-for="item in itemArray" :key="item.value" :label="item.value">{{item.label}}</el-checkbox>
+      <el-row :gutter="20">
+        <el-col v-for="item in itemArray" :key="item.value" :span="colSpan">
+          <el-checkbox :label="item.value" style="display: flex">{{ item.label }}</el-checkbox>
+        </el-col>
+      </el-row>
     </el-checkbox-group>
   </template>
+
 </template>
 
 <script setup>
   import {onMounted, ref, toRefs} from 'vue'
   import {GetDictItems} from '@/api/dictonary'
 
-  const props = defineProps(['type', 'code', 'modelValue'])
+  const props = defineProps({
+    //选择框类型
+    type: {
+      type: String,
+      validator(value) {
+        return ['select', 'switch', 'checkbox'].includes(value)
+      }
+    },
+    //数据字典对应编码
+    code: {
+      type: String,
+      required: true
+    },
+    //checkbox时用于对应列数
+    col: {
+      type: Number,
+      default: 2
+    },
+    //绑定的值
+    modelValue: {
+      required: true
+    }
+  })
   const emit = defineEmits(['update:modelValue'])
-  const {type, code, modelValue} = toRefs(props)
+  const {type, code, col, modelValue} = toRefs(props)
   const itemArray = ref(null)
+  const colSpan = 24 / col.value
+  const checkAll = ref(false)
+  const isIndeterminate = ref(true)
+
+  let allItems = []
 
   function handleUpdate(currentValue) {
+    if (type.value === 'checkbox') {
+      const checkedCount = currentValue.length
+      checkAll.value = checkedCount === allItems.length
+      isIndeterminate.value = checkedCount > 0 && checkedCount < allItems.length
+    }
     emit('update:modelValue', currentValue)
   }
 
+  function handleCheckAllChange(val) {
+    if (val) {
+      emit('update:modelValue', allItems)
+    } else {
+      emit('update:modelValue', [])
+    }
+    isIndeterminate.value = false
+  }
+
+  GetDictItems(code.value).then(response => {
+    itemArray.value = response
+    if (type.value === 'checkbox') {
+      itemArray.value.forEach((item) => {
+        console.log('add to items:' + item['value'])
+        allItems.push(item['value'])
+      })
+    }
+  })
+
   onMounted(() => {
-    GetDictItems(code.value).then(response => {
-      itemArray.value = response
-    })
+
   })
 </script>
 

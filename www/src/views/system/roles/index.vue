@@ -126,7 +126,7 @@
       id: null,
       name: '',
       description: '',
-      enable: ''
+      enable: true
     })
     console.log(selectRole)
     dialogVisible.value = true

@@ -1,3 +1,6 @@
+import logging
+
+from loguru import logger
 from datetime import datetime, timedelta
 from fastapi import Request, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -21,9 +24,10 @@ def auth_check(request: Request):
     :param request:
     :return:
     """
+    logger.info(f'request url:{request.url} method:{request.method}')
     for url in settings.NO_VERIFY_URL:
         if url == request.url.path.lower():
-            print(f"{request.url.path} 在白名单中，不需要权限验证")
+            logger.debug(f"{request.url.path} 在白名单中，不需要权限验证")
             return True
     authorization: str = request.headers.get("Authorization")
     schema, param = get_authorization_scheme_param(authorization)

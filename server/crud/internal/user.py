@@ -1,4 +1,5 @@
 from typing import Union
+from loguru import logger
 from sqlmodel import select, Session
 from ...models.internal.user import User
 from ..base import CRUDBase
@@ -29,8 +30,8 @@ class CRUDUser(CRUDBase[User]):
         db_obj = super(CRUDUser, self).update(session, db_obj, updated_user)
         user_roles = role.get_roles_by_id(session, user_info.roles)
         db_obj.roles = user_roles
-        print('update:')
-        print(db_obj)
+        logger.debug('update:')
+        logger.debug(db_obj)
         session.add(db_obj)
         session.commit()
         session.refresh(db_obj)

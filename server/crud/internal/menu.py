@@ -1,4 +1,5 @@
 from typing import Optional, List
+from loguru import logger
 from sqlmodel import Session, select
 from ...models.internal.menu import Menu
 from ..base import CRUDBase
@@ -19,7 +20,7 @@ class CRUDMenu(CRUDBase[Menu]):
         :param obj_in:
         :return:
         """
-        print(db_obj)
+        logger.debug(db_obj)
         return super(CRUDMenu, self).update(session, db_obj, obj_in)
 
     def delete(self, session: Session, id: int):

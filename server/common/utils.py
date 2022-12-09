@@ -1,5 +1,6 @@
 import os
 from typing import List, Generic, Type, TypeVar
+from loguru import logger
 from sqlmodel import SQLModel
 from ..models.internal.menu import MenusWithChild
 
@@ -61,5 +62,5 @@ def update_model(old_model, new_model):
 
 
 def remove_tmp_file(file):
-    print(f'删除临时文件{file}')
+    logger.debug(f'删除临时文件{file}')
     os.remove(file)

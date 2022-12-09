@@ -1,4 +1,5 @@
 from typing import Optional, List
+from loguru import logger
 from sqlmodel import Session, select
 from sqlalchemy.exc import NoResultFound
 from fastapi import APIRouter, Depends, status, HTTPException
@@ -66,10 +67,10 @@ async def get_all_user(search: Pagination[UserWithOutPasswd],
     :return:
     """
     total = crud.internal.user.search_total(session, search.search, {'name': 'like', 'enable': 'eq'})
-    print(total)
+    logger.debug(total)
     users = crud.internal.user.search(session, search, {'name': 'like', 'enable': 'eq'})
     users_list = [user.dict(exclude={"password"}) for user in users]
-    print(users_list)
+    logger.debug(users_list)
     return ApiResponse(
         data={
             'total': total,
@@ -87,7 +88,7 @@ async def update_user(user_info: UserCreateWithRoles, session: Session = Depends
     :param session:
     :return:
     """
-    print(user_info)
+    logger.debug(user_info)
     user: User = crud.internal.user.insert(session, user_info)
     new_roles = [role.id for role in user.roles]
     for role in new_roles:
@@ -113,7 +114,7 @@ async def update_user(uid: int, user_info: UserUpdateWithRoles, session: Session
     :param session:
     :return:
     """
-    print(user_info.dict(exclude_unset=True, exclude_none=True))
+    logger.debug(user_info.dict(exclude_unset=True, exclude_none=True))
     user = crud.internal.user.update(session, uid, user_info)
     new_roles = [role.id for role in user.roles]
     casbin_enforcer.delete_roles_for_user(f'uid_{user.id}')
