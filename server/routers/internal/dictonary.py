@@ -51,9 +51,15 @@ async def del_dict_item(item_id: int, session: Session = Depends(get_session)):
             response_model_exclude={'data': {'__all__': {'desc', 'sort', 'enable'}}})
 async def get_dict(dict_code: str, session: Session = Depends(get_session)):
     dict_items: List[DictItem] = crud.internal.dict_item.get_items_by_code(session, dict_code)
-    return ApiResponse(
-        data=[DictRead.from_orm(item) for item in dict_items]
-    )
+    if dict_items:
+        return ApiResponse(
+            data=[DictRead.from_orm(item) for item in dict_items]
+        )
+    else:
+        return ApiResponse(
+            code=404,
+            message=f"无效的数据字典：{dict_code}"
+        )
 
 
 @router.post("/dict", summary="新建数据字典", response_model=ApiResponse[DataDict])
