@@ -9,7 +9,7 @@
         <el-input v-model="selectData.description"></el-input>
       </el-form-item>
       <el-form-item label="状态">
-       <auto-dict v-model="selectData.enable" type="switch" code="enable_code"/>
+       <auto-dict v-model="selectData.enable" dict-type="switch" code="enable_code"/>
       </el-form-item>
       <el-form-item label="菜单权限">
         <el-tree ref="menuTree" :data="menus" :props="defaultProps" accordion show-checkbox node-key="id"
