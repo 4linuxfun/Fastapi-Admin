@@ -5,7 +5,9 @@
         <el-input v-model="search.name"/>
       </el-form-item>
       <el-form-item label="状态" prop="enable">
-        <auto-dict dict-type="select" code="enable_code" v-model="search.enable" style="width: 100px"/>
+        <div style="width: 100px">
+          <auto-dict dict-type="select" code="enable_code" v-model="search.enable"/>
+        </div>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="handleSearch" :icon="Search">
