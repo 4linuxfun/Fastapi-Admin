@@ -4,7 +4,7 @@
       <el-input v-model="selectData.name" :disabled="selectData.id !== null"></el-input>
     </el-form-item>
     <el-form-item label="状态">
-      <auto-dict type="switch" code="enable_code" v-model="selectData.enable" />
+      <auto-dict dict-type="switch" code="enable_code" v-model="selectData.enable" />
     </el-form-item>
     <el-form-item label="角色">
       <el-checkbox-group v-model="enableRoleList">

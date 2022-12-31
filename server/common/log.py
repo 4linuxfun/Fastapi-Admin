@@ -24,7 +24,6 @@ class InterceptHandler(logging.Handler):
 
 def init_logging():
     # 获取所有uvicorn的日志设定，并重置
-    print(logging.root.manager.loggerDict)
     loggers = (
         logging.getLogger(name)
         for name in logging.root.manager.loggerDict

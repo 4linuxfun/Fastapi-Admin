@@ -12,7 +12,7 @@
     <el-input v-model="selectData.auth"></el-input>
   </el-form-item>
   <el-form-item label="状态">
-    <auto-dict v-model="selectData.enable" type="switch" code="enable_code"/>
+    <auto-dict v-model="selectData.enable" dict-type="switch" code="enable_code"/>
   </el-form-item>
 </template>
 

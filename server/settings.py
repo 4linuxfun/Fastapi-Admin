@@ -24,6 +24,6 @@ class APISettings(BaseSettings):
 
 settings = APISettings()
 
-engine = create_engine(settings.DATABASE_URI, future=False)
+engine = create_engine(settings.DATABASE_URI, pool_size=5, max_overflow=10, pool_timeout=30, pool_pre_ping=True)
 adapter = casbin_sqlalchemy_adapter.Adapter(engine)
 casbin_enforcer = casbin.Enforcer(settings.CASBIN_MODEL_PATH, adapter)
