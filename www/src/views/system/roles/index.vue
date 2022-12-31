@@ -5,7 +5,7 @@
         <el-input v-model="search.name"/>
       </el-form-item>
       <el-form-item label="状态" prop="enable">
-        <auto-dict type="select" code="enable_code" v-model="search.enable" style="width: 100px"/>
+        <auto-dict dict-type="select" code="enable_code" v-model="search.enable" style="width: 100px"/>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="handleSearch" :icon="Search">
@@ -52,7 +52,7 @@
 
 </template>
 <script setup>
-  import {onMounted, reactive, ref, watch} from 'vue'
+  import {reactive, ref, watch} from 'vue'
   import {Search, RefreshRight, Plus} from '@element-plus/icons-vue'
   import {GetRoles, DeleteRole} from '@/api/roles'
   import usePagination from '@/composables/usePagination'
