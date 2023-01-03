@@ -99,7 +99,7 @@ class CRUDBase(Generic[ModelType]):
         else:
             subquery = subquery.order_by(getattr(self.model, order_col))
         subquery = subquery.offset(
-            (search.page - 1) * search.page_size).limit(1).subquery()
+            (search.page - 1) * search.page_size).limit(1).scalar_subquery()
         if search.model == 'desc':
             sql = sql.where(getattr(self.model, order_col) <= subquery).order_by(desc(getattr(self.model, order_col))).limit(
                 search.page_size)
