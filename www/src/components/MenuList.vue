@@ -35,25 +35,24 @@
   </el-menu>
 </template>
 
-<script>
+<script setup>
   import {useStore} from '@/stores'
-  import {mapState} from 'pinia'
+  import {computed} from 'vue'
 
-  export default {
-    computed: {
-      ...mapState(useStore, {
-        menuList: 'asyncRoutes'
-      })
-    },
-    methods: {
-      handleOpen(key, keyPath) {
-        console.log(key, keyPath)
-      },
-      handleClose(key, keyPath) {
-        console.log(key, keyPath)
-      }
-    }
+  const userStore = useStore()
+
+  const menuList = computed(() => {
+    return userStore.asyncRoutes
+  })
+
+  function handleOpen(key, keyPath) {
+    console.log(key, keyPath)
   }
+
+  function handleClose(key, keyPath) {
+    console.log(key, keyPath)
+  }
+
 </script>
 
 <style>
