@@ -9,11 +9,11 @@ export const constantRouterMap = [
   },
   {
     path: '/dashboard',
-    name: 'dashboard',
     component: () => import('@/views/Layout'),
     children: [
       {
         path: '',
+        name: 'dashboard',
         component: () => import('@/views/DashBoard')
       }
     ]
