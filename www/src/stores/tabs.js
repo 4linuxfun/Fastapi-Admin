@@ -22,12 +22,9 @@ export const useTabsStore = defineStore('tabs', () => {
         name: to.name,
         path: to.fullPath
       })
-      currentTab.value = to.name
       cacheTabs.value.push(to.name)
     }
-    console.log('update currenttab:', currentTab.value)
-    console.log('cacheTabs:', cacheTabs.value)
-    console.log('all tabs:', allTabs)
+    currentTab.value = to.name
   }
 
   function tabRemove(removeTab) {
