@@ -2,6 +2,7 @@
   <el-menu
       class="el-menu-vertical-demo"
       router
+      unique-opened
       @open="handleOpen"
       @close="handleClose">
     <el-menu-item index="/dashboard">首页</el-menu-item>
