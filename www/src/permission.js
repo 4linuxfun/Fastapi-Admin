@@ -6,19 +6,22 @@ import {
 import {
 	makeRouter
 } from "@/utils/router";
+import {useTabsStore} from '@/stores/tabs'
+
 
 
 const whiteList = ['/login'] // no redirect whitelist
 
 router.beforeEach((to) => {
 	const store = useStore()
+	const {tabAdd} = useTabsStore()
 	console.log('start before each')
 
 	if (getToken()) {
 		console.log('已经有token')
 		// 已登录且要跳转的页面是登录页
 		if (to.path === '/login') {
-			return '/dashboard'
+			return '/'
 		} else {
 			console.log('已经登录成功')
 			//登录成功，需要判断router是不是已经按照权限要求构建好，并且菜单是否按照权限要求生成，如没有，则生成
@@ -41,11 +44,12 @@ router.beforeEach((to) => {
 						location.reload()
 					})
 				})
-			} else {
-				console.log('当前生效路由表')
-				console.log(router.getRoutes())
-				return true
 			}
+			console.log('当前生效路由表')
+			console.log(router.getRoutes())
+			tabAdd(to)
+			return true
+
 		}
 	} else {
 		// 无token信息，表示未登录

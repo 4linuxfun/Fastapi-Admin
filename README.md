@@ -10,13 +10,85 @@
 * test： 测试分支
 
 ## 测试环境服务启动
-1. 前端启动：
+1. nginx添加配置：
+```
+ server {
+        listen       80;
+        server_name  localhost;
+
+        #charset koi8-r;
+
+        #access_log  logs/host.access.log  main;
+
+        location / {
+        proxy_pass http://127.0.0.1:8080/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+    }
+
+		# api
+		location /api/ {
+			proxy_pass http://127.0.0.1:8000;
+			client_max_body_size 100m;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+			#proxy_pass http://127.0.0.1:4523/mock/412521/api/;
+		}
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+
+
+    }
+
+```
+2. 前端启动：
 ```
 进入www页面，执行：npm run serve
 ```
-2. 后端启动
+3. 后端启动
 ```
 uvicorn server.main:app --reload
+```
+
+## 生产环境部署
+1. 前端执行打包命令
+```
+npm run build
+```
+2. 添加nginx配置
+```
+server {
+        listen 80;
+        location / {
+                root /opt/www; #打包后前端放置目录
+                index index.html;
+                try_files $uri $uri/ /index.html;
+        }
+
+        location /api/ {
+            proxy_pass http://127.0.0.1:8000;
+            client_max_body_size 100m;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "upgrade";
+                        #proxy_pass http://127.0.0.1:4523/mock/412521/api/;
+                }
+}
+```
+3. 启动后端服务
+生产环境使用，建议通过gunicorn启动服务
+```
+nohup gunicorn server.main:app -b 127.0.0.1:8000 -w 4 -k uvicorn.workers.UvicornWorker >gunicorn.log 2>&1&
 ```
 
 ## 约束
