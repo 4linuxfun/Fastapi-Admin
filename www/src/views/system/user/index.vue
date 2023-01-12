@@ -63,6 +63,11 @@
   </el-drawer>
 
 </template>
+<script>
+  export default {
+    name: '用户管理'
+  }
+</script>
 <script setup>
   import {
     onMounted,

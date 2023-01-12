@@ -68,6 +68,12 @@
   </el-drawer>
 
 </template>
+
+<script>
+  export default {
+    name: '菜单管理'
+  }
+</script>
 <script setup>
   import {Plus, ArrowDown} from '@element-plus/icons-vue'
   import {ElMessageBox} from 'element-plus'

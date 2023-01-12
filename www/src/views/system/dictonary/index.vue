@@ -60,6 +60,12 @@
 
 </template>
 
+<script>
+  export default {
+    name: '数据字典'
+  }
+</script>
+
 <script setup>
   import {
     Search,
