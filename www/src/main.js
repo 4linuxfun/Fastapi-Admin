@@ -7,8 +7,8 @@ import 'element-plus/dist/index.css'
 import router from './router'
 import {createPinia} from 'pinia'
 import {useStore} from './stores'
-import request from '@/utils/request'
 import './permission'
+import 'uno.css'
 
 
 const app = createApp(App)
@@ -16,7 +16,6 @@ for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component)
 }
 
-app.config.globalProperties.$request = request
 app.use(ElementPlus, {locale: zhCn})
 app.use(router)
 app.use(createPinia())
