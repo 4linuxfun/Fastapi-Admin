@@ -1,6 +1,6 @@
 <template>
   <div style="height: 100%">
-    <el-container>
+    <el-container style="height: 100%">
       <el-header>
         <header-content></header-content>
       </el-header>
@@ -8,13 +8,13 @@
         <el-aside width="200px">
           <menu-list></menu-list>
         </el-aside>
-        <el-main>
+        <el-main style="padding: 0px">
           <el-tabs style="border-bottom: 0" v-model="currentTab" type="border-card" closable @tab-click="tabClick" @tab-remove="tabRemove">
             <el-tab-pane v-for="tab in allTabs" :key="tab.name" :label="tab.name" :name="tab.name">
             </el-tab-pane>
           </el-tabs>
 
-          <div style="margin-top: 10px">
+          <div class="main_style">
              <router-view v-slot="{Component}">
             <keep-alive :include="cacheTabs">
               <component :is="Component"/>
@@ -31,8 +31,6 @@
 </template>
 
 <script setup>
-  import MenuList from '../components/MenuList'
-  import HeaderContent from '@/components/HeaderContent'
   import {useTabsStore} from '@/stores/tabs'
   import {watch} from 'vue'
   import {storeToRefs} from 'pinia'
@@ -48,6 +46,10 @@
 </script>
 
 <style>
+.main_style {
+  margin-top: 10px;
+  margin-left: 5px;
+}
 .el-tabs--border-card>.el-tabs__content {
   padding: 0;
 }
