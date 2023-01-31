@@ -59,6 +59,14 @@ export default defineConfig({
   },
   build: {
     outDir: 'dist',
+    minify: 'terser',
+    terserOptions: {
+      compress: {
+        //发布关闭调试模式
+        drop_console: true,
+        drop_debugger: true,
+      },
+    },
   },
   css: {}
 
