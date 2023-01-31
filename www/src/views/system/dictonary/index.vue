@@ -142,15 +142,7 @@
     }
   })
 
-  onMounted(() => {
-    freshCurrentPage()
-  })
-
 </script>
 
 <style scoped>
-.custom_pagination {
-  margin-top: 10px;
-  padding-left: 0;
-}
 </style>
