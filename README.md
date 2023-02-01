@@ -191,6 +191,22 @@ async def update_roles(role_info: RoleUpdate, session: Session = Depends(get_ses
     )
 ```
 
+## 项目截图
+### 系统登录
+![登录页面](./images/login.png)
+### 用户管理
+![用户管理页面](./images/user.png)
+![添加新用户](./images/user_add.png)
+### 角色管理
+![角色管理页面](./images/role.png)
+![添加新角色](./images/role_add.png)
+### 菜单管理
+![菜单管理页面](./images/menu.png)
+![添加新菜单](./images/menu_add.png)
+### 数据字典管理
+![数据字典管理](./images/dictonary.png)
+![数据字典元素管理](./images/dictonary_items.png)
+
 
 ### 参考项目：
 * https://github.com/xingxingzaixian/FastAPI-MySQL-Tortoise-Casbin
