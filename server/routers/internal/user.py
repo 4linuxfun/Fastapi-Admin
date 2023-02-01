@@ -34,14 +34,17 @@ async def get_roles(id: Optional[int] = None, session: Session = Depends(get_ses
     )
 
 
-@router.get('/users/exist', summary='用户是否存在', status_code=status.HTTP_204_NO_CONTENT)
+@router.get('/users/exist', summary='用户是否存在')
 async def check_uname_exist(name: str, session: Session = Depends(get_session)):
     try:
         crud.internal.user.check_name(session, name)
     except NoResultFound:
-        return
+        return ApiResponse()
     else:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail='用户名已存在')
+        return ApiResponse(
+            message='error',
+            data='error'
+        )
 
 
 @router.get('/users/{uid}',
@@ -88,8 +91,14 @@ async def update_user(user_info: UserCreateWithRoles, session: Session = Depends
     :param session:
     :return:
     """
-    logger.debug(user_info)
-    user: User = crud.internal.user.insert(session, user_info)
+    try:
+        user: User = crud.internal.user.insert(session, user_info)
+    except Exception as e:
+        logger.error(f"User Add Error:{str(e)}")
+        return ApiResponse(
+            code=500,
+            message=f"新建用户错误"
+        )
     new_roles = [role.id for role in user.roles]
     for role in new_roles:
         casbin_enforcer.add_role_for_user(f'uid_{user.id}', f'role_{role}')
