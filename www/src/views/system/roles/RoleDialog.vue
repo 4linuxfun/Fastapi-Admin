@@ -1,8 +1,8 @@
 <template>
   <el-dialog :model-value="visible" title="角色编辑页面" width="50%" @close="$emit('update:visible', false)"
               destroy-on-close>
-    <el-form :model="selectData" label-width="80px">
-      <el-form-item label="角色名称">
+    <el-form :model="selectData" label-width="80px" :rules="rules">
+      <el-form-item label="角色名称" prop="name">
         <el-input v-model="selectData.name"></el-input>
       </el-form-item>
       <el-form-item label="角色描述">
@@ -36,10 +36,11 @@
   import {
     GetRoleEnableMenus,
     PutRoles,
-    PostNewRoles,
+    PostNewRoles, GetRoleExist,
   } from '@/api/roles'
   import {ElNotification} from 'element-plus'
   import AutoDict from '@/components/AutoDict'
+  import {GetUserExist} from '@/api/users'
 
   const props = defineProps(['role', 'visible'])
   const emit = defineEmits(['update:visible'])
@@ -54,6 +55,22 @@
 
   //tree的用法
   const menuTree = ref(null)
+
+  const rules = reactive({
+    name: [{required: true, trigger: 'blur', message: '请输入角色名'},
+      {
+        required: true, trigger: 'blur',
+        validator: (rule, value, callback) => {
+          GetRoleExist(selectData.name).then((response) => {
+            if (response === 'error') {
+              callback(new Error('角色名已存在'))
+            } else {
+              callback()
+            }
+          })
+        }
+      }]
+  })
 
   function GetInfo() {
     console.log('id:' + selectData.id)

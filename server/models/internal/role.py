@@ -8,7 +8,7 @@ if TYPE_CHECKING:
 
 
 class RoleBase(SQLModel):
-    name: str = Field(max_length=20, sa_column_kwargs={'comment': '角色名'})
+    name: str = Field(max_length=20, sa_column_kwargs={'unique': True, 'comment': '角色名'})
     description: str = Field(max_length=100, sa_column_kwargs={'comment': '描述'})
     enable: bool = Field(default=True, sa_column=Column(Boolean, comment='启用'))
 

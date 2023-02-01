@@ -10,6 +10,10 @@ class CRUDRole(CRUDBase[Role]):
     def get_roles_by_id(self, session: Session, roles: List[str]):
         return session.exec(select(self.model).where(self.model.id.in_(roles))).all()
 
+    def check_exist(self, session: Session, name: str):
+        sql = select(self.model).where(self.model.name == name)
+        return session.exec(sql).one()
+
     def check_admin(self, session: Session, uid: int) -> bool:
         """
         通过uid，判断此用户是否在admin组中
