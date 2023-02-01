@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 class UserWithOutPasswd(SQLModel):
-    name: str = Field(max_length=20, sa_column_kwargs={'comment': '用户名'})
+    name: str = Field(max_length=20, sa_column_kwargs={'unique': True, 'comment': '用户名'})
     enable: bool = Field(default=True, sa_column=Column(Boolean, comment='可用'))
     avatar: Optional[str] = Field(max_length=100, sa_column_kwargs={'comment': '头像'})
     email: Optional[str] = Field(max_length=20, sa_column_kwargs={'comment': '邮箱'})
