@@ -3,6 +3,7 @@ from loguru import logger
 from fastapi import APIRouter, Depends, status
 from fastapi.exceptions import HTTPException
 from sqlmodel import Session
+from sqlalchemy.exc import NoResultFound
 from ...common.response_code import ApiResponse
 from ...common.auth_casbin import Authority
 from ...common.database import get_session
@@ -53,17 +54,37 @@ async def get_roles(search: Pagination[RoleBase], session: Session = Depends(get
     )
 
 
+@router.get('/roles/exist', summary='角色是否存在')
+async def check_uname_exist(name: str, session: Session = Depends(get_session)):
+    try:
+        crud.internal.role.check_exist(session, name)
+    except NoResultFound:
+        return ApiResponse()
+    else:
+        return ApiResponse(
+            message='error',
+            data='error'
+        )
+
+
 @router.post('/roles', summary="新建角色", response_model=ApiResponse[Role],
              dependencies=[Depends(Authority('role:add'))])
 async def add_roles(role_info: RoleInsert, session: Session = Depends(get_session)):
     logger.debug(role_info)
     enable_menus = role_info.menus
     delattr(role_info, 'menus')
-    db_obj = crud.internal.role.insert(session, Role(**role_info.dict()))
-    crud.internal.role.update_menus(session, db_obj, enable_menus)
-    return ApiResponse(
-        data=db_obj
-    )
+    try:
+        db_obj = crud.internal.role.insert(session, Role(**role_info.dict()))
+        crud.internal.role.update_menus(session, db_obj, enable_menus)
+        return ApiResponse(
+            data=db_obj
+        )
+    except Exception as e:
+        logger.error(f"add role error:{str(e)}")
+        return ApiResponse(
+            code=500,
+            message=f"新建角色错误"
+        )
 
 
 @router.put('/roles', summary="更新角色", response_model=ApiResponse[Role],

@@ -7,3 +7,4 @@ export const GetRoleEnableMenus = (roleId) => GET('/api/roles/enable-menus', {id
 export const PostNewRoles = (role) => POST('/api/roles', role)
 export const PutRoles = (role) => PUT('/api/roles', role)
 export const DeleteRole = (roleId) => DELETE('/api/roles/' + roleId)
+export const GetRoleExist = (name) => GET('/api/roles/exist', {name})

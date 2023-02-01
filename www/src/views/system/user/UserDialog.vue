@@ -1,10 +1,10 @@
 <template>
-  <el-form :model="selectData" label-width="80px">
+  <el-form :model="selectData" label-width="80px" :rules="rules">
     <el-form-item label="用户名称" prop="name">
       <el-input v-model="selectData.name" :disabled="selectData.id !== null"></el-input>
     </el-form-item>
     <el-form-item label="状态">
-      <auto-dict dict-type="switch" code="enable_code" v-model="selectData.enable" />
+      <auto-dict dict-type="switch" code="enable_code" v-model="selectData.enable"/>
     </el-form-item>
     <el-form-item label="角色">
       <el-checkbox-group v-model="enableRoleList">
@@ -24,6 +24,7 @@
 
 <script setup>
   import {
+    GetUserExist,
     GetUserRoles, PostAddUser, PutNewUser
   } from '@/api/users'
   import {ElNotification} from 'element-plus'
@@ -39,6 +40,22 @@
   const roleList = ref([])
   const enableRoleList = ref([])
   const selectOptions = ref(null)
+
+  const rules = reactive({
+    name: [{required: true, trigger: 'blur', message: '请输入用户名'},
+      {
+        required: true, trigger: 'blur',
+        validator: (rule, value, callback) => {
+          GetUserExist(selectData.name).then((response) => {
+            if (response === 'error') {
+              callback(new Error('用户名已存在'))
+            } else {
+              callback()
+            }
+          })
+        }
+      }]
+  })
 
   const getRoles = (userId) => {
     console.log(selectData)
