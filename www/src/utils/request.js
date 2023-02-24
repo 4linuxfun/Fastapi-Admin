@@ -2,7 +2,8 @@ import axios from 'axios'
 // import { Notification, detailBox } from 'element-ui'
 import {useStore} from '../stores'
 import {getToken} from '@/utils/auth'
-import {ElNotification} from 'element-plus'
+import {ElMessage, ElMessageBox, ElNotification} from 'element-plus'
+import {DelJob} from '@/api/jobs'
 
 // 创建axios实例
 const service = axios.create({
@@ -147,5 +148,23 @@ export function DELETE(url, params) {
     method: 'delete'
   })
 }
+
+export function ConfirmDel(txt,func,id) {
+    ElMessageBox.confirm(txt, '警告', {type: 'warning'}).then(() => {
+      func(id).then(() => {
+        ElMessage({
+          title: 'success',
+          message: '删除成功',
+          type: 'success'
+        })
+      })
+    }).catch(() => {
+      ElMessage({
+        title: 'success',
+        message: '取消删除操作',
+        type: 'warning'
+      })
+    })
+  }
 
 export default service
