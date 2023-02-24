@@ -1,5 +1,6 @@
 import casbin_sqlalchemy_adapter
 import casbin
+import rpyc
 from typing import List
 from pathlib import Path
 from pydantic import BaseSettings
@@ -20,6 +21,8 @@ class APISettings(BaseSettings):
         '/',
         '/api/login',
     ]
+    rpyc_config = {'host': 'localhost', 'port': 18861, 'config': {"allow_public_attrs": True, 'allow_pickle': True},
+                   'keepalive': True}
 
 
 settings = APISettings()
