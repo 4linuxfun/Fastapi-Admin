@@ -5,11 +5,11 @@ https://gist.github.com/gsw945/15cbb71eaca5be66787a2c187414e36f
 """
 
 import rpyc
-from tasks import subprocess_with_channel
+from tasks import run_command_with_channel
+from datetime import datetime
 from loguru import logger
 from config import rpc_config
 from rpyc.utils.server import ThreadedServer
-from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 from apscheduler.events import (
@@ -19,6 +19,8 @@ from apscheduler.events import (
     EVENT_JOB_SUBMITTED,
     EVENT_JOB_REMOVED
 )
+
+from scheduler import CustomScheduler
 
 
 def print_text(*args, **kwargs):
@@ -48,6 +50,21 @@ class SchedulerService(rpyc.Service):
     def exposed_get_job(self, job_id, jobstore=None):
         return scheduler.get_job(job_id, jobstore)
 
+    def exposed_switch_job(self, job_id, jobstore=None):
+        """
+        任务状态切换，暂停、启用
+        """
+        job = scheduler.get_job(job_id, jobstore)
+        if job.next_run_time is None:
+            now = datetime.now(job.trigger.timezone)
+            next_fire_time = job.trigger.get_next_fire_time(None, now)
+            if next_fire_time:
+                scheduler.resume_job(job_id, jobstore)
+            else:
+                raise ValueError('无法指定下次运行时间，请确认任务时间配置')
+        else:
+            scheduler.pause_job(job_id, jobstore)
+
 
 def event_listener(event):
     if event.code == EVENT_JOB_ADDED:
@@ -68,8 +85,8 @@ if __name__ == '__main__':
         'default': ThreadPoolExecutor(20),
         'processpool': ProcessPoolExecutor(20)
     }
-    scheduler = BackgroundScheduler(jobstores=job_store,
-                                    excutors=apscheduler_excutors)
+    scheduler = CustomScheduler(jobstores=job_store,
+                                excutors=apscheduler_excutors)
     scheduler.add_listener(event_listener,
                            EVENT_JOB_EXECUTED | EVENT_JOB_ERROR | EVENT_JOB_ADDED | EVENT_JOB_REMOVED | EVENT_JOB_SUBMITTED)
     scheduler.start()

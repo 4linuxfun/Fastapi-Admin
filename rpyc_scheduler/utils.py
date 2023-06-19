@@ -4,10 +4,10 @@ from typing import Dict, Any
 
 
 class Channel:
-    def __init__(self, redis_config, task_id):
+    def __init__(self, redis_config, job_id):
         self.conn = redis.Redis(**redis_config, decode_responses=True)
-        self.task_id = task_id
-        self.task_key = f"tasks:{self.task_id}"
+        self.job_id = job_id
+        self.task_key = f"tasks:{self.job_id}"
         self._expire = 60
 
     @property
@@ -24,6 +24,9 @@ class Channel:
 
     def send(self, msg: Dict[Any, Any]):
         self.conn.xadd(self.task_key, msg)
+
+    def delete(self, ):
+        self.conn.delete(self.task_key)
 
     def __enter__(self):
         return self
