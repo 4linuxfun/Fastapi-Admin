@@ -1,8 +1,11 @@
 import os
+import websockets
+from fastapi import WebSocket
 from typing import List, Generic, Type, TypeVar
 from loguru import logger
 from sqlmodel import SQLModel
 from ..models.internal.menu import MenusWithChild
+from ..crud.internal import job_log
 
 T = TypeVar('T', bound=SQLModel)
 
@@ -64,3 +67,39 @@ def update_model(old_model, new_model):
 def remove_tmp_file(file):
     logger.debug(f'删除临时文件{file}')
     os.remove(file)
+
+
+async def get_task_logs(ws: WebSocket, redis, session, task_id: str, trigger: str):
+    key_name = f'tasks:{task_id}'
+    last_id = 0
+    sleep_ms = 5000
+    if trigger == 'date':
+        job_log.get(session,)
+    while True:
+        if await redis.exists(key_name):
+            resp = await redis.xread({f'{key_name}': last_id}, count=1, block=sleep_ms)
+            if resp:
+                key, message = resp[0]
+                last_id = message[0][0]
+                # last_id, data = message[0]
+                # data_dict = {k.decode("utf-8"): data[k].decode("utf-8") for k in data}
+                try:
+                    await ws.send_json({'task_id': task_id, 'data': message})
+                except websockets.exceptions.ConnectionClosed as e:
+                    logger.warning(f"websocket 异常关闭:{e}")
+                    break
+        elif last_id == 0 and (result.state == 'FAILURE' or result.state == 'SUCCESS'):
+            # last_id为0表示redis中不存在key，task_id为已执行完成的任务，且redis缓存已过期
+            logger.debug(f'{task_id} state:{result.state}')
+            try:
+                await ws.send_json({'task_id': task_id, 'data': AsyncResult(task_id).result})
+            except websockets.exceptions.ConnectionClosed as e:
+                logger.warning(f"websocket 异常关闭:{e}")
+            break
+        elif result.state == 'PENDING' or result.state == 'STARTED':
+            logger.debug(f"{task_id} state:{result.state}")
+            continue
+        else:
+            logger.debug(f'{task_id}已结束')
+            break
+    return True
