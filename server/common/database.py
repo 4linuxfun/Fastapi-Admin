@@ -1,3 +1,4 @@
+import redis.asyncio as redis
 from sqlmodel import create_engine, SQLModel, Session, select
 from ..settings import engine
 
@@ -32,3 +33,11 @@ def get_or_create(session: Session, model, **kwargs):
         session.add(instance)
         session.commit()
         return instance
+
+
+async def get_redis():
+    redis_conn = redis.Redis(**settings.redis_config)
+    try:
+        yield redis_conn
+    finally:
+        await redis_conn.close()
