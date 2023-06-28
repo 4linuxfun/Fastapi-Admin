@@ -21,6 +21,7 @@ class TriggerEnum(str, Enum):
 class JobAdd(BaseModel):
     id: Optional[str] = None
     name: str
+    targets: List[str]
     trigger: TriggerEnum
     trigger_args: Union[CronJobArgs, str] = None
     command: str

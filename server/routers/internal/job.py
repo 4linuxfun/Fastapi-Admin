@@ -95,10 +95,10 @@ async def modify_job(job: JobAdd, session: Session = Depends(get_session)):
         del trigger_args['cron']
         trigger = CronTrigger(**trigger_args)
     elif job.trigger == 'date':
-        trigger = DateTrigger(run_date=job.trigger_args, timezone=job.trigger.timezone)
+        trigger = DateTrigger(run_date=job.trigger_args)
     try:
         conn = rpyc.connect(**settings.rpyc_config)
-        conn.root.modify_job(job.id, kwargs={'job_id': job.id, 'command': job.command},
+        conn.root.modify_job(job.id, kwargs={'job_id': job.id, 'targets': job.targets, 'command': job.command},
                              name=job.name, trigger=trigger)
     except Exception as e:
         logger.warning(e)
@@ -125,6 +125,7 @@ async def add_job(job: JobAdd, uid: int = Depends(get_uid), session: Session = D
         conn = rpyc.connect(**settings.rpyc_config)
         job = conn.root.add_job('scheduler-server:run_command_with_channel', trigger=job.trigger.value,
                                 kwargs={'job_id': job_id,
+                                        'targets': job.targets,
                                         'command': job.command}, id=job_id, name=job.name, **trigger_args)
         sql = text("INSERT INTO user_job values (:uid,:job_id)")
         session.execute(sql, {'uid': uid, "job_id": job_id})
@@ -182,6 +183,7 @@ async def show_jobs(search: Pagination[JobSearch], uid: int = Depends(get_uid),
     end = search.page * search.page_size - 1
     for job in user_jobs[start:end]:
         logger.debug(job.trigger)
+        logger.debug(job.kwargs)
         trigger_args: Dict[str, str] = {}
         info = {}
         if isinstance(job.trigger, CronTrigger):
@@ -191,6 +193,7 @@ async def show_jobs(search: Pagination[JobSearch], uid: int = Depends(get_uid),
             info.update({
                 'id': job.id,
                 'name': job.name,
+                'targets': job.kwargs['targets'],
                 'trigger': 'cron',
                 'trigger_args': {
                     'cron': f"{trigger_args['minute']} {trigger_args['hour']} {trigger_args['day']} {trigger_args['month']} {trigger_args['day_of_week']}",
@@ -206,6 +209,7 @@ async def show_jobs(search: Pagination[JobSearch], uid: int = Depends(get_uid),
             info.update({
                 'id': job.id,
                 'name': job.name,
+                'targets': job.kwargs['targets'],
                 'trigger': 'date',
                 'trigger_args': job.trigger.run_date.strftime(
                     "%Y-%m-%d %H:%M:%S"),
@@ -225,7 +229,8 @@ async def show_jobs(search: Pagination[JobSearch], uid: int = Depends(get_uid),
 
 @router.post('/logs', summary='任务日志查询', response_model=ApiResponse[SearchResponse[JobLogs]])
 async def job_logs(page_search: Pagination[JobLogSearch], session: Session = Depends(get_session)):
-    filter_type = JobLogSearch(job_id='like', cmd='like')
+    filter_type = JobLogSearch(job_id='eq')
+    logger.debug(page_search)
     total = crud.internal.job_log.search_total(session, page_search.search, filter_type.dict())
     jobs = crud.internal.job_log.search(session, page_search, filter_type.dict())
     logger.debug(jobs)
