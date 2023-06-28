@@ -25,9 +25,15 @@
 
       <!--执行对象-->
       <div v-show="active === 1" style="margin-top: 20px;">
-        <el-form-item label="执行对象">
+        <div style="margin: 0 20%;">
+          <el-form-item label="执行对象">
+            <el-select v-model="addForm.targets" multiple style="width: 100%">
+              <el-option label="本机" value="localhost"/>
+            </el-select>
+            <el-button style="margin-top:10px;width: 100%;">添加执行对象</el-button>
+          </el-form-item>
+        </div>
 
-        </el-form-item>
       </div>
 
       <!--执行策略页面-->
@@ -91,6 +97,7 @@
   const addForm = reactive({
     id: null,
     name: null,
+    targets: null,
     trigger: 'date',
     trigger_args: null,
     command: null,
@@ -104,6 +111,18 @@
     start_date: null,
     end_date: null
   })
+  const targets = ref([])
+
+  const hostList = [
+    {
+      value: 'localhost',
+      label: '本机'
+    },
+    {
+      value: '172.16.8.36',
+      label: '生产服务器'
+    }
+  ]
 
   if (props.job !== null) {
     Object.assign(addForm, props.job)
