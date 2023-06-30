@@ -142,40 +142,25 @@ async def add_job(job: JobAdd, uid: int = Depends(get_uid), session: Session = D
 
 
 @router.post('/search', summary='获取所有任务', response_model=ApiResponse[SearchResponse[Any]])
-async def show_jobs(search: Pagination[JobSearch], uid: int = Depends(get_uid),
-                    session: Session = Depends(get_session)):
+async def show_jobs(search: Pagination[JobSearch], uid: int = Depends(get_uid)):
     job_name = search.search['job_name']
-    sql = text("select job_id from user_job where user_id=:uid ")
-    results = session.execute(sql, {'uid': uid})
-    user_job_ids: List[str] = []
-    for job_id in results.fetchall():
-        user_job_ids.append(job_id[0])
-    logger.debug(f'uid:{uid},jobs:{user_job_ids}')
     try:
         conn = rpyc.connect(**settings.rpyc_config)
-        if job_name is None:
-            all_jobs: List[Job] = conn.root.get_jobs()
-        else:
-            search_job = conn.root.get_job(job_name)
-            if search_job is None:
-                all_jobs: List[Job] = []
-            else:
-                all_jobs: List[Job] = [search_job]
+        user_jobs: List[Job] = conn.root.get_user_jobs(uid, job_name)
     except Exception as e:
         logger.warning(e)
         return ApiResponse(
             code=500,
             message=str(e)
         )
-    if len(all_jobs) == 0:
+    if len(user_jobs) == 0:
         return ApiResponse(
             data={
-                'total': len(all_jobs),
+                'total': len(user_jobs),
                 'data': []
             }
         )
 
-    user_jobs = [job for job in all_jobs if job.id in user_job_ids]
     logger.debug(user_jobs)
 
     job_info_list: List[Dict[str, Any]] = []
