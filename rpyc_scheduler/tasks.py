@@ -21,7 +21,7 @@ def local_executor(job_id, host, command):
             channel.send({'msg': message})
         channel.send({'msg': '结束执行任务'})
         end_time = datetime.now()
-    return status, end_time - start_time, channel.msg
+    return status, (end_time - start_time).total_seconds(), channel.msg
 
 
 def host_executor(job_id, host, command):
@@ -37,6 +37,7 @@ def run_command_with_channel(job_id=None, targets: List[str] = None, command=Non
     """
     run_logs: Dict[str, Dict[str, Any]] = {}
     remote_host: List[str] = []
+    start_time = datetime.now()
     for host in targets:
         if host == 'localhost':
             status, duration, log = local_executor(job_id, host, command)
@@ -45,11 +46,13 @@ def run_command_with_channel(job_id=None, targets: List[str] = None, command=Non
                               'log': log}
         else:
             remote_host.append(host)
-
+    end_time = datetime.now()
     with engine.connect() as conn:
         sql = text(
-            "INSERT INTO job_log (status,job_id,log) values (:status,:job_id,:log)")
+            "INSERT INTO job_log (status,job_id,start_time,end_time,log) values (:status,:job_id,:start_time,:end_time,:log)")
         conn.execute(sql,
                      {'status': status, 'job_id': job_id,
+                      'start_time': start_time,
+                      'end_time': end_time,
                       'log': json.dumps(run_logs)})
         conn.commit()
