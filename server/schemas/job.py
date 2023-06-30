@@ -1,23 +1,21 @@
-from typing import Optional
+from typing import Optional, Any
+from pydantic import BaseModel
 from sqlmodel import SQLModel
 from datetime import datetime
 
 
 class JobSearch(SQLModel):
-    job_id: str
+    job_name: Optional[str] = None
 
 
 class JobLogs(SQLModel):
     id: int
-    job_id: str
-    cmd: str
-    trigger: int
-    exe_time: datetime
-    stdout: Optional[str]
     status: int
-    type: int
+    start_time: datetime
+    end_time: datetime
+    log: Any
+    job_id: str
 
 
-class JobLogSearch(SQLModel):
-    job_id: Optional[str]
-    cmd: Optional[str]
+class JobLogSearch(BaseModel):
+    job_id: str
