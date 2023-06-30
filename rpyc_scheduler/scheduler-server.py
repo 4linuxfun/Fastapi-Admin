@@ -5,11 +5,13 @@ https://gist.github.com/gsw945/15cbb71eaca5be66787a2c187414e36f
 """
 
 import rpyc
+from sqlmodel import text
 from tasks import run_command_with_channel
 from datetime import datetime
 from loguru import logger
 from config import rpc_config
 from rpyc.utils.server import ThreadedServer
+from apscheduler.job import Job
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 from apscheduler.events import (
@@ -21,6 +23,7 @@ from apscheduler.events import (
 )
 
 from scheduler import CustomScheduler
+from models import engine
 
 
 def print_text(*args, **kwargs):
@@ -49,6 +52,26 @@ class SchedulerService(rpyc.Service):
 
     def exposed_get_job(self, job_id, jobstore=None):
         return scheduler.get_job(job_id, jobstore)
+
+    def exposed_get_user_jobs(self, uid, job_name, jobstore=None) -> list[Job]:
+        """
+        通过uid和job_name，获取用户的jobs列表
+        :param uid:用户ID
+        :param job_name：指定匹配job name
+        :param jobstore: None
+        """
+        logger.debug(f'get_user_jobs:{job_name}')
+        sql = text("select job_id from user_job where user_id=:uid ")
+        user_jobs = []
+        with engine.connect() as conn:
+            results = conn.execute(sql, {'uid': uid})
+            for job_id in results.fetchall():
+                job = self.exposed_get_job(job_id[0], jobstore)
+                if job_name is None:
+                    user_jobs.append(job)
+                elif (job.name.find(job_name)) >= 0:
+                    user_jobs.append(job)
+        return user_jobs
 
     def exposed_switch_job(self, job_id, jobstore=None):
         """
