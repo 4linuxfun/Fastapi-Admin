@@ -2,7 +2,7 @@
   <el-row>
     <el-form v-model="search" inline>
       <el-form-item label="任务名">
-        <el-input v-model="search.job_name"/>
+        <el-input v-model.trim="search.job_name" clearable/>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="handleSearch">查询</el-button>
@@ -16,9 +16,9 @@
     <el-table-column label="任务名" prop="name"/>
     <el-table-column label="类型">
       <template #default="scope">
-        <el-tag v-if="scope.row.trigger === 'cron'" type="success">Cron</el-tag>
-        <el-tag v-else-if="scope.row.trigger === 'date'" type="info">Date</el-tag>
-        <el-tag v-else type="warning">Interval</el-tag>
+        <el-tag effect="dark" :type="scope.row.trigger === 'cron'? 'success':'info'">
+          {{ scope.row.trigger === 'cron' ? 'Cron' : 'Date'}}
+        </el-tag>
       </template>
     </el-table-column>
     <el-table-column label="执行命令" prop="command"/>
@@ -31,7 +31,7 @@
     <el-table-column label="操作">
       <template #default="scope">
         <el-button type="primary" size="small" @click="handleEdit(scope.row)">编辑</el-button>
-        <el-button type="primary" size="small" @click="handleLogs(scope.row.id)">日志</el-button>
+        <el-button type="primary" size="small" @click="handleLogs(scope.row)">日志</el-button>
         <el-button type="danger" size="small" @click="handleDel(scope.row)">删除</el-button>
       </template>
     </el-table-column>
@@ -46,8 +46,8 @@
     <add-job v-model:visible="addDrawer" :job="jobInfo"/>
   </el-dialog>
 
-  <el-dialog v-model="logDrawer" title="任务记录" destroy-on-close>
-    <add-job v-model:visible="logDrawer" :job="jobId"/>
+  <el-dialog v-model="logDrawer" title="任务日志" destroy-on-close>
+    <job-logs :job="jobInfo"/>
   </el-dialog>
 </template>
 
@@ -61,6 +61,7 @@
 
   import {ref, onMounted, watch} from 'vue'
   import AddJob from '@/views/jobs/JobManage/AddJob.vue'
+  import JobLogs from '@/views/jobs/JobManage/JobLogs.vue'
   import {DelJob, GetJobList, SwitchJob} from '@/api/jobs'
   import {ConfirmDel} from '@/utils/request'
   import usePagination from '@/composables/usePagination'
@@ -101,7 +102,9 @@
     ConfirmDel('是否确定要删除任务：' + job.name, DelJob, job.id)
   }
 
-  function handleLogs(jobId) {
+  function handleLogs(job) {
+    console.log(job)
+    jobInfo = job
     logDrawer.value = true
   }
 
