@@ -3,7 +3,8 @@ import casbin
 import rpyc
 from typing import List
 from pathlib import Path
-from pydantic import BaseSettings
+from pydantic import MySQLDsn
+from pydantic_settings import BaseSettings
 from sqlmodel import create_engine
 
 
@@ -15,18 +16,19 @@ class APISettings(BaseSettings):
 
     CASBIN_MODEL_PATH: str = "server/model.conf"
     # sql数据库信息
-    DATABASE_URI = "mysql+pymysql://root:123456@192.168.137.129/devops"
+    DATABASE_URI: MySQLDsn = "mysql+pymysql://root:123456@192.168.137.129/devops"
     # 白名单，不需要进行任何验证即可访问
     NO_VERIFY_URL: List = [
         '/',
         '/api/login',
     ]
-    rpyc_config = {'host': 'localhost', 'port': 18861, 'config': {"allow_public_attrs": True, 'allow_pickle': True},
-                   'keepalive': True}
+    rpyc_config: dict = {'host': 'localhost', 'port': 18861,
+                         'config': {"allow_public_attrs": True, 'allow_pickle': True},
+                         'keepalive': True}
 
 
 settings = APISettings()
 
-engine = create_engine(settings.DATABASE_URI, pool_size=5, max_overflow=10, pool_timeout=30, pool_pre_ping=True)
+engine = create_engine(str(settings.DATABASE_URI), pool_size=5, max_overflow=10, pool_timeout=30, pool_pre_ping=True)
 adapter = casbin_sqlalchemy_adapter.Adapter(engine)
 casbin_enforcer = casbin.Enforcer(settings.CASBIN_MODEL_PATH, adapter)
