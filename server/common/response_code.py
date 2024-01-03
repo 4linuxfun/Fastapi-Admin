@@ -1,12 +1,12 @@
 from typing import Generic, TypeVar, Optional, List
 from pydantic import Field
-from pydantic.generics import GenericModel
+from pydantic import BaseModel
 
 T = TypeVar("T")
 DATA = TypeVar("DATA")
 
 
-class ApiResponse(GenericModel, Generic[T]):
+class ApiResponse(BaseModel, Generic[T]):
     """
     自定义返回模型
     """
@@ -15,6 +15,6 @@ class ApiResponse(GenericModel, Generic[T]):
     data: Optional[T]
 
 
-class SearchResponse(GenericModel, Generic[DATA]):
+class SearchResponse(BaseModel, Generic[DATA]):
     total: int
     data: List[DATA] = []
