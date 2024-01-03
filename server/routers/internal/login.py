@@ -7,6 +7,7 @@ from sqlalchemy.exc import NoResultFound
 from ...common.response_code import ApiResponse
 from ...common.security import create_access_token
 from ...models.internal import User, Menu
+from ...common.dep import get_uid
 from ...models.internal.user import UserLogin, LoginResponse
 from ... import crud
 from ...common.utils import menu_convert
@@ -44,7 +45,7 @@ async def login(login_form: UserLogin, session: Session = Depends(get_session)):
 
 
 @router.get('/permission', summary='获取权限')
-async def get_permission(request: Request, session: Session = Depends(get_session)):
+async def get_permission(uid:int=Depends(get_uid), session: Session = Depends(get_session)):
     """
     用户权限请求，返回拥有权限的菜单列表，前端根据返回的菜单列表信息，合成菜单项
     :param request:
@@ -52,7 +53,6 @@ async def get_permission(request: Request, session: Session = Depends(get_sessio
     :param token:
     :return:
     """
-    uid: int = request.state.uid
     logger.debug(f"uid is:{uid}")
     user: User = crud.internal.user.get(session, uid)
     logger.debug(user.roles)
