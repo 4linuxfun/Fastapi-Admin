@@ -1,4 +1,4 @@
-from typing import Optional, List
+from typing import Optional, List, Union
 from sqlmodel import SQLModel, Field, Relationship, Column, Boolean, Integer
 
 
@@ -45,9 +45,9 @@ class DictUpdate(DictBase):
 
 class DictItemSearch(SQLModel):
     dict_id: int
-    name: Optional[str]
-    data: Optional[str]
-    enable: Optional[bool]
+    name: Union[str, None] = None
+    data: Union[str, None] = None
+    enable: Union[bool, None] = None
 
 
 class DictItemSearchFilter(SQLModel):
