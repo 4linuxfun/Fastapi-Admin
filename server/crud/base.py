@@ -1,6 +1,7 @@
 # 参考自：tiangolo/full-stack-fastapi-postgresql项目，部分代码为直接摘抄
 from copy import deepcopy
 from loguru import logger
+from pydantic import BaseModel
 from typing import TypeVar, Generic, List, Type, Any, Dict, Optional
 from sqlmodel import Session, select, SQLModel, func, desc
 from ..schemas.internal.pagination import Pagination
@@ -43,7 +44,7 @@ class CRUDBase(Generic[ModelType]):
         db.commit()
         return obj
 
-    def _make_search(self, sql, search: Optional[Dict[str, Any]] = None, filter_type: Optional[Dict[str, str]] = None):
+    def _make_search(self, sql, search: BaseModel = None, filter_type: Optional[Dict[str, str]] = None):
         """
         用于构建专用的sql查询语句，子类需要重写此方法
         :param sql:
@@ -53,7 +54,7 @@ class CRUDBase(Generic[ModelType]):
         """
         if search is None:
             return sql
-        q = deepcopy(search)
+        q = deepcopy(search.model_dump())
         for key in q:
             if (key in filter_type.keys()) and (q[key] is not None):
                 if filter_type[key] == 'l_like':
@@ -101,7 +102,8 @@ class CRUDBase(Generic[ModelType]):
         subquery = subquery.offset(
             (search.page - 1) * search.page_size).limit(1).scalar_subquery()
         if search.model == 'desc':
-            sql = sql.where(getattr(self.model, order_col) <= subquery).order_by(desc(getattr(self.model, order_col))).limit(
+            sql = sql.where(getattr(self.model, order_col) <= subquery).order_by(
+                desc(getattr(self.model, order_col))).limit(
                 search.page_size)
         else:
             sql = sql.where(getattr(self.model, order_col) >= subquery).limit(search.page_size)
@@ -109,7 +111,7 @@ class CRUDBase(Generic[ModelType]):
         results = session.exec(sql).all()
         return results
 
-    def search_total(self, session: Session, q: Dict[str, Any], filter_type: Optional[Dict[str, str]] = None):
+    def search_total(self, session: Session, q: BaseModel, filter_type: Optional[Dict[str, str]] = None):
         """
         每次进行分页查询的时候，都需要返回一个total值，表示对应搜索，现阶段数据库有多少内容，便于前端分页数
         :param session:
