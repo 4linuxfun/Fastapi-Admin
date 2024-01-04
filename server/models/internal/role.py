@@ -1,4 +1,4 @@
-from typing import Optional, List, TYPE_CHECKING
+from typing import Optional, List, TYPE_CHECKING, Union
 from sqlmodel import SQLModel, Field, Relationship, Column, Integer, Boolean
 from .relationships import RoleMenu, UserRole
 
@@ -8,9 +8,9 @@ if TYPE_CHECKING:
 
 
 class RoleBase(SQLModel):
-    name: str = Field(max_length=20, sa_column_kwargs={'unique': True, 'comment': '角色名'})
-    description: str = Field(max_length=100, sa_column_kwargs={'comment': '描述'})
-    enable: bool = Field(default=True, sa_column=Column(Boolean, comment='启用'))
+    name: Union[str, None] = Field(max_length=20, default=None, sa_column_kwargs={'unique': True, 'comment': '角色名'})
+    description: Union[str, None] = Field(max_length=100, default=None, sa_column_kwargs={'comment': '描述'})
+    enable: Union[bool, None] = Field(default=True, sa_column=Column(Boolean, comment='启用'))
 
 
 class Role(RoleBase, table=True):
@@ -35,4 +35,4 @@ class RoleWithMenus(RoleBase):
 
 from .menu import Menu
 
-RoleWithMenus.update_forward_refs()
+RoleWithMenus.model_rebuild()
