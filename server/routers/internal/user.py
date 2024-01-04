@@ -9,7 +9,7 @@ from ...common.auth_casbin import Authority
 from ...common.database import get_session
 from ...models.internal import User, Role
 from ...models.internal.user import UserCreateWithRoles, UserReadWithRoles, UserUpdateWithRoles, UserUpdatePassword, \
-    UserWithOutPasswd
+    UserWithOutPasswd, UserSearch
 from ...schemas.internal.pagination import Pagination
 from ... import crud
 
@@ -61,7 +61,7 @@ async def get_user_info(uid: int, session: Session = Depends(get_session)):
 
 
 @router.post('/users/search', summary="获取用户列表")
-async def get_all_user(search: Pagination[UserWithOutPasswd],
+async def get_all_user(search: Pagination[UserSearch],
                        session: Session = Depends(get_session)):
     """
     获取“用户管理”页面的用户列表清单

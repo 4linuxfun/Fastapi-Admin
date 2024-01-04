@@ -22,7 +22,7 @@ class CRUDItem(CRUDBase[DictItem]):
         """
         重写search函数，数据字典通过sort进行排序
         """
-        sql = select(self.model).where(self.model.dict_id == search.search['dict_id'])
+        sql = select(self.model).where(self.model.dict_id == search.search.dict_id)
         sql = self._make_search(sql, search.search, filter_type)
         if search.model == 'desc':
             sql = sql.order_by(desc(self.model.sort))

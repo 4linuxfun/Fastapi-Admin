@@ -1,4 +1,4 @@
-from typing import Optional, List, Literal, TYPE_CHECKING
+from typing import Optional, List, Union, Literal, TYPE_CHECKING
 from pydantic import BaseModel
 from sqlmodel import SQLModel, Field, Relationship, Column, Integer, Boolean
 from .relationships import UserRole, UserJob
@@ -70,3 +70,9 @@ class UserLogin(SQLModel):
 class LoginResponse(SQLModel):
     uid: int
     token: str
+
+
+class UserSearch(SQLModel):
+    name: Union[str, None]
+    enable: Union[int, None]
+    email: Union[str, None]
