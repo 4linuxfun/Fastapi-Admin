@@ -45,7 +45,7 @@ async def login(login_form: UserLogin, session: Session = Depends(get_session)):
 
 
 @router.get('/permission', summary='获取权限')
-async def get_permission(uid:int=Depends(get_uid), session: Session = Depends(get_session)):
+async def get_permission(uid: int = Depends(get_uid), session: Session = Depends(get_session)):
     """
     用户权限请求，返回拥有权限的菜单列表，前端根据返回的菜单列表信息，合成菜单项
     :param request:
@@ -59,14 +59,17 @@ async def get_permission(uid:int=Depends(get_uid), session: Session = Depends(ge
     user_menus = []
     # admin组用户获取所有菜单列表
     if uid == 1 or crud.internal.role.check_admin(session, uid):
-        menu_list = session.exec(select(Menu).where(Menu.type != 'btn').order_by(Menu.sort)).all()
-        btn_list = session.exec(select(Menu.auth).where(Menu.type == 'btn').where(Menu.auth.is_not(None))).all()
+        menu_list = session.exec(select(Menu).where(Menu.type != 'btn', Menu.enable == 1).order_by(Menu.sort)).all()
+        btn_list = session.exec(
+            select(Menu.auth).where(Menu.type == 'btn', Menu.enable == 1).where(Menu.auth.is_not(None))).all()
     else:
         for role in user.roles:
             user_menus.extend([menu.id for menu in role.menus])
         menu_list = session.exec(
-            select(Menu).where(Menu.id.in_(set(user_menus))).where(Menu.type != 'btn').order_by(Menu.sort)).all()
-        btn_list = session.exec(select(Menu.auth).where(Menu.id.in_(set(user_menus))).where(Menu.type == 'btn')).all()
+            select(Menu).where(Menu.id.in_(set(user_menus))).where(Menu.type != 'btn').where(Menu.enable == 1).order_by(
+                Menu.sort)).all()
+        btn_list = session.exec(select(Menu.auth).where(Menu.id.in_(set(user_menus))).where(Menu.type == 'btn').where(
+            Menu.enable == 1)).all()
     user_menus = menu_convert(menu_list)
 
     logger.debug(f"user menus:{user_menus}")
