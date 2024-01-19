@@ -16,8 +16,8 @@ from server.models.internal.job import JobAdd, JobLog
 from server.common.database import get_session, get_redis
 from server.common.response_code import ApiResponse, SearchResponse
 from server.common.utils import get_task_logs
-from server.schemas.internal.pagination import Pagination
-from server.schemas.job import JobSearch, JobLogs, JobLogSearch
+from server.models.internal import Pagination
+from server.models.internal.job import JobSearch, JobLogs, JobLogSearch
 from server import crud
 from server.common.dep import get_uid
 

@@ -3,7 +3,7 @@ from loguru import logger
 from sqlmodel import select, Session, desc
 from ...models.internal.dictonary import DataDict, DictItem, DictItemSearch
 from ..base import CRUDBase
-from ...schemas.internal.pagination import Pagination
+from ...models.internal import Pagination
 
 
 class CRUDDict(CRUDBase[DataDict]):

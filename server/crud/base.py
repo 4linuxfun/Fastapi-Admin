@@ -4,7 +4,7 @@ from loguru import logger
 from pydantic import BaseModel
 from typing import TypeVar, Generic, List, Type, Any, Dict, Optional
 from sqlmodel import Session, select, SQLModel, func, desc
-from ..schemas.internal.pagination import Pagination
+from ..models.internal import Pagination
 
 ModelType = TypeVar('ModelType', bound=SQLModel)
 

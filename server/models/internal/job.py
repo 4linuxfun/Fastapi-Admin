@@ -52,3 +52,20 @@ class JobLog(SQLModel, table=True):
 
     class Config:
         arbitrary_types_allowed = True
+
+
+class JobSearch(SQLModel):
+    job_name: Optional[str] = None
+
+
+class JobLogs(SQLModel):
+    id: int
+    status: int
+    start_time: datetime
+    end_time: datetime
+    log: Any
+    job_id: str
+
+
+class JobLogSearch(BaseModel):
+    job_id: str

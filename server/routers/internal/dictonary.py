@@ -1,7 +1,7 @@
 from typing import Optional, List
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlmodel import Session
-from ...schemas.internal.pagination import Pagination
+from ...models.internal import Pagination
 from ...models.internal.dictonary import DataDict, DictRead, DictUpdate, DictItem, DataDictSearch, \
     DictItemSearch, DictItemSearchFilter
 from ...common.response_code import ApiResponse, SearchResponse

@@ -10,7 +10,7 @@ from ...common.database import get_session
 from ... import crud
 from ...models.internal import Role, Menu
 from ...models.internal.role import RoleBase, RoleWithMenus, RoleInsert, RoleUpdate
-from ...schemas.internal.pagination import Pagination
+from server.models.internal import Pagination
 from ...common.utils import menu_convert
 
 router = APIRouter(prefix='/api')

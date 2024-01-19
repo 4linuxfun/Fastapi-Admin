@@ -10,7 +10,7 @@ from ...common.database import get_session
 from ...models.internal import User, Role
 from ...models.internal.user import UserCreateWithRoles, UserReadWithRoles, UserUpdateWithRoles, UserUpdatePassword, \
     UserWithOutPasswd
-from ...schemas.internal.pagination import Pagination
+from server.models.internal import Pagination
 from ... import crud
 
 router = APIRouter(prefix='/api', )
