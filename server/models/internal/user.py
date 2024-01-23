@@ -10,10 +10,10 @@ if TYPE_CHECKING:
 
 
 class UserWithOutPasswd(SQLModel):
-    name: str = Field(max_length=20, sa_column_kwargs={'unique': True, 'comment': '用户名'})
-    enable: bool = Field(default=True, sa_column=Column(Boolean, comment='可用'))
-    avatar: Optional[str] = Field(max_length=100, sa_column_kwargs={'comment': '头像'})
-    email: Optional[str] = Field(max_length=20, sa_column_kwargs={'comment': '邮箱'})
+    name: Union[str, None] = Field(max_length=20, default=None, sa_column_kwargs={'unique': True, 'comment': '用户名'})
+    enable: Union[bool, None] = Field(default=True, sa_column=Column(Boolean, comment='可用'))
+    avatar: Union[str, None] = Field(max_length=100, default=None, sa_column_kwargs={'comment': '头像'})
+    email: Union[str, None] = Field(max_length=20, default=None, sa_column_kwargs={'comment': '邮箱'})
 
 
 class UserBase(UserWithOutPasswd):
@@ -70,9 +70,3 @@ class UserLogin(SQLModel):
 class LoginResponse(SQLModel):
     uid: int
     token: str
-
-
-class UserSearch(SQLModel):
-    name: Union[str, None]
-    enable: Union[int, None]
-    email: Union[str, None]
