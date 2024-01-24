@@ -54,10 +54,8 @@
     />
 
   </div>
-  <el-dialog v-model="resetPasswdDialog" title="用户密码重置" width="30%" @close="resetPasswdDialog=false">
-    <change-passwd :user='selectUser' v-model:visible="resetPasswdDialog"/>
-  </el-dialog>
 
+  <ResetPasswdDialog ref="resetPasswdDialogRef"/>
   <user-drawer ref="userDrawerRef" @success="freshCurrentPage"/>
 
 </template>
@@ -76,7 +74,7 @@
     Search, RefreshRight, Plus
   } from '@element-plus/icons-vue'
   import UserDrawer from './UserDrawer.vue'
-  import ChangePasswd from './ChangePasswd'
+  import ResetPasswdDialog from './ResetPasswdDialog.vue'
   import usePagination from '@/composables/usePagination'
   import {
     DeleteUser, GetUserInfo
@@ -86,7 +84,7 @@
 
 
   const detailVisible = ref(false)
-  const resetPasswdDialog = ref(false)
+  const resetPasswdDialogRef = ref(null)
   const selectUser = reactive({})
   const searchRef = ref(null)
   const userDrawerRef = ref(null)
@@ -116,8 +114,7 @@
   }
 
   function handleChangePwd(user) {
-    resetPasswdDialog.value = true
-    Object.assign(selectUser, user)
+    resetPasswdDialogRef.value.reset(user)
   }
 
 
