@@ -58,9 +58,7 @@
     <change-passwd :user='selectUser' v-model:visible="resetPasswdDialog"/>
   </el-dialog>
 
-  <el-drawer v-model="detailVisible" title="编辑用户" destroy-on-close>
-    <user-dialog :user='selectUser' v-model:visible='detailVisible'/>
-  </el-drawer>
+  <user-drawer ref="userDrawerRef" @success="freshCurrentPage"/>
 
 </template>
 <script>
@@ -70,7 +68,6 @@
 </script>
 <script setup>
   import {
-    onMounted,
     reactive,
     ref, watch
   } from 'vue'
@@ -78,14 +75,13 @@
     Edit, Delete, Unlock,
     Search, RefreshRight, Plus
   } from '@element-plus/icons-vue'
-  import UserDialog from './UserDialog.vue'
+  import UserDrawer from './UserDrawer.vue'
   import ChangePasswd from './ChangePasswd'
   import usePagination from '@/composables/usePagination'
   import {
     DeleteUser, GetUserInfo
   } from '@/api/users'
-  import {GetDictItems} from '@/api/dictonary'
-  import {ElMessage, ElMessageBox, ElNotification, ElPopconfirm} from 'element-plus'
+  import {ElMessage, ElMessageBox} from 'element-plus'
   import AutoDict from '@/components/AutoDict'
 
 
@@ -93,7 +89,7 @@
   const resetPasswdDialog = ref(false)
   const selectUser = reactive({})
   const searchRef = ref(null)
-  const selectOptions = ref(null)
+  const userDrawerRef = ref(null)
 
   const searchForm = {
     name: null,
@@ -125,27 +121,13 @@
   }
 
 
-  function handleEdit(uid) {
-    console.log(uid)
-    GetUserInfo(uid).then(response => {
-      Object.assign(selectUser, response)
-      detailVisible.value = true
-    })
-    console.log(selectUser)
+  async function handleEdit(uid) {
+    await userDrawerRef.value.edit(uid)
   }
 
-  function handleAdd() {
+  async function handleAdd() {
     console.log('start to add user')
-    Object.assign(selectUser, {
-      id: null,
-      name: null,
-      email: '',
-      enable: 0,
-      avatar: '',
-      password: null,
-    })
-    console.log(selectUser)
-    detailVisible.value = true
+    await userDrawerRef.value.add()
   }
 
 
