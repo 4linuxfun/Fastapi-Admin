@@ -70,3 +70,8 @@ class UserLogin(SQLModel):
 class LoginResponse(SQLModel):
     uid: int
     token: str
+
+
+class UserInfo(BaseModel):
+    user: User
+    roles: List[str]

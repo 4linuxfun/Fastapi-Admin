@@ -54,13 +54,9 @@
     />
 
   </div>
-  <el-dialog v-model="resetPasswdDialog" title="用户密码重置" width="30%" @close="resetPasswdDialog=false">
-    <change-passwd :user='selectUser' v-model:visible="resetPasswdDialog"/>
-  </el-dialog>
 
-  <el-drawer v-model="detailVisible" title="编辑用户" destroy-on-close>
-    <user-dialog :user='selectUser' v-model:visible='detailVisible'/>
-  </el-drawer>
+  <ResetPasswdDialog ref="resetPasswdDialogRef"/>
+  <user-drawer ref="userDrawerRef" @success="freshCurrentPage"/>
 
 </template>
 <script>
@@ -70,7 +66,6 @@
 </script>
 <script setup>
   import {
-    onMounted,
     reactive,
     ref, watch
   } from 'vue'
@@ -78,22 +73,21 @@
     Edit, Delete, Unlock,
     Search, RefreshRight, Plus
   } from '@element-plus/icons-vue'
-  import UserDialog from './UserDialog.vue'
-  import ChangePasswd from './ChangePasswd'
+  import UserDrawer from './UserDrawer.vue'
+  import ResetPasswdDialog from './ResetPasswdDialog.vue'
   import usePagination from '@/composables/usePagination'
   import {
     DeleteUser, GetUserInfo
   } from '@/api/users'
-  import {GetDictItems} from '@/api/dictonary'
-  import {ElMessage, ElMessageBox, ElNotification, ElPopconfirm} from 'element-plus'
+  import {ElMessage, ElMessageBox} from 'element-plus'
   import AutoDict from '@/components/AutoDict'
 
 
   const detailVisible = ref(false)
-  const resetPasswdDialog = ref(false)
+  const resetPasswdDialogRef = ref(null)
   const selectUser = reactive({})
   const searchRef = ref(null)
-  const selectOptions = ref(null)
+  const userDrawerRef = ref(null)
 
   const searchForm = {
     name: null,
@@ -120,32 +114,17 @@
   }
 
   function handleChangePwd(user) {
-    resetPasswdDialog.value = true
-    Object.assign(selectUser, user)
+    resetPasswdDialogRef.value.reset(user)
   }
 
 
-  function handleEdit(uid) {
-    console.log(uid)
-    GetUserInfo(uid).then(response => {
-      Object.assign(selectUser, response)
-      detailVisible.value = true
-    })
-    console.log(selectUser)
+  async function handleEdit(uid) {
+    await userDrawerRef.value.edit(uid)
   }
 
-  function handleAdd() {
+  async function handleAdd() {
     console.log('start to add user')
-    Object.assign(selectUser, {
-      id: null,
-      name: null,
-      email: '',
-      enable: 0,
-      avatar: '',
-      password: null,
-    })
-    console.log(selectUser)
-    detailVisible.value = true
+    await userDrawerRef.value.add()
   }
 
 

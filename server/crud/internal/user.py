@@ -3,7 +3,7 @@ from loguru import logger
 from sqlmodel import select, Session
 from ...models.internal.user import User
 from ..base import CRUDBase
-from ...schemas.internal.user import UserInfo, UserLogin
+from ...models.internal.user import UserInfo, UserLogin
 from .roles import role
 
 
