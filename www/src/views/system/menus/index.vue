@@ -50,7 +50,8 @@
               <el-dropdown-menu>
                 <el-dropdown-item :command="beforeHandleCommand(scope.row,'detail')">编辑
                 </el-dropdown-item>
-                <el-dropdown-item :command="beforeHandleCommand(scope.row,'addSubPage')">添加子菜单
+                <el-dropdown-item v-if="scope.row.type === 'page'"
+                                  :command="beforeHandleCommand(scope.row,'addSubPage')">添加子菜单
                 </el-dropdown-item>
                 <el-dropdown-item :command="beforeHandleCommand(scope.row,'delete')">删除
                 </el-dropdown-item>
@@ -63,9 +64,8 @@
     </el-table>
 
   </div>
-  <el-drawer v-model="dialogVisible" title="添加子菜单" destroy-on-close>
-    <menu-dialog :data="selectData" v-model:visible="dialogVisible"></menu-dialog>
-  </el-drawer>
+
+  <menu-drawer ref="menuDrawerRef" @success="getMenuInfo"/>
 
 </template>
 
@@ -81,8 +81,8 @@
     DeleteMenu,
     GetAllMenus
   } from '@/api/menus'
-  import MenuDialog from './MenuDialog'
   import {provide, reactive, ref, shallowRef, watch} from 'vue'
+  import MenuDrawer from '@/views/system/menus/MenuDrawer.vue'
 
   const dialogVisible = ref(false)
   const menuInfo = reactive({
@@ -91,6 +91,7 @@
   })
   const menuData = shallowRef([])
   const selectData = reactive({})
+  const menuDrawerRef = ref(null)
 
   provide('menuData', menuData)
 
@@ -110,8 +111,7 @@
     let row = command.row
     switch (command.command) {
       case 'detail':
-        dialogVisible.value = true
-        Object.assign(selectData, row)
+        menuDrawerRef.value.edit(row)
         break
       case 'addSubPage':
         handleAdd(row.id, 'subPage')
@@ -128,17 +128,7 @@
   }
 
   const handleAdd = (parentId = null, menuType = 'page') => {
-    Object.assign(selectData, {
-      id: null,
-      parent_id: parentId,
-      name: '',
-      path: '',
-      component: null,
-      auth: '',
-      enable: 0,
-      type: menuType
-    })
-    dialogVisible.value = true
+    menuDrawerRef.value.add(parentId, menuType)
   }
 
   const getMenuInfo = () => {

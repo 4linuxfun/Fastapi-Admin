@@ -1,6 +1,6 @@
 <template>
-  <el-dialog :model-value="visible" title="角色编辑页面" width="50%" @close="$emit('update:visible', false)"
-              destroy-on-close>
+  <el-dialog v-model="visible" title="角色编辑页面" width="50%" @close="visible=false"
+             destroy-on-close>
     <el-form :model="selectData" label-width="80px" :rules="rules">
       <el-form-item label="角色名称" prop="name">
         <el-input v-model="selectData.name"></el-input>
@@ -9,7 +9,7 @@
         <el-input v-model="selectData.description"></el-input>
       </el-form-item>
       <el-form-item label="状态">
-       <auto-dict v-model="selectData.enable" dict-type="switch" code="enable_code"/>
+        <auto-dict v-model="selectData.enable" dict-type="switch" code="enable_code"/>
       </el-form-item>
       <el-form-item label="菜单权限">
         <el-tree ref="menuTree" :data="menus" :props="defaultProps" accordion show-checkbox node-key="id"
@@ -18,14 +18,13 @@
             <el-icon v-if="data.icon">
               <component :is="data.icon"/>
             </el-icon>
-            <span>{{data.name}}</span>
+            <span>{{ data.name }}</span>
           </template>
         </el-tree>
       </el-form-item>
       <el-form-item>
-        <el-button @click="$emit('update:visible', false)">取消</el-button>
-        <el-button v-if="selectData.id" type="primary" @click="handleUpdate">更新</el-button>
-        <el-button v-else type="primary" @click="handleUpdate">添加</el-button>
+        <el-button type="danger" @click="visible=false">取消</el-button>
+        <el-button type="primary" @click="handleUpdate">确定</el-button>
       </el-form-item>
     </el-form>
   </el-dialog>
@@ -40,11 +39,10 @@
   } from '@/api/roles'
   import {ElNotification} from 'element-plus'
   import AutoDict from '@/components/AutoDict'
-  import {GetUserExist} from '@/api/users'
 
-  const props = defineProps(['role', 'visible'])
-  const emit = defineEmits(['update:visible'])
-  const selectData = reactive(props.role)
+  const emit = defineEmits(['success'])
+  const visible = ref(false)
+  const selectData = reactive({})
   const menus = ref([])
   const defaultProps = reactive({
     children: 'children',
@@ -81,60 +79,77 @@
     })
   }
 
-  function handleUpdate() {
+  async function handleUpdate() {
     let checkedKeys = menuTree.value.getCheckedKeys().concat(menuTree.value.getHalfCheckedKeys())
     console.log(checkedKeys)
     selectData.menus = checkedKeys
     console.log(selectData)
     if (selectData.id === null) {
-      PostNewRoles(selectData).then(() => {
+      try {
+        await PostNewRoles(selectData)
         ElNotification({
           title: 'success',
           message: '角色新建成功',
           type: 'success'
         })
-      }).catch((error) => {
+      } catch (error) {
         ElNotification({
           title: 'error',
           message: '角色新建失败：' + error,
           type: 'error'
         })
-      })
+      }
     } else {
-      PutRoles(selectData).then(() => {
-        console.log('notification')
+      try {
+        await PutRoles(selectData)
         ElNotification({
           title: 'success',
           message: '角色更新成功',
           type: 'success'
         })
-      }).catch((error) => {
+      } catch (error) {
         ElNotification({
           title: 'error',
           message: '失败：' + error,
           type: 'error'
         })
-      })
+      }
     }
-
-    emit('update:visible', false)
+    visible.value = false
+    emit('success')
   }
 
-  function customNodeClass(data,node){
-    if (data.type === "subPage"){
+  function customNodeClass(data, node) {
+    if (data.type === 'subPage') {
       return 'is-btn'
     }
     return null
   }
 
-  onMounted(()=>{
+  function add() {
+    Object.assign(selectData, {
+      id: null,
+      name: '',
+      description: '',
+      enable: true
+    })
     GetInfo()
-  })
+    visible.value = true
+  }
+
+  function edit(role) {
+    Object.assign(selectData, role)
+    GetInfo()
+    visible.value = true
+  }
+
+
+  defineExpose({add, edit})
 
 </script>
 
 <style>
-.el-tree-node.is-expanded.is-btn > .el-tree-node__children{
+.el-tree-node.is-expanded.is-btn > .el-tree-node__children {
   display: flex;
   flex-direction: row;
 }

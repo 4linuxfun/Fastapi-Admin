@@ -59,7 +59,7 @@ async def update_menu(menu: MenuBase, session: Session = Depends(get_session)):
     )
 
 
-@router.delete('/menus/{id}', summary='删除菜单', status_code=status.HTTP_204_NO_CONTENT,
+@router.delete('/menus/{id}', summary='删除菜单',
                dependencies=[Depends(Authority("menu:del"))])
 async def del_menu(id: int, session: Session = Depends(get_session)):
     db_obj = crud.menu.get(session, id)
@@ -67,3 +67,4 @@ async def del_menu(id: int, session: Session = Depends(get_session)):
         roles = [role.name for role in db_obj.roles]
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{roles} 角色关联菜单，请先取消关联")
     crud.menu.delete(session, id)
+    return ApiResponse()

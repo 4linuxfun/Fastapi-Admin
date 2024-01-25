@@ -48,9 +48,7 @@
                  style="margin-top: 10px;"
   />
 
-  <div v-if="dialogVisible">
-    <role-dialog :role='selectRole' v-model:visible='dialogVisible'></role-dialog>
-  </div>
+  <role-dialog ref="roleDialogRef" @success="freshCurrentPage"/>
 
 </template>
 
@@ -72,6 +70,7 @@
   const selectRole = reactive({})
   const addDialog = ref(false)
   const searchRef = ref(null)
+  const roleDialogRef = ref(null)
   const selectOptions = ref(null)
 
   const searchForm = {
@@ -103,10 +102,7 @@
   }
 
   function handleEdit(role) {
-    console.log(role)
-    Object.assign(selectRole, role)
-    console.log(selectRole)
-    dialogVisible.value = true
+    roleDialogRef.value.edit(role)
   }
 
   function handleDel(role) {
@@ -130,14 +126,7 @@
   }
 
   function addRole() {
-    Object.assign(selectRole, {
-      id: null,
-      name: '',
-      description: '',
-      enable: true
-    })
-    console.log(selectRole)
-    dialogVisible.value = true
+    roleDialogRef.value.add()
   }
 
 </script>
