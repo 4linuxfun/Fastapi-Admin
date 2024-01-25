@@ -20,11 +20,11 @@ export default function usePagination(url, searchForm, orderType = 'asc') {
     page_size: pageSize,
     model:orderModel
   })
-  // 初始化调用
-  searchFunc(search, currentPage.value, pageSize.value, orderModel.value).then((response) => {
-    tableData.value = response.data
-    total.value = response.total
-  })
+  // // 初始化调用
+  // searchFunc(search, currentPage.value, pageSize.value, orderModel.value).then((response) => {
+  //   tableData.value = response.data
+  //   total.value = response.total
+  // })
 
   const freshCurrentPage = () => {
     searchFunc(search, currentPage.value, pageSize.value, orderModel.value).then((response) => {
