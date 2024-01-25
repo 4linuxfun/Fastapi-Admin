@@ -54,9 +54,7 @@
     <add-dict :dict="selectDict" v-model:visible="addDialog"/>
   </el-dialog>
 
-  <el-drawer v-model="itemDrawer" title="字典列表" size="30%" destroy-on-close>
-    <dict-item :id="selectDict.id"/>
-  </el-drawer>
+  <dict-item ref="dictItemRef"/>
 
 </template>
 
@@ -82,15 +80,12 @@
   import AddDict from '@/views/system/dictonary/AddDict'
   import DictItem from '@/views/system/dictonary/DictItem'
 
-  // const tableData = ref([
-  //   {name: '测试', code: '1111', des: 'dddddddd'},
-  //   {name: 'cccc', code: '22222', des: 'sssssss'}
-  // ])
+
   const addDialog = ref(false)
-  const itemDrawer = ref(false)
   const dialogTitle = ref(null)
   const selectDict = ref(null)
   const searchRef = ref(null)
+  const dictItemRef = ref(null)
 
   const searchForm = {
     name: null,
@@ -132,14 +127,17 @@
   }
 
   function handleItem(dict) {
-    selectDict.value = dict
-    itemDrawer.value = true
+    dictItemRef.value.edit(dict)
   }
 
   watch(addDialog, (newValue) => {
     if (newValue === false) {
       freshCurrentPage()
     }
+  })
+
+  onMounted(() => {
+    handleSearch()
   })
 
 </script>
