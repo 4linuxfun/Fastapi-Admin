@@ -23,7 +23,7 @@ class DictBase(SQLModel):
     label: str = Field(max_length=50, sa_column_kwargs={'comment': '名称'})
     value: str = Field(max_length=100, sa_column_kwargs={'comment': '数据值'})
     desc: Optional[str] = Field(max_length=100, sa_column_kwargs={'comment': '描述'})
-    sort: Optional[int] = Field(sa_column_kwargs={'comment': '排序值，越小越靠前'})
+    sort: Optional[int] = Field(default=1, sa_column_kwargs={'comment': '排序值，越小越靠前'})
     enable: bool = Field(default=True, sa_column=Column(Boolean, comment='是否启用'))
     dict_id: Optional[int] = Field(foreign_key="data_dict.id")
 

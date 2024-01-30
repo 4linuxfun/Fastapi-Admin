@@ -67,7 +67,7 @@
 <script setup>
   import {
     reactive,
-    ref, watch
+    ref, watch, onMounted
   } from 'vue'
   import {
     Edit, Delete, Unlock,
@@ -161,6 +161,9 @@
         }
       })
 
+  onMounted(() => {
+    handleSearch()
+  })
 </script>
 
 <style>

@@ -58,7 +58,7 @@
   }
 </script>
 <script setup>
-  import {reactive, ref, watch} from 'vue'
+  import {reactive, ref, watch, onMounted} from 'vue'
   import {Search, RefreshRight, Plus} from '@element-plus/icons-vue'
   import {GetRoles, DeleteRole} from '@/api/roles'
   import usePagination from '@/composables/usePagination'
@@ -129,6 +129,9 @@
     roleDialogRef.value.add()
   }
 
+  onMounted(() => {
+    handleSearch()
+  })
 </script>
 <style lang="">
 
