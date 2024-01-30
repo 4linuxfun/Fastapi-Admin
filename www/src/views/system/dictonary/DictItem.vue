@@ -36,23 +36,27 @@
       <el-button type="primary" :icon="Plus" @click="handleAdd">新增</el-button>
     </el-row>
 
-
     <el-table :data="tableData" border style="margin-top: 10px">
       <el-table-column label="名称" prop="label"/>
       <el-table-column label="数据值" prop="value"/>
+      <el-table-column label="是否启用" prop="enable">
+        <template #default="scope">
+          <el-switch v-model="scope.row.enable"
+                     @change="handleUpdate(scope.row)"
+                     style="--el-switch-on-color: #13ce66; --el-switch-off-color: #ff4949"/>
+        </template>
+      </el-table-column>
       <el-table-column label="操作">
         <template #default="scope">
           <el-button text type="primary"
                      class="item_button"
-                     @click="handleEdit(scope.row)" :icon="Edit">编辑
-          </el-button>
+                     @click="handleEdit(scope.row)" :icon="Edit"/>
           <el-divider direction="vertical"/>
           <el-popconfirm title="确定要删除此元素吗？" @confirm="handleDel(scope.row.id)">
             <template #reference>
               <el-button text type="danger"
                          class="item_button"
-                         :icon="Delete">删除
-              </el-button>
+                         :icon="Delete"/>
             </template>
           </el-popconfirm>
 
@@ -65,9 +69,8 @@
                    style="margin-top: 10px;"
     />
 
-    <el-dialog v-model="addItemDialog" width="30%" destroy-on-close>
-      <add-item :item="selectItem" v-model:visible="addItemDialog"/>
-    </el-dialog>
+    <add-item ref="addItemDialogRef" @success="freshCurrentPage"/>
+
   </el-drawer>
 </template>
 
@@ -77,7 +80,7 @@
   import usePagination from '@/composables/usePagination'
   import {ref, watch} from 'vue'
   import AddItem from '@/views/system/dictonary/AddItem'
-  import {DelDictItem} from '@/api/dictonary'
+  import {DelDictItem, PutDictItem} from '@/api/dictonary'
   import {ElNotification} from 'element-plus'
 
   const dictId = ref(null)
@@ -86,6 +89,7 @@
   const addItemDialog = ref(false)
   const selectItem = ref(null)
   const searchRef = ref(null)
+  const addItemDialogRef = ref(null)
 
   let searchForm = {
     dict_id: null,
@@ -107,16 +111,7 @@
   } = usePagination('/api/dict/item/search', searchForm)
 
   function handleAdd() {
-    selectItem.value = {
-      id: null,
-      label: null,
-      value: null,
-      desc: null,
-      sort: null,
-      enable: true,
-      dict_id: dictId.value
-    }
-    addItemDialog.value = true
+    addItemDialogRef.value.add(dictId.value)
   }
 
   function handleReset() {
@@ -124,9 +119,7 @@
   }
 
   function handleEdit(dictItem) {
-    selectItem.value = dictItem
-    addItemDialog.value = true
-    console.log(search.value)
+    addItemDialogRef.value.edit(dictItem)
   }
 
   function handleDel(itemId) {
@@ -139,6 +132,25 @@
           freshCurrentPage()
         }
     )
+
+  }
+
+  async function handleUpdate(item) {
+    try {
+      await PutDictItem(item)
+      ElNotification({
+        title: 'success',
+        message: '字典元素更新成功',
+        type: 'success'
+      })
+      await freshCurrentPage()
+    } catch (error) {
+      ElNotification({
+        title: 'error',
+        message: '字典元素更新失败',
+        type: 'error'
+      })
+    }
 
   }
 
