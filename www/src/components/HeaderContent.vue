@@ -1,17 +1,15 @@
 <template>
   <el-row justify="end">
-    <el-col :span="4">
-      <div style="padding-top: 10px;">
-        <el-dropdown trigger="click" @command="handleCommand">
-          <el-avatar shape="circle" :size="50">{{ userName }}</el-avatar>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item>个人中心</el-dropdown-item>
-              <el-dropdown-item command="logout">退出</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
-      </div>
+    <el-col :span="2" style="text-align: right">
+      <el-dropdown @command="handleCommand">
+        <el-avatar shape="square" :size="50">{{ userName }}</el-avatar>
+        <template #dropdown>
+          <el-dropdown-menu>
+            <el-dropdown-item>个人中心</el-dropdown-item>
+            <el-dropdown-item command="logout">退出</el-dropdown-item>
+          </el-dropdown-menu>
+        </template>
+      </el-dropdown>
     </el-col>
   </el-row>
 </template>
