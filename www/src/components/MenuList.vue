@@ -1,6 +1,7 @@
 <template>
   <el-menu
       class="el-menu-vertical-demo"
+      style="--el-menu-bg-color: #1c1919;--el-menu-text-color: #ffffff;--el-menu-active-color: #3885d4;--el-menu-hover-bg-color:#3885d4 "
       router
       unique-opened
       @open="handleOpen"
