@@ -2,7 +2,7 @@
   <el-row justify="space-between" align="middle">
     <el-col :span="1">
       <el-button text style="padding: 0" @click="handleCollapse">
-        <el-icon v-if="!collapseStore.collapse" :size="30">
+        <el-icon v-if="collapseStore.collapse" :size="30">
           <Expand/>
         </el-icon>
         <el-icon v-else :size="30">
