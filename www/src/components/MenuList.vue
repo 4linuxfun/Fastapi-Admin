@@ -9,7 +9,7 @@
       @close="handleClose">
     <div style="height: 50px;background-color: #1c1919;">
       <!--      菜单折叠只显示图标-->
-      <div class="header-font" v-if="!collapseStore.collapse">FastAdmin管理平台1212121</div>
+      <div class="header-font" v-if="!collapseStore.collapse">FastAdmin管理平台</div>
     </div>
     <el-menu-item index="/dashboard">首页</el-menu-item>
     <template v-for="item in menuList" :key="item.name">

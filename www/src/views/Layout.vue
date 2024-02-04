@@ -8,14 +8,14 @@
         <el-header style="--el-header-padding: 0 10px" height="50px">
           <header-content></header-content>
         </el-header>
-        <el-main style="padding: 0px">
+        <el-main style="padding: 0">
           <el-tabs style="border-bottom: 0" v-model="currentTab" type="border-card" closable @tab-click="tabClick"
                    @tab-remove="tabRemove">
             <el-tab-pane v-for="tab in allTabs" :key="tab.name" :label="tab.name" :name="tab.name">
             </el-tab-pane>
           </el-tabs>
 
-          <div class="main_style">
+          <div style="padding: 10px 20px">
             <router-view v-slot="{Component}">
               <keep-alive :include="cacheTabs">
                 <component :is="Component"/>
@@ -47,10 +47,6 @@
 </script>
 
 <style>
-.main_style {
-  margin-top: 10px;
-  margin-left: 5px;
-}
 
 .el-tabs--border-card > .el-tabs__content {
   padding: 0;
