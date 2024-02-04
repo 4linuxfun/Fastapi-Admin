@@ -3,9 +3,14 @@
       class="el-menu-vertical-demo"
       style="--el-menu-bg-color: #1c1919;--el-menu-text-color: #ffffff;--el-menu-active-color: #3885d4;--el-menu-hover-bg-color:#3885d4 "
       router
+      :collapse="collapseStore.collapse"
       unique-opened
       @open="handleOpen"
       @close="handleClose">
+    <div style="height: 50px;background-color: #1c1919;">
+      <!--      菜单折叠只显示图标-->
+      <div class="header-font" v-if="!collapseStore.collapse">FastAdmin管理平台1212121</div>
+    </div>
     <el-menu-item index="/dashboard">首页</el-menu-item>
     <template v-for="item in menuList" :key="item.name">
       <!-- 有子菜单时处理逻辑 -->
@@ -39,8 +44,10 @@
 
 <script setup>
   import {useStore} from '@/stores'
-  import {computed} from 'vue'
+  import {computed, ref} from 'vue'
+  import {useCollapseStore} from '@/stores/collapse.js'
 
+  const collapseStore = useCollapseStore()
   const userStore = useStore()
 
   const menuList = computed(() => {
@@ -58,8 +65,22 @@
 </script>
 
 <style>
+.header-font {
+  font-size: large;
+  background-color: #1c1919;
+  color: #ffffff;
+  text-align: center;
+  padding: 10px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.el-menu-vertical-demo {
+  min-height: 100%;
+}
+
 .el-menu-vertical-demo:not(.el-menu--collapse) {
   width: 200px;
-  min-height: 100%;
 }
 </style>

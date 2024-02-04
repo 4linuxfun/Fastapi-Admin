@@ -1,5 +1,16 @@
 <template>
-  <el-row justify="end">
+  <el-row justify="space-between" align="middle">
+    <el-col :span="1">
+      <el-button text style="padding: 0" @click="handleCollapse">
+        <el-icon v-if="!collapseStore.collapse" :size="30">
+          <Expand/>
+        </el-icon>
+        <el-icon v-else :size="30">
+          <Fold/>
+        </el-icon>
+      </el-button>
+
+    </el-col>
     <el-col :span="2" style="text-align: right">
       <el-dropdown @command="handleCommand">
         <el-avatar shape="square" :size="50">{{ userName }}</el-avatar>
@@ -19,10 +30,18 @@
   import {useRouter} from 'vue-router'
   import {useStore} from '@/stores'
   import {computed} from 'vue'
+  import {Expand, Fold} from '@element-plus/icons-vue'
+  import {useCollapseStore} from '@/stores/collapse.js'
 
+  const collapseStore = useCollapseStore()
   const store = useStore()
   const userName = computed(() => store.name)
   const router = useRouter()
+
+  function handleCollapse() {
+    console.log(collapseStore.collapse)
+    collapseStore.collapse = !collapseStore.collapse
+  }
 
   function handleCommand(command) {
     if (command === 'logout') {

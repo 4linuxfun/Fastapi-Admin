@@ -1,13 +1,13 @@
 <template>
   <div style="height: 100%">
     <el-container style="height: 100%">
-      <el-header height="50px">
-        <header-content></header-content>
-      </el-header>
+      <el-aside class="aside-menu" width="auto">
+        <menu-list></menu-list>
+      </el-aside>
       <el-container style="height: 100%">
-        <el-aside class="aside-menu" width="200px">
-          <menu-list></menu-list>
-        </el-aside>
+        <el-header style="--el-header-padding: 0 10px" height="50px">
+          <header-content></header-content>
+        </el-header>
         <el-main style="padding: 0px">
           <el-tabs style="border-bottom: 0" v-model="currentTab" type="border-card" closable @tab-click="tabClick"
                    @tab-remove="tabRemove">
@@ -46,12 +46,7 @@
   })
 </script>
 
-<style scoped>
-.aside-menu {
-  color: aliceblue;
-  background-color: #1c1919;
-}
-
+<style>
 .main_style {
   margin-top: 10px;
   margin-left: 5px;
