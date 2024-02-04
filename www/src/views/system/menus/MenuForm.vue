@@ -31,6 +31,7 @@
         </el-button>
       </template>
     </el-input>
+    <el-alert v-if="selectData.type ==='page'" title="为了防止侧边栏折叠显示效果，一级菜单需要添加图标！" type="warning"/>
   </el-form-item>
   <el-form-item label="排序" prop="sort">
     <el-input-number v-model="selectData.sort" :step="0.1"/>
@@ -67,7 +68,7 @@
   import useMenu from '@/composables/useMenu'
   import AutoDict from '@/components/AutoDict'
 
-  const props = defineProps(['form', ])
+  const props = defineProps(['form',])
   const emit = defineEmits(['update:form'])
   const {form} = toRefs(props)
   const dialogVisible = ref(false)
@@ -107,7 +108,7 @@
     Traffic: ['Location', 'LocationInformation', 'DeleteLocation', 'Coordinate', 'Bicycle', 'OfficeBuilding', 'School',
       'Guide', 'AddLocation', 'MapLocation', 'Place', 'LocationFilled', 'Van']
   }
-  
+
 
 </script>
 
