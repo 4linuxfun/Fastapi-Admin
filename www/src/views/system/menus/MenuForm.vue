@@ -11,10 +11,9 @@
   <el-form-item label="菜单路径" prop="path" :rules="[{required:true,message:'请填写菜单路径'}]">
     <el-input v-model="selectData.path"></el-input>
   </el-form-item>
-  <el-form-item label="前端组件" prop="component"
-                :rules="[{required:true,message:'一级菜单填写Layout'}]">
+  <el-form-item label="前端组件" prop="component">
     <!-- <el-input v-if="selectData.parent_id == null" v-model="selectData.component" disabled></el-input> -->
-    <el-input v-model="selectData.component"></el-input>
+    <el-input v-model="selectData.component" placeholder="一级菜单请填写对应组件名"></el-input>
   </el-form-item>
   <el-form-item label="菜单图标" prop="icon">
     <el-input v-model="selectData.icon">
