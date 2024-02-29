@@ -11,10 +11,10 @@ import {useTabsStore} from '@/stores/tabs'
 
 const whiteList = ['/login'] // no redirect whitelist
 
-router.beforeEach((to) => {
+router.beforeEach(async (to) => {
   const store = useStore()
   const {tabAdd} = useTabsStore()
-  console.log('start before each')
+  console.log('start before each', to)
 
   if (getToken()) {
     console.log('已经有token')
@@ -27,10 +27,10 @@ router.beforeEach((to) => {
       // router.push('/')
       if (store.asyncRoutes.length === 0) {
         console.log('asyncroutes is not set')
-        store.getInfo().then(() => {
-          return store.getPermission()
-        }).then(() => {
-          let asyncRoutes = makeRouter(store.asyncRoutes)
+        try {
+          await store.getInfo()
+          await store.getPermission()
+          let asyncRoutes = await makeRouter(store.asyncRoutes)
           console.log(asyncRoutes)
           for (let route of asyncRoutes) {
             console.log('add route:')
@@ -38,12 +38,12 @@ router.beforeEach((to) => {
             router.addRoute('home', route)
           }
           return {path: to.fullPath, replace: true}
-        }).catch((err) => {
-          console.log('用户权限拉取失败' + err)
+        } catch (e) {
+          console.log('用户权限拉取失败' + e)
           store.logOut().then(() => {
             location.reload()
           })
-        })
+        }
       }
       console.log('当前生效路由表')
       console.log(router.getRoutes())
