@@ -108,8 +108,12 @@
         console.log('dispatch login store actions')
         store.logIn(user).then(() => {
           console.log('login ok,start to redirect to home')
+          let redirect = '/dashboard'
+          if (route.query.redirect) {
+            redirect = route.query.redirect
+          }
           router.push({
-            path: '/dashboard'
+            path: redirect
           })
         })
         loading.value = false
