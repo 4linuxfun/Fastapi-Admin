@@ -5,7 +5,6 @@ from typing import List, Generic, Type, TypeVar
 from loguru import logger
 from sqlmodel import SQLModel
 from ..models.internal.menu import MenusWithChild
-from ..crud.internal import job_log
 
 T = TypeVar('T', bound=SQLModel)
 
