@@ -1,10 +1,11 @@
 import subprocess
 import json
-from typing import List, Dict, Any
+import ansible_runner
+from typing import List, Dict, Any, Union
 from datetime import datetime
 from loguru import logger
 from sqlmodel import text
-from utils import Channel
+from utils import Channel, hosts_to_inventory
 from config import rpc_config
 from models import engine
 
@@ -24,8 +25,13 @@ def local_executor(job_id, host, command):
     return status, (end_time - start_time).total_seconds(), channel.msg
 
 
-def host_executor(job_id, host, command):
-    pass
+def ansible_task(**kwargs):
+    hosts = kwargs.pop('targets')
+    ansible_args = kwargs.pop('ansible')
+    logger.debug(f'task hosts:{hosts}')
+    logger.debug(f'ansible args:{ansible_args}')
+    # ansible_inventory = hosts_to_inventory(hosts)
+    # runner = ansible_runner.run(**kwargs)
 
 
 def run_command_with_channel(job_id=None, targets: List[str] = None, command=None):
