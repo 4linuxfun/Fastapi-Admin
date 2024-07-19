@@ -2,11 +2,12 @@
 from copy import deepcopy
 from loguru import logger
 from pydantic import BaseModel
-from typing import TypeVar, Generic, List, Type, Any, Dict, Optional
-from sqlmodel import Session, select, SQLModel, func, desc
+from typing import TypeVar, Generic, List, Type, Any, Dict, Optional, Union
+from sqlmodel import Session, select, SQLModel, func, desc, join
 from ..models.internal import Pagination
 
 ModelType = TypeVar('ModelType', bound=SQLModel)
+JoinType = TypeVar('JoinType', bound=SQLModel)
 
 
 class CRUDBase(Generic[ModelType]):
@@ -18,6 +19,12 @@ class CRUDBase(Generic[ModelType]):
 
     def get_multi(self, db: Session, *, skip: int = 0, limit: int = 100) -> List[ModelType]:
         return db.exec(select(self.model).offset(skip).limit(limit)).all()
+
+    def get_multi_by_ids(self, db: Session, ids: List[int]) -> List[ModelType]:
+        """
+        通过数组id列表清单，查找符合的数据
+        """
+        return db.exec(select(self.model).where(self.model.id.in_(ids))).all()
 
     def insert(self, db: Session, obj_in):
         # obj_in_data = jsonable_encoder(obj_in)
@@ -79,7 +86,28 @@ class CRUDBase(Generic[ModelType]):
                     sql = sql.where(getattr(self.model, key) > q[key])
                 elif filter_type[key] == 'ge':
                     sql = sql.where(getattr(self.model, key) >= q[key])
+                elif filter_type[key] == 'in':
+                    sql = sql.where(getattr(self.model, key).in_(q[key]))
         return sql
+
+    def _make_pagination(self, sql, subquery, search: Pagination, order_col: str):
+        """
+        创建分页,sql为外层，subquery用于查找最近的id
+        """
+        if search.model == 'desc':
+            subquery = subquery.order_by(desc(getattr(self.model, order_col)))
+        else:
+            subquery = subquery.order_by(getattr(self.model, order_col))
+        subquery = subquery.offset(
+            (search.page - 1) * search.page_size).limit(1).scalar_subquery()
+        # sql查询从subquery找到的order_col开始，并limit限制数量
+        if search.model == 'desc':
+            sql = sql.where(getattr(self.model, order_col) <= subquery).order_by(
+                desc(getattr(self.model, order_col))).limit(
+                search.page_size)
+        else:
+            sql = sql.where(getattr(self.model, order_col) >= subquery).limit(search.page_size)
+        return sql, subquery
 
     def search(self, session: Session, search: Pagination, filter_type: Optional[Dict[str, str]] = None,
                columns: Optional[List] = None, order_col: Optional[str] = 'id'):
@@ -97,20 +125,12 @@ class CRUDBase(Generic[ModelType]):
         else:
             sql = select(*columns)
         sql = self._make_search(sql, search.search, filter_type)
+        logger.debug(sql)
+        # subquery查询找到order_col的起始值
         subquery = select(getattr(self.model, order_col))
+        logger.debug(subquery)
         subquery = self._make_search(subquery, search.search, filter_type)
-        if search.model == 'desc':
-            subquery = subquery.order_by(desc(getattr(self.model, order_col)))
-        else:
-            subquery = subquery.order_by(getattr(self.model, order_col))
-        subquery = subquery.offset(
-            (search.page - 1) * search.page_size).limit(1).scalar_subquery()
-        if search.model == 'desc':
-            sql = sql.where(getattr(self.model, order_col) <= subquery).order_by(
-                desc(getattr(self.model, order_col))).limit(
-                search.page_size)
-        else:
-            sql = sql.where(getattr(self.model, order_col) >= subquery).limit(search.page_size)
+        sql, subquery = self._make_pagination(sql, subquery, search, order_col)
         logger.debug(sql)
         results = session.exec(sql).all()
         return results
