@@ -3,17 +3,16 @@ import re
 import anyio
 from datetime import datetime
 from uuid import uuid4
-from typing import List, Any, Dict
+from typing import List, Any, Dict, TYPE_CHECKING
 from sqlmodel import Session, text
-from apscheduler.job import Job
 from apscheduler.triggers.interval import IntervalTrigger
 from apscheduler.triggers.date import DateTrigger
 from apscheduler.triggers.cron import CronTrigger
 from fastapi import APIRouter, Depends, WebSocket, Request
 from loguru import logger
 from server.settings import settings
-from server.models.internal.job import JobAdd, JobLog
-from server.common.database import get_session, get_redis
+from server.models.internal.job import JobAdd
+from server.common.database import get_session, get_redis, get_rpyc
 from server.common.response_code import ApiResponse, SearchResponse
 from server.common.utils import get_task_logs
 from server.models.internal import Pagination
@@ -21,39 +20,25 @@ from server.models.internal.job import JobSearch, JobLogs, JobLogSearch
 from server import crud
 from server.common.dep import get_uid
 
+# if TYPE_CHECKING:
+#     from apscheduler.job import Job
+
 router = APIRouter(prefix='/api/jobs')
 
 
-def cron_to_dict(cron):
-    cron_list = re.split(r'\s+', cron)
-    return {'minute': cron_list[0], 'hour': cron_list[1], 'day': cron_list[2], 'month': cron_list[3],
-            'day_of_week': cron_list[4]}
-
-
-@router.get('/switch/{job_id}', summary='切换任务状态')
-async def switch_job(job_id: str, ):
+@router.get('/switch/{job_id}', summary='任务状态切换')
+async def switch_job(job_id: str, status: int):
     try:
         conn = rpyc.connect(**settings.rpyc_config)
-        conn.root.switch_job(job_id)
+        if status == 1:
+            conn.root.resume_job(job_id)
+        else:
+            conn.root.pause_job(job_id)
     except ValueError as e:
         logger.warning(e)
         return ApiResponse(
             code=500,
             message=str(e)
-        )
-    return ApiResponse()
-
-
-@router.get('/resume/{job_id}', summary='恢复任务')
-async def resume_job(job_id: str):
-    try:
-        conn = rpyc.connect(**settings.rpyc_config)
-        conn.root.resume_job(job_id)
-    except Exception as e:
-        logger.warning(e)
-        return ApiResponse(
-            code=500,
-            message='恢复任务出错，请联系管理员！'
         )
     return ApiResponse()
 
@@ -89,17 +74,10 @@ async def delete_job(job_id: str, uid: int = Depends(get_uid), session: Session 
 @router.put('/', summary='修改任务', response_model=ApiResponse[str])
 async def modify_job(job: JobAdd, session: Session = Depends(get_session)):
     logger.debug(job)
-    if job.trigger == 'cron':
-        trigger_args = job.trigger_args.dict()
-        trigger_args.update(cron_to_dict(job.trigger_args.cron))
-        del trigger_args['cron']
-        trigger = CronTrigger(**trigger_args)
-    elif job.trigger == 'date':
-        trigger = DateTrigger(run_date=job.trigger_args)
     try:
         conn = rpyc.connect(**settings.rpyc_config)
-        conn.root.modify_job(job.id, kwargs={'job_id': job.id, 'targets': job.targets, 'command': job.command},
-                             name=job.name, trigger=trigger)
+        conn.root.modify_job(job.id, kwargs={'targets': job.targets, 'ansible_args': job.ansible_args},
+                             name=job.name, trigger=job.trigger, trigger_args=job.trigger_args.model_dump())
     except Exception as e:
         logger.warning(e)
         return ApiResponse(
@@ -112,24 +90,17 @@ async def modify_job(job: JobAdd, session: Session = Depends(get_session)):
 @router.post('/', summary='添加任务', response_model=ApiResponse[str])
 async def add_job(job: JobAdd, uid: int = Depends(get_uid), session: Session = Depends(get_session)):
     logger.debug(job)
-    # 手动生成job_id，需要传递到内部
+    # 手动生成job_id，传入执行函数，方便后期日志写入redis
     job_id = uuid4().hex
-    # 只支持cron的date任务，interval间隔任务完全可以用cron替代，没必要单独实现功能
-    if job.trigger == 'cron':
-        trigger_args: Dict[str, Any] = job.trigger_args.dict()
-        trigger_args.update(cron_to_dict(job.trigger_args.cron))
-        del trigger_args['cron']
-    elif job.trigger == 'date':
-        trigger_args = {'run_date': job.trigger_args}
+    logger.debug(f'user defined job ID:{job_id}')
+    # 只支持cron和date任务，interval间隔任务完全可以用cron替代，没必要单独实现功能
     try:
         conn = rpyc.connect(**settings.rpyc_config)
-        job = conn.root.add_job('scheduler-server:run_command_with_channel', trigger=job.trigger.value,
-                                kwargs={'job_id': job_id,
-                                        'targets': job.targets,
-                                        'command': job.command}, id=job_id, name=job.name, **trigger_args)
-        sql = text("INSERT INTO user_job values (:uid,:job_id)")
-        session.execute(sql, {'uid': uid, "job_id": job_id})
-        session.commit()
+        job = conn.root.add_job('scheduler-server:ansible_task', trigger=job.trigger, id=job_id,
+                                kwargs={'job_id': job_id, 'targets': job.targets,
+                                        'ansible_args': job.ansible_args}, name=job.name,
+                                trigger_args=job.trigger_args.model_dump())
+        logger.debug(job.id)
     except Exception as e:
         logger.warning(e)
         return ApiResponse(
@@ -137,16 +108,16 @@ async def add_job(job: JobAdd, uid: int = Depends(get_uid), session: Session = D
             message=str(e)
         )
     return ApiResponse(
-        data=job.id
+        message=f'新建任务成功：{job.name}'
     )
 
 
 @router.post('/search', summary='获取所有任务', response_model=ApiResponse[SearchResponse[Any]])
-async def show_jobs(search: Pagination[JobSearch], uid: int = Depends(get_uid)):
-    job_name = search.search['job_name']
+async def show_jobs(search: Pagination[JobSearch], uid: int = Depends(get_uid), conn: Any = Depends(get_rpyc)):
+    # job_name = search.search.job_name
     try:
-        conn = rpyc.connect(**settings.rpyc_config)
-        user_jobs: List[Job] = conn.root.get_user_jobs(uid, job_name)
+        user_jobs = conn.root.get_user_jobs(uid=None)
+        logger.debug(user_jobs)
     except Exception as e:
         logger.warning(e)
         return ApiResponse(
@@ -156,7 +127,7 @@ async def show_jobs(search: Pagination[JobSearch], uid: int = Depends(get_uid)):
     if len(user_jobs) == 0:
         return ApiResponse(
             data={
-                'total': len(user_jobs),
+                'total': 0,
                 'data': []
             }
         )
@@ -175,10 +146,11 @@ async def show_jobs(search: Pagination[JobSearch], uid: int = Depends(get_uid)):
             logger.debug('cron')
             for field in job.trigger.fields:
                 trigger_args[field.name] = str(field)
+            # job.kwargs['targets']默认为rpyc类型的list，需要转成python的list类型，否则pydantic类型检查会去找rpyc list，报错
             info.update({
-                'id': job.id,
-                'name': job.name,
-                'targets': job.kwargs['targets'],
+                'id': str(job.id),
+                'name': str(job.name),
+                'targets': list(job.kwargs['targets']),
                 'trigger': 'cron',
                 'trigger_args': {
                     'cron': f"{trigger_args['minute']} {trigger_args['hour']} {trigger_args['day']} {trigger_args['month']} {trigger_args['day_of_week']}",
@@ -186,27 +158,33 @@ async def show_jobs(search: Pagination[JobSearch], uid: int = Depends(get_uid)):
                         "%Y-%m-%d %H:%M:%S"),
                     'end_date': None if job.trigger.end_date is None else job.trigger.end_date.strftime(
                         "%Y-%m-%d %H:%M:%S"),
+                    'run_date': None,
                 },
-                'command': job.kwargs['command'],
-                'status': 'running' if job.next_run_time is not None else 'stop'
+                'ansible_args': dict(job.kwargs['ansible_args']),
+                'status': '1' if job.next_run_time is not None else '0'
             })
         elif isinstance(job.trigger, DateTrigger):
             info.update({
-                'id': job.id,
-                'name': job.name,
-                'targets': job.kwargs['targets'],
+                'id': str(job.id),
+                'name': str(job.name),
+                'targets': list(job.kwargs['targets']),
                 'trigger': 'date',
-                'trigger_args': job.trigger.run_date.strftime(
-                    "%Y-%m-%d %H:%M:%S"),
-                'command': job.kwargs['command'],
-                'status': 'running' if job.next_run_time is not None else 'stop'
+                'trigger_args': {
+                    'run_date': str(job.trigger.run_date.strftime(
+                        "%Y-%m-%d %H:%M:%S")),
+                    'cron': None,
+                    'start_date': None,
+                    'end_date': None,
+                },
+                'ansible_args': dict(job.kwargs['ansible_args']),
+                'status': '1' if job.next_run_time is not None else '0'
             })
         logger.debug(info)
         job_info_list.append(info)
     logger.debug(job_info_list)
     return ApiResponse(
         data={
-            'total': len(user_jobs),
+            'total': 10,
             'data': job_info_list
         }
     )

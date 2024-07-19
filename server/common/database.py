@@ -1,6 +1,7 @@
 import redis.asyncio as redis
+import rpyc
 from sqlmodel import create_engine, SQLModel, Session, select
-from ..settings import engine
+from server.settings import settings, engine
 
 
 def init_db():
@@ -15,6 +16,11 @@ def init_db():
 def get_session():
     with Session(engine) as session:
         yield session
+
+
+def get_rpyc():
+    with rpyc.connect(**settings.rpyc_config) as conn:
+        yield conn
 
 
 def get_or_create(session: Session, model, **kwargs):
