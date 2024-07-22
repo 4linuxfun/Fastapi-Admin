@@ -64,7 +64,6 @@
   import {ConfirmDel} from '@/utils/request'
   import usePagination from '@/composables/usePagination'
 
-  const addDrawer = ref(false)
   const logDrawer = ref(false)
   const addJobRef = ref(null)
   let jobInfo = null
@@ -85,23 +84,28 @@
   } = usePagination('/api/jobs/search', searchForm)
 
   function handleEdit(job) {
-    if (job === null){
+    if (job === null) {
       addJobRef.value.add()
     } else {
       addJobRef.value.edit(job)
     }
   }
 
-  function handleStatus(jobId,status) {
-    SwitchJob(jobId,status).then(() => {
+  function handleStatus(jobId, status) {
+    SwitchJob(jobId, status).then(() => {
       freshCurrentPage()
     }).catch(error => {
       freshCurrentPage()
     })
   }
 
-  function handleDel(job) {
-    ConfirmDel('是否确定要删除任务：' + job.name, DelJob, job.id)
+  async function handleDel(job) {
+    try {
+      await ConfirmDel('是否确定要删除任务：' + job.name, DelJob, job.id)
+    } catch (e) {
+      console.log(e)
+    }
+    await freshCurrentPage()
   }
 
   function handleLogs(job) {
@@ -110,12 +114,6 @@
     logDrawer.value = true
   }
 
-  watch(addDrawer, (newValue) => {
-    if (newValue === false) {
-      freshCurrentPage()
-    }
-
-  })
   onMounted(() => {
     handleSearch()
   })
