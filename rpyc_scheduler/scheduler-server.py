@@ -47,7 +47,8 @@ class SchedulerService(rpyc.Service):
                                   end_date=trigger_args['end_date'])
             return scheduler.add_job(func, CronTrigger.from_crontab(trigger), **kwargs)
         elif trigger == 'date':
-            return scheduler.add_job(func, DateTrigger(run_date=trigger_args['run_date']), **kwargs)
+            return scheduler.add_job(func, DateTrigger(
+                run_date=trigger_args['run_date'] if trigger_args is not None else None), **kwargs)
 
     def exposed_modify_job(self, job_id, jobstore=None, **changes):
         logger.debug(changes)
