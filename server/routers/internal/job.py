@@ -45,22 +45,9 @@ async def switch_job(job_id: str, status: int):
 
 @router.delete('/{job_id}', summary='删除任务', response_model=ApiResponse[str])
 async def delete_job(job_id: str, uid: int = Depends(get_uid), session: Session = Depends(get_session)):
-    sql = text("select job_id from user_job where user_id=:uid")
-    user_jobs = tuple([job[0] for job in session.execute(sql, {'uid': uid})])
-    logger.debug(user_jobs)
-    if job_id not in user_jobs:
-        return ApiResponse(
-            code=500,
-            message='用户无权限操作此任务！'
-        )
     try:
         conn = rpyc.connect(**settings.rpyc_config)
         conn.root.pause_job(job_id)
-        delete_user_job = text("delete from user_job where job_id=:job_id")
-        session.execute(delete_user_job, {'job_id': job_id})
-        delete_job_logs = text("delete from job_log where job_id=:job_id")
-        session.execute(delete_job_logs, {'job_id': job_id})
-        session.commit()
         conn.root.remove_job(job_id)
     except Exception as e:
         logger.warning(e)
@@ -76,7 +63,8 @@ async def modify_job(job: JobAdd, session: Session = Depends(get_session)):
     logger.debug(job)
     try:
         conn = rpyc.connect(**settings.rpyc_config)
-        conn.root.modify_job(job.id, kwargs={'targets': job.targets, 'ansible_args': job.ansible_args},
+        conn.root.modify_job(job.id,
+                             kwargs={'job_id': job.id, 'targets': job.targets, 'ansible_args': job.ansible_args},
                              name=job.name, trigger=job.trigger, trigger_args=job.trigger_args.model_dump())
     except Exception as e:
         logger.warning(e)
@@ -192,10 +180,9 @@ async def show_jobs(search: Pagination[JobSearch], uid: int = Depends(get_uid), 
 
 @router.post('/logs', summary='任务日志查询', response_model=ApiResponse[SearchResponse[JobLogs]])
 async def job_logs(page_search: Pagination[JobLogSearch], session: Session = Depends(get_session)):
-    filter_type = JobLogSearch(job_id='eq')
     logger.debug(page_search)
-    total = crud.internal.job_log.search_total(session, page_search.search, filter_type.dict())
-    jobs = crud.internal.job_log.search(session, page_search, filter_type.dict())
+    total = crud.internal.job_logs.search_total(session, page_search.search, filter_type={'job_id': 'eq'})
+    jobs = crud.internal.job_logs.search(session, page_search, filter_type={'job_id': 'eq'})
     logger.debug(jobs)
     return ApiResponse(
         data={

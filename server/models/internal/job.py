@@ -29,7 +29,7 @@ class JobAdd(BaseModel):
     name: str = Field(description="任务名称")
     trigger: TriggerEnum = Field(description="触发器类型")
     trigger_args: TriggerArgs = Field(description="触发器")
-    targets: List[str] = Field(description="执行任务的主机")
+    targets: List[int] = Field(description="执行任务的主机")
     ansible_args: Dict[str, Any] = Field(default=None, description="ansible任务参数")
 
 
@@ -46,32 +46,19 @@ class JobAdd(BaseModel):
 #     job_logs: List["JobLog"] = Relationship(back_populates="job")
 #
 #
-# class JobLog(SQLModel, table=True):
-#     __tablename__ = 'job_log'
-#     id: Optional[int] = Field(sa_column=Column('id', Integer, primary_key=True, autoincrement=True))
-#     status: int = Field(sa_column=Column(mysql.TINYINT, default=0, comment='执行命令返回状态'))
-#     start_time: datetime = Field(default_factory=datetime.now, sa_column_kwargs={'comment': '任务开始时间'})
-#     end_time: datetime = Field(default=datetime.now, sa_column_kwargs={'comment': '任务结束时间'})
-#     log: JSON = Field(sa_column=Column(JSON, comment='执行日志'))
-#     job_id: Optional[str] = Field(default=None, foreign_key="apscheduler_jobs.id")
-#     job: Optional[Job] = Relationship(back_populates="job_logs")
-#
-#     class Config:
-#         arbitrary_types_allowed = True
+class JobLogs(SQLModel, table=True):
+    __tablename__ = 'job_logs'
+    id: Optional[int] = Field(sa_column=Column('id', Integer, primary_key=True, autoincrement=True))
+    job_id: Optional[str] = Field(sa_column=Column('job_id', String(191), index=True))
+    start_time: datetime = Field(default_factory=datetime.now, sa_column_kwargs={'comment': '任务开始时间'})
+    end_time: datetime = Field(default=datetime.now, sa_column_kwargs={'comment': '任务结束时间'})
+    log: str = Field(sa_column=Column(mysql.TEXT, comment='执行日志'))
+    stats: str = Field(sa_column=Column(mysql.TEXT, comment='任务返回状态'))
 
 
 class JobSearch(SQLModel):
     job_name: Optional[str] = None
     job_trigger: Optional[str] = None
-
-
-class JobLogs(SQLModel):
-    id: int
-    status: int
-    start_time: datetime
-    end_time: datetime
-    log: Any
-    job_id: str
 
 
 class JobLogSearch(BaseModel):
