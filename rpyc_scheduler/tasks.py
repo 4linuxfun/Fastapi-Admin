@@ -28,12 +28,28 @@ def local_executor(job_id, host, command):
     return status, (end_time - start_time).total_seconds(), channel.msg
 
 
+class EventLogs:
+    """
+    ansible runner的event_handler，用于把输出写入redis
+    """
+
+    def __init__(self, channel):
+        self.channel = channel
+
+    def __call__(self, event):
+        logger.debug(event)
+        self.channel.send({'msg': event['stdout']})
+        return True
+
+
 def ansible_task(job_id, targets, ansible_args):
+    start_time = datetime.now()
     private_data_dir = Path(f'/tmp/ansible/{job_id}')
     if not private_data_dir.exists():
         private_data_dir.mkdir(parents=True)
     logger.debug(f'job id:{job_id},task hosts:{targets},ansible_args:{ansible_args}')
     hosts: List[InventoryHost] = []
+    # 生成ansible inventory
     with engine.connect() as conn:
         sql = text(
             "select id,name,ansible_host,ansible_port,ansible_user,ansible_password,ansible_ssh_private_key from host where id in :targets").bindparams(
@@ -46,9 +62,25 @@ def ansible_task(job_id, targets, ansible_args):
                               ansible_password=row[5], ansible_ssh_private_key=row[6]))
     ansible_inventory = hosts_to_inventory(hosts, private_data_dir)
     logger.debug(ansible_inventory)
-    runner = ansible_runner.run(private_data_dir=str(private_data_dir), inventory=ansible_inventory,
-                                host_pattern='all',
-                                **ansible_args)
+    # 执行任务，且日志实时写入redis
+    with Channel(rpc_config.redis, job_id=job_id) as channel:
+        runner = ansible_runner.run(private_data_dir=str(private_data_dir), inventory=ansible_inventory,
+                                    host_pattern='all', event_handler=EventLogs(channel),
+                                    **ansible_args)
+        run_logs = channel.msg
+    end_time = datetime.now()
+    # 日志写入数据库
+    with engine.connect() as conn:
+        logger.debug(runner.stats)
+        sql = text(
+            "INSERT INTO job_logs (job_id,start_time,end_time,log,stats) values (:job_id,:start_time,:end_time,:log,:stats)")
+        conn.execute(sql,
+                     {'job_id': job_id,
+                      'start_time': start_time,
+                      'end_time': end_time,
+                      'log': json.dumps(run_logs),
+                      'stats': json.dumps(runner.stats)})
+        conn.commit()
 
 
 def run_command_with_channel(job_id=None, targets: List[str] = None, command=None):
