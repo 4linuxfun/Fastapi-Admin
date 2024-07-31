@@ -52,19 +52,17 @@ class SchedulerService(rpyc.Service):
 
     def exposed_modify_job(self, job_id, jobstore=None, **changes):
         logger.debug(changes)
+        trigger = changes.pop('trigger', 'date')
         trigger_args = changes.pop('trigger_args', None)
-        if 'trigger' in changes:
-            trigger = changes.pop('trigger')
-            logger.debug(f'modify trigger {trigger}')
-            if trigger == 'cron':
-                cron = trigger_args['cron']
-                values = cron.split()
-                changes['trigger'] = CronTrigger(minute=values[0], hour=values[1], day=values[2], month=values[3],
-                                                 day_of_week=values[4], start_date=trigger_args['start_date'],
-                                                 end_date=trigger_args['end_date'])
-            else:
-                run_date = changes.pop('run_date')
-                changes['trigger'] = DateTrigger(run_date=run_date, timezone=None)
+        if trigger == 'cron':
+            cron = trigger_args['cron']
+            values = cron.split()
+            changes['trigger'] = CronTrigger(minute=values[0], hour=values[1], day=values[2], month=values[3],
+                                             day_of_week=values[4], start_date=trigger_args['start_date'],
+                                             end_date=trigger_args['end_date'])
+        else:
+            run_date = trigger_args['run_date']
+            changes['trigger'] = DateTrigger(run_date=run_date, timezone=None)
         logger.debug(changes)
         return scheduler.modify_job(job_id, jobstore, **changes)
 
