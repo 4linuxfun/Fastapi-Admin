@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends
 from loguru import logger
 from .common.log import init_logging
-from .routers.internal import login, user, menu, roles, dictonary, job
+from .routers.internal import login, user, menu, roles, dictonary, job, host
 from .common.security import auth_check
 
 init_logging()
@@ -14,6 +14,7 @@ app.include_router(menu.router, tags=['菜单管理'])
 app.include_router(roles.router, tags=['角色管理'])
 app.include_router(dictonary.router, tags=['数据字典'])
 app.include_router(job.router, tags=['任务管理'])
+app.include_router(host.router, tags=['主机管理'])
 
 
 @app.on_event("startup")
