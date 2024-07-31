@@ -17,11 +17,14 @@
           <el-form-item label="执行方式">
             <el-tabs type="border-card" style="width: 100%">
               <el-tab-pane label="Module">
-                <el-select placeholder="选择模块" v-model="addForm.ansible_args.module">
+                <div style="padding: 5px">
+                  <el-select placeholder="选择模块" v-model="addForm.ansible_args.module" >
                   <el-option v-for="module in moduleArray" :key="module.value" :label="module.value"
                              :value="module.value"/>
                 </el-select>
-                <el-input v-model="addForm.ansible_args.module_args" style="padding: 5px" placeholder="请输入命令参数"/>
+                </div>
+
+                <el-input v-model="addForm.ansible_args.module_args" style="padding:5px" placeholder="请输入命令参数"/>
               </el-tab-pane>
               <el-tab-pane label="Playbook">在脚本页面创建脚本，然后这里选择对应脚本</el-tab-pane>
             </el-tabs>
@@ -33,9 +36,9 @@
           <div style="margin: 0 20%;">
             <el-form-item label="执行对象">
               <el-select v-model="addForm.targets" multiple style="width: 100%">
-                <el-option label="本机" value="localhost"/>
+                <el-option label="本机" value="6"/>
               </el-select>
-              <el-button style="margin-top:10px;width: 100%;">添加执行对象</el-button>
+              <el-button style="margin-top:10px;width: 100%;" @click="handleAddTargets">添加执行对象</el-button>
             </el-form-item>
           </div>
 
@@ -81,7 +84,9 @@
         </el-form-item>
       </el-form>
     </div>
+    <add-targets ref="addTargetsRef"/>
   </el-dialog>
+
 </template>
 
 <script>
@@ -94,6 +99,7 @@
   import {ref, reactive, onMounted, watch} from 'vue'
   import {PostNewCronJob, PutCronJob} from '@/api/jobs'
   import {ElNotification} from 'element-plus'
+  import AddTargets from '@/views/jobs/JobManage/AddTargets.vue'
 
   const emit = defineEmits(['success'])
 
@@ -109,6 +115,7 @@
   const visible = ref(false)
   const active = ref(0)
   const addForm = reactive({})
+  const addTargetsRef = ref(null)
   const initForm = {
     id: null,
     name: null,
@@ -127,7 +134,6 @@
     }
   }
 
-  const targets = ref([])
 
   const hostList = [
     {
@@ -180,9 +186,9 @@
     emit('success')
   }
 
-  watch(() => addForm.trigger, (trigger) => {
-    console.log(trigger)
-  })
+  function handleAddTargets() {
+    addTargetsRef.value.add()
+  }
 
   function add() {
     active.value = 0
