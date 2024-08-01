@@ -78,7 +78,7 @@ async def delete_host(host_id: int, session: Session = Depends(get_session)):
     return ApiResponse()
 
 
-@router.post('/host/search', summary="获取主机列表")
+@router.post('/host/search', summary="获取主机列表", response_model=ApiResponse[SearchResponse[Host]])
 async def get_all_user(search: Pagination[HostWithIp],
                        session: Session = Depends(get_session)):
     """
@@ -86,10 +86,9 @@ async def get_all_user(search: Pagination[HostWithIp],
     :param session:
     :return:
     """
-    total = crud.internal.host.search_total(session, search.search, {'name': 'like', 'ansible_host': 'like'})
+    total = crud.internal.host.search_total(session, search.search)
     logger.debug(total)
-    hosts: List[Host] = crud.internal.host.search(session, search, {'name': 'like', 'ansible_host': 'like'},
-                                                  join_model=HostGroup)
+    hosts: List[Host] = crud.internal.host.search(session, search)
     hosts_list = [host.model_dump(exclude={'ansible_password', 'ansible_ssh_private_key'}) for host
                   in hosts]
     logger.debug(hosts_list)

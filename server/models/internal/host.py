@@ -30,6 +30,7 @@ class Group(SQLModel, table=True):
     id: int = Field(sa_column=Column('id', Integer, primary_key=True, autoincrement=True))
     name: str = Field(sa_column=Column(String(50), nullable=False, unique=True, comment='组名'))
     parent_id: int = Field(sa_column=Column(Integer, default=None, nullable=True, comment='父ID'))
+    ancestors: str = Field(sa_column=Column(String(100), default=None, nullable=False, comment='祖先ID列表'))
     hosts: List['Host'] = Relationship(back_populates='groups', link_model=HostGroup)
 
 
@@ -42,6 +43,7 @@ class GroupWithChild(SQLModel):
     id: int
     name: str
     parent_id: Union[int, None]
+    ancestors: Union[str, None]
     children: List['GroupWithChild'] = []
 
 
@@ -61,3 +63,4 @@ class HostWithIp(SQLModel):
     name: Union[str, None] = None
     ansible_host: Union[str, None] = None
     group_id: Union[int, None] = None
+    ancestors: Union[str, None]
