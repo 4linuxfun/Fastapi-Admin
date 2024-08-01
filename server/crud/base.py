@@ -4,6 +4,7 @@ from loguru import logger
 from pydantic import BaseModel
 from typing import TypeVar, Generic, List, Type, Any, Dict, Optional, Union
 from sqlmodel import Session, select, SQLModel, func, desc, join
+from sqlalchemy.orm.exc import NoResultFound
 from ..models.internal import Pagination
 
 ModelType = TypeVar('ModelType', bound=SQLModel)
@@ -146,4 +147,8 @@ class CRUDBase(Generic[ModelType]):
         sql = select(func.count(self.model.id))
         sql = self._make_search(sql, q, filter_type)
         logger.debug(str(sql))
-        return session.execute(sql).scalar()
+        try:
+            result = session.exec(sql).one()
+        except NoResultFound:
+            result = 0
+        return result
