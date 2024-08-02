@@ -3,12 +3,11 @@ from typing import List, Optional, Dict, Union, Type
 import sqlalchemy.orm.exc
 from loguru import logger
 from pydantic import BaseModel
-from sqlmodel import select, Session, or_, distinct, func
+from sqlmodel import select, Session, func
 
 from ...models.internal import Pagination
 from ...models.internal.host import Host, Group, HostGroup
-from ..base import CRUDBase, JoinType
-from ...settings import casbin_enforcer
+from ..base import CRUDBase
 
 
 class CRUDHost(CRUDBase[Host]):
@@ -24,8 +23,10 @@ class CRUDHost(CRUDBase[Host]):
             sql = sql.where(self.model.ansible_host.like('%' + q.ansible_host + '%'))
         if q.group_id is not None:
             sub_query1 = select(Group.id).where(Group.id == q.group_id)
-            sub_query2 = select(Group.id).where(or_(Group.ancestors.like(q.ancestors + ',%'),
-                                                    Group.parent_id == q.group_id))
+            if q.ancestors is None:
+                sub_query2 = select(Group.id).where(Group.ancestors.like(q.ancestors + ',' + str(q.group_id) + ',%'))
+            else:
+                sub_query2 = select(Group.id).where(Group.ancestors.like(str(q.group_id)))
             sql = sql.where(HostGroup.group_id.in_(sub_query1.union_all(sub_query2)))
 
         sql = sql.group_by(self.model.id).order_by(self.model.id)
