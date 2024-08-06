@@ -28,15 +28,11 @@ class Host(SQLModel, table=True):
 class Group(SQLModel, table=True):
     __tablename__ = 'group'
     id: int = Field(sa_column=Column('id', Integer, primary_key=True, autoincrement=True))
-    name: str = Field(sa_column=Column(String(50), nullable=False, unique=True, comment='组名'))
+    name: str = Field(sa_column=Column(String(50), nullable=False, comment='组名'))
     parent_id: int = Field(sa_column=Column(Integer, default=None, nullable=True, comment='父ID'))
-    ancestors: str = Field(sa_column=Column(String(100), default=None, nullable=False, comment='祖先ID列表'))
+    ancestors: Union[str, None] = Field(
+        sa_column=Column(String(100), default=None, nullable=True, comment='祖先ID列表'))
     hosts: List['Host'] = Relationship(back_populates='groups', link_model=HostGroup)
-
-
-class CreateGroup(SQLModel):
-    name: str
-    parent_id: Union[int, None]
 
 
 class GroupWithChild(SQLModel):

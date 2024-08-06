@@ -1,7 +1,7 @@
 from typing import Optional, List, Union, Literal, TYPE_CHECKING
 from pydantic import BaseModel
 from sqlmodel import SQLModel, Field, Relationship, Column, Integer, Boolean, String
-from .relationships import UserRole, UserJob
+from .relationships import UserRole
 from .role import Role
 
 if TYPE_CHECKING:
@@ -18,7 +18,6 @@ class User(SQLModel, table=True):
     email: Union[str, None] = Field(sa_column=Column(String(20), default=None, comment='邮箱'))
     password: Optional[str] = Field(sa_column=Column(String(50), comment='密码'))
     roles: List['Role'] = Relationship(back_populates="users", link_model=UserRole)
-    jobs: List['Job'] = Relationship(back_populates="user", link_model=UserJob)
 
 
 class UserWithOutPasswd(SQLModel):
