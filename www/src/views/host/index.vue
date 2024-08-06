@@ -4,24 +4,17 @@
     <el-col :span="6" style="height: 100%">
       <div class="col-style">
         <span style="padding: 10px">分组列表</span>
-        <el-button type="primary" @click="addRootDialog=true">新建根分组</el-button>
+        <el-button type="primary" @click="handleAddChild">新建分组</el-button>
         <el-divider style="margin-bottom: 0"/>
         <div style="height: 90%;overflow-y: scroll;">
           <el-tree ref="elTreeRef" :data="treeData" :props="{label:'name'}"
                    style="padding: 10px" highlight-current default-expand-all
-                   :expand-on-click-node="false"
-                   @node-drop="handleDrop"
-                   @node-contextmenu="handleContextMenu">
+                   :expand-on-click-node="false">
             <template #default="{node,data}">
-              <el-row style="flex: 1" justify="space-between" @click="handleSearchHost(data.id)">
-                <el-col :span="6"><span>{{ node.label }}</span></el-col>
+              <el-row style="flex: 1" justify="space-between" >
+                <el-col :span="18"><span @click="handleSearchHost(data)">{{ node.label }}</span></el-col>
                 <el-col :span="6" style="text-align: right">
-                  <el-link v-if="data.hasOwnProperty('children')" :underline="false" @click="handleAddChild(data.id)">
-                    <el-icon>
-                      <Plus/>
-                    </el-icon>
-                  </el-link>
-                  <el-link :underline="false" style="margin-left: 10px">
+                  <el-link :underline="false" style="margin-left: 10px" @click="handleEditGroup(data)">
                     <el-icon>
                       <Edit/>
                     </el-icon>
@@ -87,45 +80,32 @@
     </el-col>
   </el-row>
 
-  <el-dialog v-model="addRootDialog" width="500px" title="新增分组" destroy-on-close
-             @close="handleFreshGroups">
-    <el-form ref="addRootFormRef" :model="addRootForm">
-      <el-form-item label="分组名：" prop="name" :rules="[{required:true,message:'请输入分组名'}]">
-        <el-input v-model="addRootForm.name"/>
-      </el-form-item>
-    </el-form>
-    <el-row justify="end">
-      <el-button type="primary" @click="handleAddRoot">提交</el-button>
-      <el-button type="danger" @click="addRootDialog=false">取消</el-button>
-    </el-row>
-  </el-dialog>
 
+  <add-group ref="addGroupRef" @close="handleFreshAll"/>
   <host-dialog ref="hostDialogRef" @close="freshCurrentPage"/>
 
 </template>
 
 <script setup>
-  import {ref, reactive, onMounted} from 'vue'
-  import {Contextmenu, ContextmenuItem} from 'v-contextmenu'
-  import {Close, Delete, DocumentAdd, Edit, Folder, FolderAdd, Switch} from '@element-plus/icons-vue'
-  import {PostNewGroup, GetAllGroup, DelHost, DelGroup, PingHost} from '@/api/host.js'
+  import {ref, onMounted} from 'vue'
+  import {Delete, Edit} from '@element-plus/icons-vue'
+  import {GetAllGroup, DelHost, DelGroup, PingHost} from '@/api/host.js'
   import HostDialog from '@/views/host/HostDialog.vue'
   import usePagination from '@/composables/usePagination.js'
+  import AddGroup from '@/views/host/AddGroup.vue'
+  import {ConfirmDel} from '@/utils/request.js'
 
   const treeData = ref([])
   const elTreeRef = ref(null)
-  const addRootFormRef = ref(null)
+  const addGroupRef = ref(null)
   const hostDialogRef = ref(null)
-  const inputRef = ref(null)
   const selectTreeNodeData = ref(null)
-  const editTreeNodeId = ref(null)
-  const newNodeName = ref(null)
-  const addRootDialog = ref(false)
-  const addRootForm = reactive({name: null, parent_id: null})
+
   const searchForm = {
     name: null,
     ansible_host: null,
-    group_id: null
+    group_id: null,
+    ancestors: null
   }
 
   // 首次打开页面先进行初始化
@@ -142,64 +122,46 @@
   } = usePagination('/api/host/search', searchForm)
 
 
-  function handleDrop() {
-    console.log('end drag')
+  /**
+   * 添加分组
+   */
+  async function handleAddChild() {
+    await addGroupRef.value.add()
   }
 
   /**
-   * el-tree右键菜单处理
+   * 编辑分组
+   * @param data
+   * @return {Promise<void>}
    */
-  function handleContextMenu(e, data, node,) {
-    console.log('右键菜单', e, data, node)
-    selectTreeNodeData.value = node
+  async function handleEditGroup(data) {
+    console.log(data)
+    await addGroupRef.value.edit(data)
   }
 
-  function showContextMenu(node) {
-    console.log('显示右键菜单', node)
-  }
-
-  /**
-   * 添加子分组
-   */
-  function handleAddChild(parentId) {
-    Object.assign(addRootForm, {name: null, parent_id: parentId})
-    addRootDialog.value = true
-  }
-
-  function handleSearchHost(groupId) {
+  function handleSearchHost(groupInfo) {
     console.log('点击')
-    console.log(groupId)
-    search.group_id = groupId
+    console.log(groupInfo)
+    search.group_id = groupInfo.id
+    search.ancestors = groupInfo.ancestors
     handleSearch()
   }
 
-  /**
-   * 添加根分组的函数
-   */
-  async function handleAddRoot() {
-    console.log('添加根分组')
-    // treeData.value.push({label: '', children: []})
+
+  async function handleFreshGroups() {
     try {
-      await addRootFormRef.value.validate()
-      console.log('submit')
-      await PostNewGroup(addRootForm)
-      addRootDialog.value = false
-    } catch (err) {
-      console.log('error submit', err)
+      treeData.value = await GetAllGroup()
+    } catch (e) {
+      console.log(e)
     }
   }
 
-  function handleFreshGroups() {
-    Object.assign(addRootForm, {name: null, parent_id: null})
-    GetAllGroup().then((data) => {
-      treeData.value = data
-    })
-  }
-
-  function handleEdit(node, data) {
-    console.log('双击编辑事件', node, data)
-    editTreeNodeId.value = node.id
-    newNodeName.value = data.label
+  /**
+   * 刷新group和host列表
+   * */
+  function handleFreshAll() {
+    handleFreshGroups()
+    freshCurrentPage()
   }
 
   function handleEditHost(hostId) {
@@ -215,33 +177,13 @@
     freshCurrentPage()
   }
 
-  function handleUpdateNodeName(node, data) {
-    console.log(node)
-    if (data.hasOwnProperty('id')) {
-      console.log('更新节点信息')
-    } else {
-      console.log('新增节点信息')
-      console.log('parentID:', node.parent.id)
-      data.label = newNodeName.value
-      PostNewGroup({name: newNodeName.value, parent_id: node.parent.id})
-      // data.id = data.$treeNodeId
-      editTreeNodeId.value = null
-      newNodeName.value = null
-
-    }
-    console.log(treeData.value)
-
-    // PostNewGroup({name:data.label,parent_id:})
-  }
-
   async function handleDelGroup(groupId) {
-    console.log('删除节点：' + groupId)
     try {
-      await DelGroup(groupId)
-    } catch (err) {
-      console.log(err)
+      await ConfirmDel('删除分组', DelGroup, groupId)
+    } catch (e) {
+      console.log(e)
     }
-    handleFreshGroups()
+    await handleFreshGroups()
   }
 
   onMounted(() => {

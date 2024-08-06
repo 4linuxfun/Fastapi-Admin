@@ -5,7 +5,11 @@
         <el-tree-select v-model="hostForm.groups" :data="allGroups" :props="{label:'name'}" value-key="id" multiple
                         check-strictly
                         :render-after-expand="false"
-                        check-on-click-node/>
+                        check-on-click-node>
+          <template #label="{label,value}">
+            <span>{{ getHierarchyLabel(allGroups, value, {label: 'name'}) }}</span>
+          </template>
+        </el-tree-select>
       </el-form-item>
       <el-form-item label="主机名称" prop="name">
         <el-input v-model="hostForm.name" placeholder="请输入主机名称"/>
@@ -49,6 +53,7 @@
   import {ref, reactive} from 'vue'
   import {GetAllGroup, GetHostById, PostNewHost, PutHost, PingHost} from '@/api/host.js'
   import {ElNotification} from 'element-plus'
+  import {getHierarchyLabel} from '@/utils/common.js'
 
   const initForm = {
     id: null,
