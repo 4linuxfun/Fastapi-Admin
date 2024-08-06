@@ -12,7 +12,7 @@
                    :expand-on-click-node="false">
             <template #default="{node,data}">
               <el-row style="flex: 1" justify="space-between" >
-                <el-col :span="18"><span @click="handleSearchHost(data)">{{ node.label }}</span></el-col>
+                <el-col :span="18" @click="handleSearchHost(data)"><span>{{ node.label }}</span></el-col>
                 <el-col :span="6" style="text-align: right">
                   <el-link :underline="false" style="margin-left: 10px" @click="handleEditGroup(data)">
                     <el-icon>
