@@ -5,7 +5,7 @@ from loguru import logger
 from fastapi import APIRouter, Depends, status, HTTPException
 from sqlmodel import Session
 from sqlalchemy.exc import IntegrityError
-from server.models.internal.host import Host, Group, HostGroup, CreateGroup, GroupWithChild, CreateHost, HostWithIp
+from server.models.internal.host import Host, Group, GroupWithChild, CreateHost, HostWithIp
 from server.common.utils import Tree
 from server.models.internal import Pagination
 from ...common.response_code import ApiResponse, SearchResponse
@@ -16,7 +16,7 @@ router = APIRouter(prefix='/api')
 
 
 @router.post('/host/group', summary='添加主机分组')
-async def create_group(group: CreateGroup, session: Session = Depends(get_session)):
+async def create_group(group: Group, session: Session = Depends(get_session)):
     try:
         crud.internal.group.insert(session, Group(**group.model_dump(exclude_unset=True)))
     except IntegrityError as e:
@@ -25,6 +25,13 @@ async def create_group(group: CreateGroup, session: Session = Depends(get_sessio
             code=500,
             message="组名已存在"
         )
+    return ApiResponse()
+
+
+@router.put('/host/group', summary='更新主机分组')
+async def update_group(group: Group, session: Session = Depends(get_session)):
+    crud.internal.group.update(session, crud.internal.group.get(session, group.id),
+                               Group(**group.model_dump(exclude_unset=True)))
     return ApiResponse()
 
 
