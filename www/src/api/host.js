@@ -2,6 +2,7 @@ import {GET, POST, PUT, DELETE} from '@/utils/request'
 
 // 用户相关接口
 export const PostNewGroup = (group) => POST('/api/host/group', group)
+export const PutGroup = (group) => PUT('/api/host/group', group)
 export const GetAllGroup = () => GET('/api/host/group')
 export const DelGroup = (groupId) => DELETE('/api/host/group/' + groupId)
 export const PostNewHost = (host) => POST('/api/host', host)
