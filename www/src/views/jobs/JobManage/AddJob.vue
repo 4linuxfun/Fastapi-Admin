@@ -18,10 +18,7 @@
             <el-tabs type="border-card" style="width: 100%">
               <el-tab-pane label="Module">
                 <div style="padding: 5px">
-                  <el-select placeholder="选择模块" v-model="addForm.ansible_args.module">
-                    <el-option v-for="module in moduleArray" :key="module.value" :label="module.value"
-                               :value="module.value"/>
-                  </el-select>
+                  <el-input v-model="addForm.ansible_args.module" placeholder="请输入模块名称" />
                 </div>
 
                 <el-input v-model="addForm.ansible_args.module_args" style="padding:5px" placeholder="请输入命令参数"/>
@@ -117,16 +114,6 @@
   import {GetHostsByIds} from '@/api/host.js'
 
   const emit = defineEmits(['success'])
-
-  const moduleArray = [
-    {
-      value: 'ping'
-    },
-    {
-      value: 'shell'
-    }
-  ]
-
   const visible = ref(false)
   const active = ref(0)
   const addForm = reactive({})
