@@ -10,6 +10,7 @@
                         :render-after-expand="false"
                         check-on-click-node
                         @change="handleChangeAncestors">
+          <!--          选择后生成层级的拼接-->
           <template #label="{label,value}">
             <span>{{ getHierarchyLabel(allGroups, value, {label: 'name'}) }}</span>
           </template>
