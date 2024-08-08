@@ -15,16 +15,24 @@
             <el-input v-model="addForm.name"/>
           </el-form-item>
           <el-form-item label="执行方式">
-            <el-tabs type="border-card" style="width: 100%">
-              <el-tab-pane label="Module">
-                <div style="padding: 5px">
-                  <el-input v-model="addForm.ansible_args.module" placeholder="请输入模块名称" />
-                </div>
+            <el-radio-group v-model="moduleTypeRadio">
+              <el-radio label="module" value="module"/>
+              <el-radio label="playbook" value="playbook"/>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item label="执行参数">
+            <template v-if="moduleTypeRadio==='module'">
+              <el-input v-model="addForm.ansible_args.module" style="margin: 5px" placeholder="请输入模块名称">
+                <template #prepend>模块名称:</template>
+              </el-input>
+              <el-input v-model="addForm.ansible_args.module_args" style="margin: 5px" placeholder="请输入命令参数">
+                <template #prepend>模块参数:</template>
+              </el-input>
+            </template>
+            <template v-else-if="moduleTypeRadio ==='playbook'">
+              <el-input v-model="addForm.ansible_args.playbook" style="margin: 5px" placeholder="请选择playbook脚本"/>
+            </template>
 
-                <el-input v-model="addForm.ansible_args.module_args" style="padding:5px" placeholder="请输入命令参数"/>
-              </el-tab-pane>
-              <el-tab-pane label="Playbook">在脚本页面创建脚本，然后这里选择对应脚本</el-tab-pane>
-            </el-tabs>
           </el-form-item>
         </div>
 
@@ -89,7 +97,7 @@
 
         <el-form-item style="margin-top: 10px">
           <el-button v-if="active===2" type="primary" @click="handleAdd">提交</el-button>
-          <el-button v-if="active !==2" type="primary" @click="active++">下一步</el-button>
+          <el-button v-if="active !==2" type="primary" @click="handleNextStep">下一步</el-button>
           <el-button v-if="active !== 0" @click="active--">上一步</el-button>
         </el-form-item>
       </el-form>
@@ -119,6 +127,7 @@
   const addForm = reactive({})
   const addTargetsRef = ref(null)
   const targetHosts = ref([])
+  const moduleTypeRadio = ref('module')
 
   // form表单的初始化值
   const initForm = {
@@ -139,6 +148,20 @@
     }
   }
 
+  function handleNextStep() {
+    console.log(active.value)
+    if (active.value === 0) {
+      //  参数选择后，需要清空没选择的
+      if (moduleTypeRadio.value === 'module') {
+        addForm.ansible_args.playbook = ''
+      } else if (moduleTypeRadio.value === 'playbook') {
+        addForm.ansible_args.module = ''
+        addForm.ansible_args.module_args = ''
+      }
+    }
+    console.log(addForm)
+    active.value++
+  }
 
   /**
    * 确认按钮，提交任务
@@ -205,6 +228,7 @@
     active.value = 0
     Object.assign(addForm, JSON.parse(JSON.stringify(initForm)))
     targetHosts.value = []
+    moduleTypeRadio.value = 'module'
     visible.value = true
   }
 
@@ -221,6 +245,11 @@
     const paramsString = addForm.targets.map(item => `ids=${item}`).join('&')
     targetHosts.value = await GetHostsByIds(paramsString)
     console.log(targetHosts.value)
+    if (addForm.ansible_args.module !== '') {
+      moduleTypeRadio.value = 'module'
+    } else {
+      moduleTypeRadio.value = 'playbook'
+    }
     visible.value = true
   }
 
