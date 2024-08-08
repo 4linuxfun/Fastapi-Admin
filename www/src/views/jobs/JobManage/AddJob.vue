@@ -18,10 +18,10 @@
             <el-tabs type="border-card" style="width: 100%">
               <el-tab-pane label="Module">
                 <div style="padding: 5px">
-                  <el-select placeholder="选择模块" v-model="addForm.ansible_args.module" >
-                  <el-option v-for="module in moduleArray" :key="module.value" :label="module.value"
-                             :value="module.value"/>
-                </el-select>
+                  <el-select placeholder="选择模块" v-model="addForm.ansible_args.module">
+                    <el-option v-for="module in moduleArray" :key="module.value" :label="module.value"
+                               :value="module.value"/>
+                  </el-select>
                 </div>
 
                 <el-input v-model="addForm.ansible_args.module_args" style="padding:5px" placeholder="请输入命令参数"/>
@@ -34,12 +34,25 @@
         <!--执行对象-->
         <div v-show="active === 1" style="margin-top: 20px;">
           <div style="margin: 0 20%;">
-            <el-form-item label="执行对象">
-              <el-select v-model="addForm.targets" multiple style="width: 100%">
-                <el-option label="本机" value="6"/>
-              </el-select>
-              <el-button style="margin-top:10px;width: 100%;" @click="handleAddTargets">添加执行对象</el-button>
+            <el-form-item label="执行对象:">
+              <el-row v-for="(target,index) in targetHosts" style="width: 100%" :key="target.id">
+                <el-col :span="22">
+                  <el-input v-model="targetHosts[index].name" disabled/>
+                </el-col>
+                <el-col :span="1">
+                  <el-button type="danger" circle @click="targetHosts.splice(index,1)">
+                    <el-icon>
+                      <Minus/>
+                    </el-icon>
+                  </el-button>
+                </el-col>
+              </el-row>
+
             </el-form-item>
+            <el-form-item>
+              <el-button style="width: 100%;" @click="handleAddTargets">添加执行对象</el-button>
+            </el-form-item>
+
           </div>
 
         </div>
@@ -77,14 +90,14 @@
         </div>
 
 
-        <el-form-item>
+        <el-form-item style="margin-top: 10px">
           <el-button v-if="active===2" type="primary" @click="handleAdd">提交</el-button>
           <el-button v-if="active !==2" type="primary" @click="active++">下一步</el-button>
           <el-button v-if="active !== 0" @click="active--">上一步</el-button>
         </el-form-item>
       </el-form>
     </div>
-    <add-targets ref="addTargetsRef"/>
+    <add-targets ref="addTargetsRef" @success="updateTargets"/>
   </el-dialog>
 
 </template>
@@ -96,10 +109,12 @@
 </script>
 
 <script setup>
-  import {ref, reactive, onMounted, watch} from 'vue'
+  import {ref, reactive, watch} from 'vue'
   import {PostNewCronJob, PutCronJob} from '@/api/jobs'
   import {ElNotification} from 'element-plus'
-  import AddTargets from '@/views/jobs/JobManage/AddTargets.vue'
+  import AddTargets from '@/views/jobs/JobManage/AddTargetsDialog.vue'
+  import {Minus} from '@element-plus/icons-vue'
+  import {GetHosts} from '@/api/host.js'
 
   const emit = defineEmits(['success'])
 
@@ -116,10 +131,13 @@
   const active = ref(0)
   const addForm = reactive({})
   const addTargetsRef = ref(null)
+  const targetHosts = ref([])
+
+  // form表单的初始化值
   const initForm = {
     id: null,
     name: null,
-    targets: null,
+    targets: [],
     trigger: 'date',
     trigger_args: {
       run_date: null,
@@ -135,32 +153,14 @@
   }
 
 
-  const hostList = [
-    {
-      value: 'localhost',
-      label: '本机'
-    },
-    {
-      value: '172.16.8.36',
-      label: '生产服务器'
-    }
-  ]
-
-  // if (props.job !== null) {
-  //   Object.assign(addForm, props.job)
-  //   if (props.job.trigger === 'cron') {
-  //     Object.assign(cronArgs, props.job.trigger_args)
-  //   } else {
-  //     dateArgs.value = props.job.trigger_args
-  //   }
-  //
-  // }
-
-
+  /**
+   * 确认按钮，提交任务
+   * @return {Promise<void>}
+   */
   async function handleAdd() {
     if (addForm.id === null) {
       try {
-        let response = await PostNewCronJob(addForm)
+        await PostNewCronJob(addForm)
         ElNotification({
           title: 'success',
           message: '任务添加成功:',
@@ -172,7 +172,7 @@
 
     } else {
       try {
-        let response = await PutCronJob(addForm)
+        await PutCronJob(addForm)
         ElNotification({
           title: 'success',
           message: '任务修改成功:',
@@ -186,20 +186,54 @@
     emit('success')
   }
 
-  function handleAddTargets() {
-    addTargetsRef.value.add()
+  /**
+   * addTargetsDialog触发success事件，表示更新主机列表
+   * @param selectHosts
+   */
+  function updateTargets(selectHosts) {
+    console.log(selectHosts)
+    targetHosts.value = JSON.parse(JSON.stringify(selectHosts))
   }
 
+  /**
+   * 添加执行对象，弹出addTargetsDialog对话框
+   * @return {Promise<void>}
+   */
+  async function handleAddTargets() {
+    console.log(targetHosts.value)
+    await addTargetsRef.value.add(targetHosts.value)
+  }
+
+  /**
+   * 监听targetHosts的变化，更新addForm.targets
+   */
+  watch(targetHosts, () => {
+    addForm.targets = targetHosts.value.map(item => item.id)
+  }, {deep: true})
+
+  /**
+   * 添加任务
+   */
   function add() {
     active.value = 0
     Object.assign(addForm, JSON.parse(JSON.stringify(initForm)))
+    targetHosts.value = []
     visible.value = true
   }
 
-  function edit(job) {
+  /**
+   * 编辑任务
+   * @param job
+   * @return {Promise<void>}
+   */
+  async function edit(job) {
     console.log(job)
     active.value = 0
     Object.assign(addForm, JSON.parse(JSON.stringify(job)))
+    console.log(addForm.targets)
+    const paramsString = addForm.targets.map(item => `ids=${item}`).join('&')
+    targetHosts.value = await GetHosts(paramsString)
+    console.log(targetHosts.value)
     visible.value = true
   }
 
