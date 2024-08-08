@@ -1,8 +1,9 @@
-from typing import Optional, List
+from typing import Optional, List, Union
+from typing_extensions import Annotated
 from uuid import uuid4
 
 from loguru import logger
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, Query
 from sqlmodel import Session
 from sqlalchemy.exc import IntegrityError
 from server.models.internal.host import Host, Group, GroupWithChild, CreateHost, HostWithIp
@@ -55,6 +56,17 @@ async def delete_group(group_id: int, session: Session = Depends(get_session)):
     else:
         crud.internal.group.delete(session, group_id)
         return ApiResponse()
+
+
+@router.get('/host/targets/', summary='获取多个主机信息', response_model=ApiResponse[List[Host]])
+async def get_hosts(ids: Annotated[List[int], Query()] = [], session: Session = Depends(get_session)):
+    logger.debug(ids)
+    hosts: List[Host] = crud.internal.host.get_multi_by_ids(session, ids)
+    hosts_list = [host.model_dump(exclude={'ansible_password', 'ansible_ssh_private_key'}) for host
+                  in hosts]
+    return ApiResponse(
+        data=hosts_list
+    )
 
 
 @router.post('/host', summary='新增主机')
