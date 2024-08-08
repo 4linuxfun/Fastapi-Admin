@@ -114,7 +114,7 @@
   import {ElNotification} from 'element-plus'
   import AddTargets from '@/views/jobs/JobManage/AddTargetsDialog.vue'
   import {Minus} from '@element-plus/icons-vue'
-  import {GetHosts} from '@/api/host.js'
+  import {GetHostsByIds} from '@/api/host.js'
 
   const emit = defineEmits(['success'])
 
@@ -232,7 +232,7 @@
     Object.assign(addForm, JSON.parse(JSON.stringify(job)))
     console.log(addForm.targets)
     const paramsString = addForm.targets.map(item => `ids=${item}`).join('&')
-    targetHosts.value = await GetHosts(paramsString)
+    targetHosts.value = await GetHostsByIds(paramsString)
     console.log(targetHosts.value)
     visible.value = true
   }
