@@ -14,8 +14,8 @@ router = APIRouter(prefix='/api')
 @router.post('/dict/item/search', summary="字典列表查询", response_model=ApiResponse[SearchResponse[DictRead]])
 async def search_items(search: Pagination[DictItemSearch], session: Session = Depends(get_session)):
     filter_type = DictItemSearchFilter(dict_id='eq', label='like', enable='eq', value='like')
-    total = crud.internal.dict_item.search_total(session, search.search, filter_type.dict())
-    items: List[DictRead] = crud.internal.dict_item.search(session, search, filter_type.dict())
+    total = crud.internal.dict_item.search_total(session, search.search, filter_type.model_dump())
+    items: List[DictRead] = crud.internal.dict_item.search(session, search, filter_type.model_dump())
     item_list = [DictRead.from_orm(item) for item in items]
     return ApiResponse(
         data={
@@ -28,7 +28,7 @@ async def search_items(search: Pagination[DictItemSearch], session: Session = De
 
 @router.post('/dict/item', summary="添加字典字段", response_model=ApiResponse[DictRead])
 async def add_dict_item(dict_item: DictUpdate, session: Session = Depends(get_session)):
-    new_item = crud.internal.dict_item.insert(session, DictItem(**dict_item.dict()))
+    new_item = crud.internal.dict_item.insert(session, DictItem(**dict_item.model_dump()))
     return ApiResponse(
         data=DictRead.from_orm(new_item)
     )
@@ -83,8 +83,8 @@ async def add_dict(data_dict: DataDict, session: Session = Depends(get_session))
              summary="查询数据字典")
 async def get_dicts(search: Pagination[DataDictSearch], session: Session = Depends(get_session)):
     filter_type = DataDictSearch(name='like', code='like')
-    total = crud.internal.data_dict.search_total(session, search.search, filter_type.dict())
-    dicts: List[DataDict] = crud.internal.data_dict.search(session, search, filter_type.dict())
+    total = crud.internal.data_dict.search_total(session, search.search, filter_type.model_dump())
+    dicts: List[DataDict] = crud.internal.data_dict.search(session, search, filter_type.model_dump())
     return ApiResponse(
         data={
             'total': total,

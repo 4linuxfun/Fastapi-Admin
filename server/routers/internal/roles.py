@@ -44,7 +44,7 @@ async def get_roles(search: Pagination[RoleBase], session: Session = Depends(get
     roles: List[Role] = crud.internal.role.search(session, search, {'name': 'like', 'enable': 'eq'})
     role_with_menus: List[RoleWithMenus] = []
     for role in roles:
-        new_role = RoleWithMenus(**role.dict(), menus=role.menus)
+        new_role = RoleWithMenus(**role.model_dump(), menus=role.menus)
         role_with_menus.append(new_role)
     return ApiResponse(
         data={
@@ -74,7 +74,7 @@ async def add_roles(role_info: RoleInsert, session: Session = Depends(get_sessio
     enable_menus = role_info.menus
     delattr(role_info, 'menus')
     try:
-        db_obj = crud.internal.role.insert(session, Role(**role_info.dict()))
+        db_obj = crud.internal.role.insert(session, Role(**role_info.model_dump()))
         crud.internal.role.update_menus(session, db_obj, enable_menus)
         return ApiResponse(
             data=db_obj
