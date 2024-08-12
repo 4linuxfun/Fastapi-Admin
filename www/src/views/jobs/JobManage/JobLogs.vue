@@ -3,8 +3,13 @@
     <el-descriptions-item label="任务ID">{{ props.job.id }}</el-descriptions-item>
     <el-descriptions-item label="任务名称">{{ props.job.name }}</el-descriptions-item>
     <el-descriptions-item label="类型">{{ props.job.trigger }}</el-descriptions-item>
-    <el-descriptions-item label="执行模块">{{ props.job.ansible_args.module }}</el-descriptions-item>
-    <el-descriptions-item label="模块参数">{{ props.job.ansible_args.module_args }}</el-descriptions-item>
+    <el-descriptions-item label="执行方式">
+      <span
+          v-if="props.job.ansible_args.module!==''">模块：{{
+          props.job.ansible_args.module
+        }}，参数：{{ props.job.ansible_args.module_args }}</span>
+      <span v-else>脚本：{{ props.job.ansible_args.playbook }}</span>
+    </el-descriptions-item>
     <template v-if="props.job.trigger === 'cron'">
       <el-descriptions-item label="Cron规则">{{ props.job.trigger_args.cron }}</el-descriptions-item>
       <el-descriptions-item label="开始时间">{{ props.job.trigger_args.start_date }}</el-descriptions-item>
@@ -20,8 +25,8 @@
     <el-table-column label="执行时间" prop="start_time"/>
     <el-table-column label="执行状态">
       <template #default="scope">
-        <el-tag effect="dark" :type="statsCheck(scope.row.stats) ? 'danger':'success'">
-          {{ statsCheck(scope.row.stats) ? '失败' : '成功' }}
+        <el-tag effect="dark" :type="statsCheck(scope.row.stats) ?'success':'danger'">
+          {{ statsCheck(scope.row.stats) ? '成功' : '失败' }}
         </el-tag>
       </template>
     </el-table-column>
@@ -70,13 +75,20 @@
     logDetailRef.value.show(log)
   }
 
-  // 状态检查，看有无failure 字段
+  /**
+   * 状态检查，true为成功，false为失败
+   * @param stats
+   * @return {boolean}
+   */
   function statsCheck(stats) {
     console.log(stats)
     let log_stats = JSON.parse(stats)
+    if (log_stats == null) {
+      return false
+    }
     console.log(log_stats.failure)
     console.log(log_stats.ok)
-    return log_stats.failure === null
+    return log_stats.failure !== null
   }
 
   onMounted(() => {

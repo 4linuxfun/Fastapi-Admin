@@ -9,19 +9,23 @@
         <el-descriptions-item label="结束时间">{{ taskLogInfo.end_time }}</el-descriptions-item>
         <el-descriptions-item label="成功主机">
           <el-descriptions border :column="2">
-            <template v-for="(num,host, index) in taskStats.ok" :key="index">
-              <el-descriptions-item label="主机">{{ host }}</el-descriptions-item>
-              <el-descriptions-item label="结果">{{ num }}</el-descriptions-item>
+            <template v-if="taskStats !== null">
+              <template v-for="(num,host, index) in taskStats.ok" :key="index">
+                <el-descriptions-item label="主机">{{ host }}</el-descriptions-item>
+                <el-descriptions-item label="结果">{{ num }}</el-descriptions-item>
+              </template>
             </template>
-
           </el-descriptions>
         </el-descriptions-item>
         <el-descriptions-item label="失败主机">
           <el-descriptions border :column="2">
-            <template v-for="(num,host, index) in taskStats.failures" :key="index">
-              <el-descriptions-item label="主机">{{ host }}</el-descriptions-item>
-              <el-descriptions-item label="结果">{{ num }}</el-descriptions-item>
+            <template v-if="taskStats !== null">
+              <template v-for="(num,host, index) in taskStats.failures" :key="index">
+                <el-descriptions-item label="主机">{{ host }}</el-descriptions-item>
+                <el-descriptions-item label="结果">{{ num }}</el-descriptions-item>
+              </template>
             </template>
+
           </el-descriptions>
         </el-descriptions-item>
         <el-descriptions-item label="执行日志" :span="1">
