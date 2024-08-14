@@ -42,7 +42,7 @@ class Channel:
         self.conn.close()
 
 
-def hosts_to_inventory(hosts: List[InventoryHost], private_data_dir: Path):
+def hosts_to_inventory(hosts: List[InventoryHost], private_data_dir: Path) -> dict:
     """
     转换hosts为inventory格式的数据
     :params hosts:
