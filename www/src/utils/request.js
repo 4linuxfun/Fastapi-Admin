@@ -149,7 +149,16 @@ export function DELETE(url, params) {
   })
 }
 
-export function ConfirmDel(txt,func,id) {
+/**
+ * 删除确认对话框，可以直接提供func和对应id
+ * @returns {Promise<unknown>}
+ * @constructor
+ * @param txt 提示信息
+ * @param func 执行函数
+ * @param id 执行ID
+ */
+export function ConfirmDel(txt, func, id) {
+  return new Promise((resolve, reject) => {
     ElMessageBox.confirm(txt, '警告', {type: 'warning'}).then(() => {
       func(id).then(() => {
         ElMessage({
@@ -157,7 +166,8 @@ export function ConfirmDel(txt,func,id) {
           message: '删除成功',
           type: 'success'
         })
-      })
+        resolve()
+      }).catch(reject)
     }).catch(() => {
       ElMessage({
         title: 'success',
@@ -165,6 +175,8 @@ export function ConfirmDel(txt,func,id) {
         type: 'warning'
       })
     })
-  }
+  })
+
+}
 
 export default service

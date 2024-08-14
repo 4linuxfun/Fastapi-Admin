@@ -16,7 +16,7 @@ class APISettings(BaseSettings):
 
     CASBIN_MODEL_PATH: str = "server/model.conf"
     # sql数据库信息
-    DATABASE_URI: MySQLDsn = "mysql+pymysql://root:123456@192.168.137.129/devops"
+    DATABASE_URI: MySQLDsn = "mysql+pymysql://root:123456@localhost/devops"
     # 白名单，不需要进行任何验证即可访问
     NO_VERIFY_URL: List = [
         '/',

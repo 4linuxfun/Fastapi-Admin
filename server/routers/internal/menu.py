@@ -31,7 +31,7 @@ async def add_menu(menu: MenuBase, session: Session = Depends(get_session)):
     :param session:
     :return:
     """
-    db_obj = crud.menu.insert(session, Menu(**menu.dict()))
+    db_obj = crud.menu.insert(session, Menu(**menu.model_dump()))
     session.add(db_obj)
     session.commit()
     session.refresh(db_obj)

@@ -22,7 +22,19 @@ if config.config_file_name is not None:
 
 from models import *
 from models.internal import *
+
 target_metadata = SQLModel.metadata
+
+
+def include_name(name, type_, parent_names):
+    """
+    排除某些表
+    """
+    exclude_tables = ['apscheduler_jobs', 'casbin_rule']
+    if name in exclude_tables and type_ == 'table':
+        return False
+    else:
+        return True
 
 
 # other values from the config, defined by the needs of env.py,
@@ -49,6 +61,7 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        include_name=include_name
     )
 
     with context.begin_transaction():
@@ -70,7 +83,7 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata, compare_type=True
+            connection=connection, target_metadata=target_metadata, compare_type=True, include_name=include_name
         )
 
         with context.begin_transaction():

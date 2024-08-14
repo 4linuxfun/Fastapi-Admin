@@ -1,6 +1,9 @@
 import redis
+import os
 from loguru import logger
-from typing import Dict, Any
+from pathlib import Path
+from typing import Dict, Any, List
+from models import InventoryHost
 
 
 class Channel:
@@ -37,3 +40,28 @@ class Channel:
 
     def close(self, ):
         self.conn.close()
+
+
+def hosts_to_inventory(hosts: List[InventoryHost], private_data_dir: Path) -> dict:
+    """
+    转换hosts为inventory格式的数据
+    :params hosts:
+    :params private_data_dir:ansible-runner的环境目录，其中保存runner执行过程的所有数据
+    """
+    inventory = {}
+    logger.debug(hosts)
+    for host in hosts:
+        inventory[host.name] = {
+            "ansible_host": host.ansible_host,
+            "ansible_port": host.ansible_port,
+            "ansible_user": host.ansible_user,
+        }
+        if host.ansible_password:
+            inventory[host.name]["ansible_password"] = host.ansible_password
+        if host.ansible_ssh_private_key:
+            # 私钥保存到本地文件，并指向对应路径
+            private_key_file = private_data_dir / f"{host.ansible_host}"
+            private_key_file.write_text(host.ansible_ssh_private_key)
+            os.chmod(str(private_key_file), 0o600)
+            inventory[host.name]["ansible_ssh_private_key_file"] = str(private_key_file)
+    return {'all': {'hosts': inventory}}

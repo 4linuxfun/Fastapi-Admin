@@ -19,7 +19,7 @@ class CRUDUser(CRUDBase[User]):
         return session.exec(sql).one()
 
     def insert(self, session: Session, user_info: UserInfo) -> User:
-        updated_user = User(**user_info.user.dict())
+        updated_user = User(**user_info.user.model_dump())
         user_roles = role.get_roles_by_id(session, user_info.roles)
         updated_user.roles = user_roles
         return super(CRUDUser, self).insert(session, updated_user)

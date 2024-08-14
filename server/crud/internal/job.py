@@ -1,13 +1,12 @@
 from typing import Union
 from loguru import logger
 from sqlmodel import select, Session
-from ...models.internal.job import JobLog
+from ...models.internal.job import JobLogs
 from ..base import CRUDBase
-from .roles import role
 
 
-class CRUDJobLog(CRUDBase[JobLog]):
+class CRUDJobLogs(CRUDBase[JobLogs]):
     pass
 
 
-job_log = CRUDJobLog(JobLog)
+job_logs = CRUDJobLogs(JobLogs)

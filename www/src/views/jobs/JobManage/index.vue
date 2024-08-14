@@ -17,15 +17,21 @@
     <el-table-column label="类型">
       <template #default="scope">
         <el-tag effect="dark" :type="scope.row.trigger === 'cron'? 'success':'info'">
-          {{ scope.row.trigger === 'cron' ? 'Cron' : 'Date'}}
+          {{ scope.row.trigger === 'cron' ? 'Cron' : 'Date' }}
         </el-tag>
       </template>
     </el-table-column>
-    <el-table-column label="执行命令" prop="command"/>
-    <el-table-column label="状态">
+<!--    <el-table-column label="执行方式">-->
+<!--      <template #default="scope">-->
+<!--        <span-->
+<!--            v-if="scope.row.ansible_args.module !== null">模块：{{ scope.row.ansible_args.module }}，参数：{{ scope.row.ansible_args.module_args }}</span>-->
+<!--        <span v-else>脚本：{{ scope.row.ansible_args.playbook }}</span>-->
+<!--      </template>-->
+<!--    </el-table-column>-->
+    <el-table-column label=" 状态">
       <template #default="scope">
-        <el-switch v-model="scope.row.status" active-value="running" inactive-value="stop"
-                   @change="handleStatus(scope.row.id)"/>
+        <el-switch v-model="scope.row.status" active-value="1" inactive-value="0"
+                   @change="handleStatus(scope.row.id,scope.row.status)"/>
       </template>
     </el-table-column>
     <el-table-column label="操作">
@@ -42,9 +48,7 @@
                  style="margin-top: 10px;"
   />
 
-  <el-dialog v-model="addDrawer" title="任务编辑" destroy-on-close>
-    <add-job v-model:visible="addDrawer" :job="jobInfo"/>
-  </el-dialog>
+  <add-job ref="addJobRef" @success="freshCurrentPage"/>
 
   <el-dialog v-model="logDrawer" title="任务日志" destroy-on-close>
     <job-logs :job="jobInfo"/>
@@ -66,8 +70,8 @@
   import {ConfirmDel} from '@/utils/request'
   import usePagination from '@/composables/usePagination'
 
-  const addDrawer = ref(false)
   const logDrawer = ref(false)
+  const addJobRef = ref(null)
   let jobInfo = null
 
   const searchForm = {
@@ -86,20 +90,28 @@
   } = usePagination('/api/jobs/search', searchForm)
 
   function handleEdit(job) {
-    jobInfo = job
-    addDrawer.value = true
+    if (job === null) {
+      addJobRef.value.add()
+    } else {
+      addJobRef.value.edit(job)
+    }
   }
 
-  function handleStatus(jobId) {
-    SwitchJob(jobId).then(() => {
+  function handleStatus(jobId, status) {
+    SwitchJob(jobId, status).then(() => {
       freshCurrentPage()
-    }).catch(error=>{
+    }).catch(error => {
       freshCurrentPage()
     })
   }
 
-  function handleDel(job) {
-    ConfirmDel('是否确定要删除任务：' + job.name, DelJob, job.id)
+  async function handleDel(job) {
+    try {
+      await ConfirmDel('是否确定要删除任务：' + job.name, DelJob, job.id)
+    } catch (e) {
+      console.log(e)
+    }
+    await freshCurrentPage()
   }
 
   function handleLogs(job) {
@@ -108,12 +120,6 @@
     logDrawer.value = true
   }
 
-  watch(addDrawer, (newValue) => {
-    if (newValue === false) {
-      freshCurrentPage()
-    }
-
-  })
   onMounted(() => {
     handleSearch()
   })
