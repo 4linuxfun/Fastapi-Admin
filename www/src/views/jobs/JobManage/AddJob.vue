@@ -21,6 +21,7 @@
             </el-radio-group>
           </el-form-item>
           <el-form-item label="执行参数">
+            <!--            module选择-->
             <template v-if="moduleTypeRadio==='module'">
               <el-input v-model="addForm.ansible_args.module" style="margin: 5px" placeholder="请输入模块名称">
                 <template #prepend>模块名称:</template>
@@ -29,8 +30,12 @@
                 <template #prepend>模块参数:</template>
               </el-input>
             </template>
+            <!--            playbook选择-->
             <template v-else-if="moduleTypeRadio ==='playbook'">
-              <el-input v-model="addForm.ansible_args.playbook" style="margin: 5px" placeholder="请选择playbook脚本"/>
+              <el-select-v2 v-model="addForm.ansible_args.playbook" :options="playbooks"
+                            :props="{value:'name',label:'name'}"
+                            filterable remote :remote-method="getPlaybooks" :loading="loading"
+                            style="margin: 5px" placeholder="请选择playbook脚本"/>
             </template>
 
           </el-form-item>
@@ -120,6 +125,7 @@
   import AddTargets from '@/views/jobs/JobManage/AddTargetsDialog.vue'
   import {Minus} from '@element-plus/icons-vue'
   import {GetHostsByIds} from '@/api/host.js'
+  import {GetPlaybooksByQuery} from '@/api/playbook.js'
 
   const emit = defineEmits(['success'])
   const visible = ref(false)
@@ -128,6 +134,9 @@
   const addTargetsRef = ref(null)
   const targetHosts = ref([])
   const moduleTypeRadio = ref('module')
+  const playbooks = ref([])
+  const loading = ref(false)
+  const value = ref('')
 
   // form表单的初始化值
   const initForm = {
@@ -142,25 +151,40 @@
       end_date: null
     },
     ansible_args: {
-      module: '',
+      module: null,
       module_args: '',
-      playbook: ''
+      playbook: null
     }
   }
 
   function handleNextStep() {
     console.log(active.value)
     if (active.value === 0) {
-      //  参数选择后，需要清空没选择的
+      //  参数选择后，需要清空没选择的,module一定要为null，ansible-runner是判定module为None才会选择为playbook执行
       if (moduleTypeRadio.value === 'module') {
-        addForm.ansible_args.playbook = ''
+        addForm.ansible_args.playbook = null
       } else if (moduleTypeRadio.value === 'playbook') {
-        addForm.ansible_args.module = ''
-        addForm.ansible_args.module_args = ''
+        addForm.ansible_args.module = null
+        addForm.ansible_args.module_args = null
       }
     }
     console.log(addForm)
     active.value++
+  }
+
+  /**
+   * 获取playbook列表
+   * @param query
+   */
+  async function getPlaybooks(query) {
+    if (query !== '') {
+      console.log('start to search', query)
+      loading.value = true
+      playbooks.value = await GetPlaybooksByQuery(query)
+    } else {
+      playbooks.value = []
+    }
+    loading.value = false
   }
 
   /**
@@ -245,7 +269,7 @@
     const paramsString = addForm.targets.map(item => `ids=${item}`).join('&')
     targetHosts.value = await GetHostsByIds(paramsString)
     console.log(targetHosts.value)
-    if (addForm.ansible_args.module !== '') {
+    if (addForm.ansible_args.module !== null) {
       moduleTypeRadio.value = 'module'
     } else {
       moduleTypeRadio.value = 'playbook'

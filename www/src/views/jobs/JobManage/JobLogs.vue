@@ -5,7 +5,7 @@
     <el-descriptions-item label="类型">{{ props.job.trigger }}</el-descriptions-item>
     <el-descriptions-item label="执行方式">
       <span
-          v-if="props.job.ansible_args.module!==''">模块：{{
+          v-if="props.job.ansible_args.module!==null">模块：{{
           props.job.ansible_args.module
         }}，参数：{{ props.job.ansible_args.module_args }}</span>
       <span v-else>脚本：{{ props.job.ansible_args.playbook }}</span>
