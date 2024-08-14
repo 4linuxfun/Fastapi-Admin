@@ -43,8 +43,11 @@ class EventLogs:
 
 
 def ansible_task(job_id, targets, ansible_args):
+    """
+    通过ansible runner执行ansible任务
+    """
     start_time = datetime.now()
-    private_data_dir = Path(f'/tmp/ansible/{job_id}')
+    private_data_dir: Path = Path(f'/tmp/ansible/{job_id}')
     if not private_data_dir.exists():
         private_data_dir.mkdir(parents=True)
     logger.debug(f'job id:{job_id},task hosts:{targets},ansible_args:{ansible_args}')
@@ -62,6 +65,18 @@ def ansible_task(job_id, targets, ansible_args):
                               ansible_password=row[5], ansible_ssh_private_key=row[6]))
     ansible_inventory = hosts_to_inventory(hosts, private_data_dir)
     logger.debug(ansible_inventory)
+    # playbook获取对应内容并写入文件
+    if ansible_args['playbook']:
+        logger.debug('playbook任务')
+        project_dir = private_data_dir / 'project'
+        if not project_dir.exists():
+            project_dir.mkdir(parents=True)
+        with engine.connect() as conn:
+            sql = text(
+                "select playbook from playbook where name = :playbook").bindparams(
+                playbook=ansible_args['playbook'])
+            playbook_content = conn.execute(sql).scalar_one_or_none()
+        (project_dir / ansible_args['playbook']).write_text(playbook_content)
     # 执行任务，且日志实时写入redis
     with Channel(rpc_config.redis, job_id=job_id) as channel:
         runner = ansible_runner.run(private_data_dir=str(private_data_dir), inventory=ansible_inventory,
