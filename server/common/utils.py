@@ -17,7 +17,7 @@ class Tree(Generic[T]):
     def __init__(self, tree_list: List[T], model: Type[T]):
         self.tree_list = []
         for tree in tree_list:
-            self.tree_list.append(model(**tree.dict()))
+            self.tree_list.append(model(**tree.model_dump()))
 
     def get_root_node(self):
         root_tree = []
