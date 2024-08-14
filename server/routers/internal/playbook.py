@@ -11,6 +11,12 @@ from server import crud
 router = APIRouter(prefix='/api')
 
 
+@router.get('/playbook/{playbook_id}', summary='获取playbook详情', response_model=ApiResponse[Playbook])
+async def get_playbook_by_id(playbook_id: int, session: Session = Depends(get_session)):
+    playbook = crud.internal.playbook.get(session, playbook_id)
+    return ApiResponse(data=playbook.model_dump())
+
+
 @router.post('/playbook/search', summary="获取playbook列表", response_model=ApiResponse[SearchResponse[Playbook]])
 async def get_all_user(search: Pagination[PlaybookSearch],
                        session: Session = Depends(get_session)):
@@ -33,10 +39,10 @@ async def get_all_user(search: Pagination[PlaybookSearch],
     )
 
 
-@router.get('/playbook', summary='获取playbooks列表')
-async def query_playbooks(query: Union[str, None], session: Session = Depends(get_session)):
+@router.get('/playbook', summary='获取playbooks列表', response_model=ApiResponse[List[Playbook]])
+async def query_playbooks(query: Union[str, None] = None, session: Session = Depends(get_session)):
     playbooks: List[Playbook] = crud.internal.playbook.query_playbooks(session, query)
-    playbook_list = [playbook.model_dump() for playbook
+    playbook_list = [playbook.model_dump(exclude={'playbook'}) for playbook
                      in playbooks]
     return ApiResponse(data=playbook_list)
 
