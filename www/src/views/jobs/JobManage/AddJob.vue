@@ -33,7 +33,7 @@
             <!--            playbook选择-->
             <template v-else-if="moduleTypeRadio ==='playbook'">
               <el-select-v2 v-model="addForm.ansible_args.playbook" :options="playbooks"
-                            :props="{value:'name',label:'name'}"
+                            :props="{value:'id',label:'name'}"
                             filterable remote :remote-method="getPlaybooks" :loading="loading"
                             style="margin: 5px" placeholder="请选择playbook脚本"/>
             </template>
@@ -269,6 +269,7 @@
     const paramsString = addForm.targets.map(item => `ids=${item}`).join('&')
     targetHosts.value = await GetHostsByIds(paramsString)
     console.log(targetHosts.value)
+    playbooks.value = await GetPlaybooksByQuery(null)
     if (addForm.ansible_args.module !== null) {
       moduleTypeRadio.value = 'module'
     } else {

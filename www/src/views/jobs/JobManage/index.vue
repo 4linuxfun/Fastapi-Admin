@@ -21,13 +21,13 @@
         </el-tag>
       </template>
     </el-table-column>
-    <el-table-column label="执行方式">
-      <template #default="scope">
-        <span
-            v-if="scope.row.ansible_args.module !== null">模块：{{ scope.row.ansible_args.module }}，参数：{{ scope.row.ansible_args.module_args }}</span>
-        <span v-else>脚本：{{ scope.row.ansible_args.playbook }}</span>
-      </template>
-    </el-table-column>
+<!--    <el-table-column label="执行方式">-->
+<!--      <template #default="scope">-->
+<!--        <span-->
+<!--            v-if="scope.row.ansible_args.module !== null">模块：{{ scope.row.ansible_args.module }}，参数：{{ scope.row.ansible_args.module_args }}</span>-->
+<!--        <span v-else>脚本：{{ scope.row.ansible_args.playbook }}</span>-->
+<!--      </template>-->
+<!--    </el-table-column>-->
     <el-table-column label=" 状态">
       <template #default="scope">
         <el-switch v-model="scope.row.status" active-value="1" inactive-value="0"
