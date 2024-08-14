@@ -73,10 +73,13 @@ def ansible_task(job_id, targets, ansible_args):
             project_dir.mkdir(parents=True)
         with engine.connect() as conn:
             sql = text(
-                "select playbook from playbook where name = :playbook").bindparams(
+                "select name,playbook from playbook where id = :playbook").bindparams(
                 playbook=ansible_args['playbook'])
-            playbook_content = conn.execute(sql).scalar_one_or_none()
-        (project_dir / ansible_args['playbook']).write_text(playbook_content)
+            result = conn.execute(sql).one()
+            (playbook_name, playbook_content) = result
+            logger.debug(f'playbook:{playbook_name}')
+            (project_dir / playbook_name).write_text(playbook_content)
+            ansible_args['playbook'] = playbook_name
     # 执行任务，且日志实时写入redis
     with Channel(rpc_config.redis, job_id=job_id) as channel:
         runner = ansible_runner.run(private_data_dir=str(private_data_dir), inventory=ansible_inventory,
