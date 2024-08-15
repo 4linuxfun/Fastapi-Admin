@@ -24,7 +24,7 @@
         <el-table-column label="描述信息" prop="desc"/>
         <el-table-column label="操作">
           <template #default="scope">
-            <el-button link type="primary" @click="addPlaybookRef.edit(scope.row)">编辑</el-button>
+            <el-button link type="primary" @click="addPlaybookRef.edit(scope.row.id)">编辑</el-button>
             <el-button link type="primary" @click="">复制</el-button>
             <el-button link type="danger" @click="handleDel(scope.row.id)">删除</el-button>
           </template>
