@@ -76,9 +76,26 @@
     visible.value = true
   }
 
+  /**
+   * 模板拷贝功能
+   */
+  async function copy(id) {
+    title.value = '新建Playbook'
+    try {
+      let response = await GetPlaybook(id)
+      Object.assign(playBook, JSON.parse(JSON.stringify(response)))
+      playBook.id = null
+    } catch (err) {
+      console.log('get playbook error', err)
+    }
+    RequestAPI = PostNewPlaybook
+    visible.value = true
+  }
+
   defineExpose({
     add,
-    edit
+    edit,
+    copy
   })
 </script>
 <style scoped>
