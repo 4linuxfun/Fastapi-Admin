@@ -50,7 +50,7 @@
 
 
   <el-dialog v-model="addDialog" :title="addJobTitle" width="50%" destroy-on-close>
-    <add-job :data="addJobData" cron @cancel="addDialog = false" @submit="handleAdd"/>
+    <add-job :data="addJobData" dialog @cancel="addDialog = false" @submit="handleAdd"/>
   </el-dialog>
 
   <el-dialog v-model="logDrawer" title="任务日志" destroy-on-close>

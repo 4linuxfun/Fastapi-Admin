@@ -1,7 +1,7 @@
 <!--添加任务表单-->
 <template>
   <el-form v-model="addForm" style="margin-top: 10px">
-    <el-form-item label="任务名称" v-if="cronMode">
+    <el-form-item label="任务名称" v-if="props.dialog">
       <el-input v-model="addForm.name"/>
     </el-form-item>
 
@@ -32,7 +32,7 @@
     </el-form-item>
 
     <!--    任务执行时间设定-->
-    <el-tabs v-if="cronMode" tab-position="left" v-model="addForm.trigger">
+    <el-tabs v-if="props.dialog" tab-position="left" v-model="addForm.trigger">
       <el-tab-pane label="定时任务" name="date">
         <el-form-item>
           <span>执行时间</span>
@@ -77,7 +77,7 @@
     </el-form-item>
   </el-form>
   <el-row justify="center">
-    <el-button type="danger" @click="emit('cancel')">取消</el-button>
+    <el-button v-if="props.dialog" type="danger" @click="emit('cancel')">取消</el-button>
     <el-button type="primary" @click="handleSubmit">确定</el-button>
   </el-row>
   <add-targets-dialog ref="addTargetsRef" @success="updateTargets"/>
@@ -111,8 +111,10 @@
 
   // cron为true，则为定时任务，会显示对应的选择框
   const props = defineProps({
+    // 传递form数据，初始化为addForm表单
     data: {type: Object},
-    cron: {type: Boolean, default: false}
+    // 嵌套入dialog时，需要设置为true，带出部分组件
+    dialog: {type: Boolean, default: false}
   })
   // submit确认按钮，cancel取消按钮
   const emit = defineEmits(['submit', 'cancel'])
@@ -123,7 +125,6 @@
   const playbooks = ref([])
   const loading = ref(false)
   const targetHosts = ref([])
-  const cronMode = ref(props.cron)
 
   /**
    * 获取playbook列表
