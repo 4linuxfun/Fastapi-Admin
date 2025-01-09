@@ -15,7 +15,7 @@
             </el-tab-pane>
           </el-tabs>
 
-          <div style="padding: 10px 20px">
+          <div class="user-container">
             <router-view v-slot="{Component}">
               <keep-alive :include="cacheTabs">
                 <component :is="Component"/>
@@ -47,6 +47,11 @@
 </script>
 
 <style>
+.user-container {
+  padding: 10px 20px;
+  height: calc(100% - 60px);
+  background-color: white;
+}
 
 .el-tabs--border-card > .el-tabs__content {
   padding: 0;
