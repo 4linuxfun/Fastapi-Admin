@@ -60,11 +60,9 @@
           </el-dropdown>
         </template>
       </el-table-column>
-      >
     </el-table>
 
   </div>
-
   <menu-drawer ref="menuDrawerRef" @success="getMenuInfo"/>
 
 </template>

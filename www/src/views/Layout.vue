@@ -16,11 +16,13 @@
           </el-tabs>
 
           <div class="user-container">
-            <router-view v-slot="{Component}">
-              <keep-alive :include="cacheTabs">
-                <component :is="Component"/>
-              </keep-alive>
-            </router-view>
+            <div style="background-color:white;height: 100%;padding: 10px">
+              <router-view v-slot="{Component}">
+                <keep-alive :include="cacheTabs">
+                  <component :is="Component"/>
+                </keep-alive>
+              </router-view>
+            </div>
           </div>
           <!--详见：https://router.vuejs.org/zh/guide/migration/index.html#router-view-%E3%80%81-keep-alive-%E5%92%8C-transition-->
 
@@ -50,7 +52,7 @@
 .user-container {
   padding: 10px 20px;
   height: calc(100% - 60px);
-  background-color: white;
+  background-color: rgb(245, 245, 245);
 }
 
 .el-tabs--border-card > .el-tabs__content {
