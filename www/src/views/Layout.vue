@@ -10,9 +10,9 @@
         </el-header>
         <el-main style="padding: 0">
           <el-tabs style="border-bottom: 0;" v-model="currentTab" type="border-card"
-                   closable @tab-click="tabClick"
+                   @tab-click="tabClick"
                    @tab-remove="tabRemove">
-            <el-tab-pane v-for="tab in allTabs" :key="tab.name" :label="tab.name" :name="tab.name">
+            <el-tab-pane v-for="tab in allTabs" :key="tab.name" :label="tab.name" :name="tab.name" :closable="tab.name !== '首页'">
               <div class="user-container">
                 <div style="background-color:white;height: 100%;padding: 10px">
                   <router-view v-slot="{Component}">

@@ -3,7 +3,7 @@ import {computed, nextTick, ref} from 'vue'
 import router from '@/router'
 
 export const useTabsStore = defineStore('tabs', () => {
-  const allTabs = ref([])
+  const allTabs = ref([{name: '首页', path: '/'},])
   const currentTab = ref(null)
   const cacheTabs = ref([])
 

@@ -11,7 +11,7 @@
       <!--      菜单折叠只显示图标-->
       <div class="header-font" v-if="!collapseStore.collapse">FastAdmin管理平台</div>
     </div>
-    <el-menu-item index="/dashboard">首页</el-menu-item>
+    <el-menu-item index="/">首页</el-menu-item>
     <template v-for="item in menuList" :key="item.name">
       <!-- 有子菜单时处理逻辑 -->
       <el-sub-menu v-if="item.children.length>0" :index="item.path">

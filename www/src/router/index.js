@@ -6,17 +6,12 @@ export const constantRouterMap = [
     path: '/',
     name: 'home',
     component: () => import('@/views/Layout'),
-    children: []
-  },
-  {
-    path: '/dashboard',
-    component: () => import('@/views/Layout'),
     children: [
       {
         path: '',
-        name: 'dashboard',
+        name: '首页',
         component: () => import('@/views/DashBoard')
-      }
+      },
     ]
   },
   {
