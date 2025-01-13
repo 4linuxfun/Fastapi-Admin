@@ -12,6 +12,16 @@ export const constantRouterMap = [
         name: '首页',
         component: () => import('@/views/DashBoard')
       },
+      {
+        path: '404',
+        name: '404',
+        component: () => import('@/views/errorPage/NotFound'),
+      },
+      {
+        path: ':pathMatch(.*)*',
+        name: '404',
+        component: () => import('@/views/errorPage/NotFound'),
+      },
     ]
   },
   {
@@ -19,33 +29,6 @@ export const constantRouterMap = [
     component: () => import('@/views/Login/index'),
     // hidden: true
   },
-  // {
-  //   path: '/404',
-  //   name: 'notFound',
-  //   component: () => import('@/views/errorPage/NotFound'),
-  //   hidden: true
-  // },
-  // {
-  //     path:'/:patchMatch(.*)*',
-  //     name:'not-found',
-  //     redirect:'/404'
-  // }
-
-  // {
-  //   path: '/user',
-  //   component: Layout,
-  //   hidden: true,
-  //   redirect: 'noredirect',
-  //   children: [
-  //     {
-  //       path: 'center',
-  //       component: () => import('@/views/system/user/center'),
-  //       name: '个人中心',
-  //       meta: { title: '个人中心', icon: 'user' }
-  //     }
-  //   ]
-  // }
-  // { path: '*', redirect: '/404', hidden: true }
 ]
 
 export default createRouter({

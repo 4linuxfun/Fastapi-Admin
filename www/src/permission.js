@@ -35,7 +35,7 @@ router.beforeEach(async (to) => {
           for (let route of asyncRoutes) {
             console.log('add route:')
             console.log(route)
-            router.addRoute('home', route)
+            router.addRoute(route)
           }
           return {path: to.fullPath, replace: true}
         } catch (e) {
