@@ -1,5 +1,13 @@
 <template>
   <el-drawer v-model="visible" title="添加子菜单" destroy-on-close>
+    <el-alert
+      title="菜单填写说明："
+      type="warning">
+      <template #default>
+        <span>一级菜单：菜单路径‘/’开头，前端组件为Layout，如果一级菜单没子菜单，则前端组件为对应组件名</span><br>
+        <span>二级菜单：菜单路径为子路由path，前端组件为对应的组件名</span>
+      </template>
+    </el-alert>
     <el-form :model="selectData" label-width="100px" size="large">
       <el-form-item label="菜单类型:">
         <el-radio-group v-model="selectData.type">
