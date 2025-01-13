@@ -35,7 +35,13 @@ router.beforeEach(async (to) => {
           for (let route of asyncRoutes) {
             console.log('add route:')
             console.log(route)
-            router.addRoute(route)
+            // 判断route是否有children，如果没有，则增加到'/'的children中
+            if (!route.children || route.children.length === 0) {
+              console.log('no children')
+              router.addRoute('home', route)
+            } else {
+              router.addRoute(route)
+            }
           }
           return {path: to.fullPath, replace: true}
         } catch (e) {
