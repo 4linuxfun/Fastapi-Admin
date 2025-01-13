@@ -3,12 +3,12 @@
     <el-form :model="selectData" label-width="100px" size="large">
       <el-form-item label="菜单类型:">
         <el-radio-group v-model="selectData.type">
-          <el-radio-button label="page">一级菜单</el-radio-button>
-          <el-radio-button label="subPage">子菜单</el-radio-button>
-          <el-radio-button label="btn">按钮</el-radio-button>
+          <el-radio-button value="page">一级菜单</el-radio-button>
+          <el-radio-button value="subPage">子菜单</el-radio-button>
+          <el-radio-button value="btn">按钮</el-radio-button>
         </el-radio-group>
       </el-form-item>
-      <component :is="currentType" v-model:form="selectData"></component>
+      <component :is="currentType" v-model:form="selectData"/>
       <el-form-item>
         <el-button type="danger" @click="visible=false">取消</el-button>
         <!-- 更新和添加按钮触发的事件都是一样的，只是提交数据时id字段为空，此需要服务端通过此字段去判断添加还是更新 -->

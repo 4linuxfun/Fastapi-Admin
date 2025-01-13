@@ -23,7 +23,7 @@
         </template>
         <template v-if="item.children.length >0">
           <el-menu-item v-for="(children,index) in item.children" :key="index"
-                        :index="'/'+item.path + '/' + children.path">
+                        :index="item.path + '/' + children.path">
             <el-icon v-if="children.icon">
               <component :is="children.icon"/>
             </el-icon>
@@ -32,7 +32,7 @@
         </template>
       </el-sub-menu>
       <!-- 无子菜单时处理逻辑 -->
-      <el-menu-item v-else :index="'/'+item.path">
+      <el-menu-item v-else :index="item.path">
         <el-icon v-if="item.icon">
           <component :is="item.icon"/>
         </el-icon>
