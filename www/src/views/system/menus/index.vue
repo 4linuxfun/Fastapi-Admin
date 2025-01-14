@@ -67,11 +67,7 @@
 
 </template>
 
-<script>
-  export default {
-    name: '菜单管理'
-  }
-</script>
+
 <script setup>
   import {Plus, ArrowDown} from '@element-plus/icons-vue'
   import {ElMessageBox} from 'element-plus'
@@ -81,6 +77,10 @@
   } from '@/api/menus'
   import {provide, reactive, ref, shallowRef, watch} from 'vue'
   import MenuDrawer from '@/views/system/menus/MenuDrawer.vue'
+
+  defineOptions({
+    name: '菜单管理'
+  })
 
   const dialogVisible = ref(false)
   const menuInfo = reactive({

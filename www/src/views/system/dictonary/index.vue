@@ -58,12 +58,6 @@
 
 </template>
 
-<script>
-  export default {
-    name: '数据字典'
-  }
-</script>
-
 <script setup>
   import {
     Search,
@@ -82,6 +76,9 @@
   import {DelDict} from '@/api/dictonary'
   import {ConfirmDel} from '@/utils/request'
 
+  defineOptions({
+    name: '数据字典'
+  })
 
   const addDialog = ref(false)
   const dialogTitle = ref(null)
