@@ -62,6 +62,19 @@ async def get_dict(dict_code: str, session: Session = Depends(get_session)):
         )
 
 
+@router.delete("/dict/{dict_id}", summary="删除数据字典")
+async def del_dict(dict_id: int, session: Session = Depends(get_session)):
+    try:
+        crud.internal.dict_item.delete_by_dict_id(session, dict_id)
+        crud.internal.data_dict.delete(session, dict_id)
+        return ApiResponse()
+    except Exception as e:
+        return ApiResponse(
+            code=500,
+            message=f"删除数据字典失败：{e}"
+        )
+
+
 @router.post("/dict", summary="新建数据字典", response_model=ApiResponse[DataDict])
 async def add_dict(data_dict: DataDict, session: Session = Depends(get_session)):
     obj = crud.internal.data_dict.insert(session, data_dict)
