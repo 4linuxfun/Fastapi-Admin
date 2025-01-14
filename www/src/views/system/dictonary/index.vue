@@ -40,7 +40,7 @@
         <el-button text type="primary" style="padding: 0" :icon="Setting" @click="handleItem(scope.row)">字典配置
         </el-button>
         <el-divider direction="vertical"/>
-        <el-button text type="danger" style="padding: 0" :icon="Delete">删除</el-button>
+        <el-button text type="danger" style="padding: 0" :icon="Delete" @click="handleDel(scope.row)">删除</el-button>
       </template>
     </el-table-column>
   </el-table>
@@ -79,6 +79,8 @@
   import usePagination from '@/composables/usePagination'
   import AddDict from '@/views/system/dictonary/AddDict'
   import DictItem from '@/views/system/dictonary/DictItem'
+  import {DelDict} from '@/api/dictonary'
+  import {ConfirmDel} from '@/utils/request'
 
 
   const addDialog = ref(false)
@@ -119,6 +121,9 @@
     handleSearch()
   }
 
+  /*
+   * 编辑数据字典
+   */
   function handleEdit(dict) {
     dialogTitle.value = '编辑数据字典'
     selectDict.value = dict
@@ -126,8 +131,19 @@
     addDialog.value = true
   }
 
+  /*
+  * 字典元素配置
+   */
   function handleItem(dict) {
     dictItemRef.value.edit(dict)
+  }
+
+  /*
+  *删除字典
+   */
+  async function handleDel(dict) {
+    await ConfirmDel('删除字典会一起删除对应的元素', DelDict, dict.id)
+    await freshCurrentPage()
   }
 
   watch(addDialog, (newValue) => {
