@@ -1,13 +1,8 @@
 import router from './router'
 import {useStore} from './stores'
-import {
-  getToken
-} from '@/utils/auth'
-import {
-  makeRouter
-} from '@/utils/router'
+import {getToken} from '@/utils/auth'
+import {makeRouter} from '@/utils/router'
 import {useTabsStore} from '@/stores/tabs'
-
 
 const whiteList = ['/login'] // no redirect whitelist
 
@@ -46,25 +41,24 @@ router.beforeEach(async (to) => {
           return {path: to.fullPath, replace: true}
         } catch (e) {
           console.log('用户权限拉取失败' + e)
-          store.logOut().then(() => {
-            location.reload()
-          })
+          await store.logOut()
+          location.reload()
         }
       }
       console.log('当前生效路由表')
       console.log(router.getRoutes())
       tabAdd(to)
       return true
-
     }
   } else {
     // 无token信息，表示未登录
     console.log('无token信息')
-    if (whiteList.indexOf(to.path) !== -1) { // 在免登录白名单，直接进入
+    if (whiteList.indexOf(to.path) !== -1) {
+      // 在免登录白名单，直接进入
       return true
     } else {
       // return true
-      router.push(`/login?redirect=${to.path}`) // 否则全部重定向到登录页
+      router.replace(`/login?redirect=${to.path}`) // 否则全部重定向到登录页
     }
   }
 })
