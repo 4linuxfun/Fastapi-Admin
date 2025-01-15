@@ -90,7 +90,7 @@
   defineOptions({
     name: '主机管理'
   })
-  
+
   import {ref, onMounted} from 'vue'
   import {Delete, Edit} from '@element-plus/icons-vue'
   import {GetAllGroup, DelHost, DelGroup, PingHost} from '@/api/host.js'
