@@ -1,23 +1,35 @@
 // 一些通用的js
 /**
- * 根据id查找节点,并返回节点内容
- * @param nodes
- * @param id
- * @returns {*|null}
+ * 将树形数据扁平化为 { id: node } 的形式
+ * @param {Array} nodes - 树形数据
+ * @param {Object} props - 属性配置，例如：{ id: 'id', children: 'children' }
+ * @returns {Map} - 返回一个 Map，key 是节点的 id，value 是节点本身
  */
-export function findNodeById(nodes, id) {
-  for (let node of nodes) {
-    if (node.id === id) {
-      return node
-    }
-    if (node.children) {
-      let found = findNodeById(node.children, id)
-      if (found) {
-        return found
+function flattenTree(nodes, props = {}) {
+  const {id = 'id', children = 'children'} = props
+  const nodeMap = new Map()
+
+  function flatten(nodes) {
+    nodes.forEach(node => {
+      nodeMap.set(node[id], node) // 将节点存入 Map
+      if (node[children] && node[children].length > 0) {
+        flatten(node[children]) // 递归处理子节点
       }
-    }
+    })
   }
-  return null
+
+  flatten(nodes)
+  return nodeMap
+}
+
+/**
+ * 通过 id 查找节点
+ * @param {Map} nodeMap - 扁平化的节点 Map
+ * @param {number|string} targetId - 目标节点的 id
+ * @returns {Object|null} - 返回找到的节点，如果未找到则返回 null
+ */
+export function findNodeById(nodeMap, targetId) {
+  return nodeMap.get(targetId) || null
 }
 
 
@@ -40,14 +52,55 @@ export function getHierarchyLabel(data, findId, props) {
   const label = props && props.hasOwnProperty('label') ? props.label : defaultProps.label
   const parent_id = props && props.hasOwnProperty('parent_id') ? props.parent_id : defaultProps.parent_id
 
-  let selectNode = findNodeById(data, findId)
-  let hierarchyLabel = selectNode[label]
-  let parent = selectNode[parent_id]
-  console.log(selectNode, parent)
-  while (parent !== null) {
-    let parentItem = findNodeById(data, selectNode[parent_id])
-    hierarchyLabel = parentItem[label] + ' / ' + hierarchyLabel
-    parent = parentItem[parent_id]
+  let nodeMap = flattenTree(data, {id: 'id', children: 'children'})
+  let hierarchyLabel = ''
+  while (true) {
+    let selectNode = findNodeById(nodeMap, findId)
+    hierarchyLabel = hierarchyLabel ? selectNode[label] + '/' + hierarchyLabel : selectNode[label]
+    if (selectNode[parent_id] === null) {
+      hierarchyLabel = '/' + hierarchyLabel
+      break
+    }
+    findId = selectNode[parent_id]
   }
+  console.log(hierarchyLabel)
   return hierarchyLabel
+}
+
+
+/**
+ * 给[{},{}]类型的数据递归增加自定义属性值，并返回新数组
+ * @param {Array} data - 传入的树形数据, 例如：[{id: 1, name: '根节点', children: [{id: 2, name: '子节点', children: [{id: 3, name: '孙节点'}]}]}]
+ * @param {string} customProperty - 传入的自定义属性名称, 例如：'isExpanded'
+ * @param value - 自定义的值
+ * @returns {Array} - 返回新数组
+ */
+export function addCustomProperty(data, customProperty, value) {
+  return data.map(item => {
+    item[customProperty] = value
+    if (item.children) {
+      item.children = addCustomProperty(item.children, customProperty, value)
+    }
+    return item
+  })
+}
+
+/**
+ * 给[{},{}]类型的数据递归查找某个属性，修改值，并返回新数组
+ * @param {Array} data - 传入的树形数据, 例如：[{id: 1, name: '根节点', children: [{id: 2, name: '子节点', children: [{id: 3, name: '孙节点'}]}]}]
+ * @param {string} customProperty - 传入的自定义属性名称, 例如：'isExpanded'
+ * @param value - 自定义的值
+ * @param newValue - 新的值
+ * @returns {Array} - 返回新数组
+ */
+export function updateCustomProperty(data, customProperty, value, newValue) {
+  return data.map(item => {
+    if (item[customProperty] === value) {
+      item[customProperty] = newValue
+    }
+    if (item.children) {
+      item.children = updateCustomProperty(item.children, customProperty, value, newValue)
+    }
+    return item
+  })
 }
