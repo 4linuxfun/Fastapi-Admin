@@ -158,24 +158,26 @@ export function DELETE(url, params) {
  * @param id 执行ID
  */
 export function ConfirmDel(txt, func, id) {
-  return new Promise((resolve, reject) => {
-    ElMessageBox.confirm(txt, '警告', {type: 'warning'}).then(() => {
-      func(id).then(() => {
-        ElMessage({
-          title: 'success',
-          message: '删除成功',
-          type: 'success'
-        })
-        resolve()
-      }).catch(reject)
-    }).catch(() => {
+  return ElMessageBox.confirm(txt, '警告', {type: 'warning'})
+    .then(() => func(id))
+    .then(() => {
       ElMessage({
         title: 'success',
-        message: '取消删除操作',
-        type: 'warning'
+        message: '删除成功',
+        type: 'success'
       })
     })
-  })
+    .catch((error) => {
+      if (error !== 'cancel') {
+        ElMessage({
+          title: 'success',
+          message: '删除失败',
+          type: 'warning'
+        })
+        throw error
+      }
+
+    })
 
 }
 
