@@ -59,12 +59,12 @@
   <user-drawer ref="userDrawerRef" @success="freshCurrentPage"/>
 
 </template>
-<script>
-  export default {
-    name: '用户管理'
-  }
-</script>
+
 <script setup>
+  defineOptions({
+    name: '用户管理'
+  })
+
   import {
     reactive,
     ref, watch, onMounted
@@ -81,7 +81,6 @@
   } from '@/api/users'
   import {ElMessage, ElMessageBox} from 'element-plus'
   import AutoDict from '@/components/AutoDict'
-
 
   const detailVisible = ref(false)
   const resetPasswdDialogRef = ref(null)

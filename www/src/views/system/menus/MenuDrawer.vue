@@ -1,14 +1,22 @@
 <template>
   <el-drawer v-model="visible" title="添加子菜单" destroy-on-close>
+    <el-alert
+      title="菜单填写说明："
+      type="warning">
+      <template #default>
+        <span>一级菜单：菜单路径‘/’开头，前端组件为Layout，如果一级菜单没子菜单，则前端组件为对应组件名</span><br>
+        <span>二级菜单：菜单路径为子路由path，前端组件为对应的组件名</span>
+      </template>
+    </el-alert>
     <el-form :model="selectData" label-width="100px" size="large">
       <el-form-item label="菜单类型:">
         <el-radio-group v-model="selectData.type">
-          <el-radio-button label="page">一级菜单</el-radio-button>
-          <el-radio-button label="subPage">子菜单</el-radio-button>
-          <el-radio-button label="btn">按钮</el-radio-button>
+          <el-radio-button value="page">一级菜单</el-radio-button>
+          <el-radio-button value="subPage">子菜单</el-radio-button>
+          <el-radio-button value="btn">按钮</el-radio-button>
         </el-radio-group>
       </el-form-item>
-      <component :is="currentType" v-model:form="selectData"></component>
+      <component :is="currentType" v-model:form="selectData"/>
       <el-form-item>
         <el-button type="danger" @click="visible=false">取消</el-button>
         <!-- 更新和添加按钮触发的事件都是一样的，只是提交数据时id字段为空，此需要服务端通过此字段去判断添加还是更新 -->

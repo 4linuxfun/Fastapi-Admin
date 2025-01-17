@@ -1,6 +1,6 @@
 from typing import Optional, List, Dict
 from loguru import logger
-from sqlmodel import select, Session, desc
+from sqlmodel import select, Session, desc, delete
 from ...models.internal.dictonary import DataDict, DictItem, DictItemSearch
 from ..base import CRUDBase
 from ...models.internal import Pagination
@@ -16,6 +16,13 @@ class CRUDItem(CRUDBase[DictItem]):
         sql = select(self.model).where(self.model.dict_id == dict_id).where(self.model.enable == 1).order_by(
             self.model.sort)
         return db.exec(sql).all()
+
+    def delete_by_dict_id(self, session: Session, dict_id: int):
+        """
+        通过dict_id删除对应关联的item
+        """
+        sql = delete(self.model).where(self.model.dict_id == dict_id)
+        session.exec(sql)
 
     def search(self, session: Session, search: Pagination[DictItemSearch], filter_type: Optional[Dict[str, str]] = None,
                columns: Optional[List] = None, order_col: Optional[str] = 'id'):

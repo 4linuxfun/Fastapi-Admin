@@ -59,12 +59,14 @@ async def update_menu(menu: MenuBase, session: Session = Depends(get_session)):
     )
 
 
-@router.delete('/menus/{id}', summary='删除菜单',
+@router.delete('/menus/{menu_id}', summary='删除菜单',
                dependencies=[Depends(Authority("menu:del"))])
-async def del_menu(id: int, session: Session = Depends(get_session)):
-    db_obj = crud.menu.get(session, id)
+async def del_menu(menu_id: int, session: Session = Depends(get_session)):
+    db_obj = crud.menu.get(session, menu_id)
     if len(db_obj.roles) > 0:
         roles = [role.name for role in db_obj.roles]
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"{roles} 角色关联菜单，请先取消关联")
-    crud.menu.delete(session, id)
+    if crud.menu.check_has_child(session, menu_id):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"菜单下存在子菜单，请先删除子菜单")
+    crud.menu.delete(session, menu_id)
     return ApiResponse()

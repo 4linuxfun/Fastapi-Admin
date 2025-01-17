@@ -9,9 +9,8 @@
       </el-form-item>
       <el-form-item label="角色">
         <el-checkbox-group v-model="enableRoleList">
-          <el-checkbox v-for="role in roleList" :label="role.id" :key="role.id"
-                       :disabled="!role.enable">{{ role.name }}
-          </el-checkbox>
+          <el-checkbox v-for="role in roleList" :value="role.id" :label="role.name" :key="role.id"
+                       :disabled="!role.enable"/>
         </el-checkbox-group>
       </el-form-item>
       <el-form-item>

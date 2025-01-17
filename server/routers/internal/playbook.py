@@ -28,7 +28,7 @@ async def get_all_user(search: Pagination[PlaybookSearch],
     total = crud.internal.playbook.search_total(session, search.search, {'name': 'like'})
     logger.debug(total)
     playbooks: List[Playbook] = crud.internal.playbook.search(session, search, {'name': 'like'})
-    playbook_list = [playbook.model_dump() for playbook
+    playbook_list = [playbook.model_dump(exclude={'playbook'}) for playbook
                      in playbooks]
     logger.debug(playbook_list)
     return ApiResponse(

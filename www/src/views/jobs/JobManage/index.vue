@@ -21,13 +21,13 @@
         </el-tag>
       </template>
     </el-table-column>
-<!--    <el-table-column label="执行方式">-->
-<!--      <template #default="scope">-->
-<!--        <span-->
-<!--            v-if="scope.row.ansible_args.module !== null">模块：{{ scope.row.ansible_args.module }}，参数：{{ scope.row.ansible_args.module_args }}</span>-->
-<!--        <span v-else>脚本：{{ scope.row.ansible_args.playbook }}</span>-->
-<!--      </template>-->
-<!--    </el-table-column>-->
+    <!--    <el-table-column label="执行方式">-->
+    <!--      <template #default="scope">-->
+    <!--        <span-->
+    <!--            v-if="scope.row.ansible_args.module !== null">模块：{{ scope.row.ansible_args.module }}，参数：{{ scope.row.ansible_args.module_args }}</span>-->
+    <!--        <span v-else>脚本：{{ scope.row.ansible_args.playbook }}</span>-->
+    <!--      </template>-->
+    <!--    </el-table-column>-->
     <el-table-column label=" 状态">
       <template #default="scope">
         <el-switch v-model="scope.row.status" active-value="1" inactive-value="0"
@@ -48,7 +48,10 @@
                  style="margin-top: 10px;"
   />
 
-  <add-job ref="addJobRef" @success="freshCurrentPage"/>
+
+  <el-dialog v-model="addDialog" :title="addJobTitle" width="50%" destroy-on-close>
+    <add-job :data="addJobData" dialog @cancel="addDialog = false" @submit="handleAdd"/>
+  </el-dialog>
 
   <el-dialog v-model="logDrawer" title="任务日志" destroy-on-close>
     <job-logs :job="jobInfo"/>
@@ -63,15 +66,18 @@
 
 <script setup>
 
-  import {ref, onMounted, watch} from 'vue'
-  import AddJob from '@/views/jobs/JobManage/AddJob.vue'
+  import {ref, onMounted} from 'vue'
   import JobLogs from '@/views/jobs/JobManage/JobLogs.vue'
-  import {DelJob, GetJobList, SwitchJob} from '@/api/jobs'
+  import {DelJob, PostNewCronJob, PutCronJob, SwitchJob} from '@/api/jobs'
   import {ConfirmDel} from '@/utils/request'
   import usePagination from '@/composables/usePagination'
+  import AddJob from '@/views/jobs/components/AddJob.vue'
+  import {ElNotification} from 'element-plus'
 
   const logDrawer = ref(false)
-  const addJobRef = ref(null)
+  const addDialog = ref(false)
+  const addJobData = ref(null)
+  const addJobTitle = ref('')
   let jobInfo = null
 
   const searchForm = {
@@ -91,9 +97,14 @@
 
   function handleEdit(job) {
     if (job === null) {
-      addJobRef.value.add()
+      addJobTitle.value = '新建任务'
+      addDialog.value = true
+      addJobData.value = null
     } else {
-      addJobRef.value.edit(job)
+      console.log(job)
+      addJobTitle.value = '编辑任务'
+      addDialog.value = true
+      addJobData.value = job
     }
   }
 
@@ -118,6 +129,39 @@
     console.log(job)
     jobInfo = job
     logDrawer.value = true
+  }
+
+  /**
+   * 确认按钮，提交任务
+   * @return {Promise<void>}
+   */
+  async function handleAdd(addForm) {
+    if (addForm.id === null) {
+      try {
+        await PostNewCronJob(addForm)
+        ElNotification({
+          title: 'success',
+          message: '任务添加成功:',
+          type: 'success'
+        })
+      } catch (error) {
+        console.log(error)
+      }
+
+    } else {
+      try {
+        await PutCronJob(addForm)
+        ElNotification({
+          title: 'success',
+          message: '任务修改成功:',
+          type: 'success'
+        })
+      } catch (error) {
+        console.log(error)
+      }
+    }
+    addDialog.value = false
+    freshCurrentPage()
   }
 
   onMounted(() => {

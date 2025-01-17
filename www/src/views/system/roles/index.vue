@@ -52,12 +52,12 @@
 
 </template>
 
-<script>
-  export default {
-    name: '角色管理'
-  }
-</script>
+
 <script setup>
+  defineOptions({
+    name: '角色管理'
+  })
+
   import {reactive, ref, watch, onMounted} from 'vue'
   import {Search, RefreshRight, Plus} from '@element-plus/icons-vue'
   import {GetRoles, DeleteRole} from '@/api/roles'

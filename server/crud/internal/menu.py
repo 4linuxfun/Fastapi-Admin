@@ -28,5 +28,15 @@ class CRUDMenu(CRUDBase[Menu]):
         session.delete(db_obj)
         session.commit()
 
+    def check_has_child(self, session: Session, pid: int) -> bool:
+        """
+        判断是否有子菜单
+        :param session:
+        :param pid:
+        :return:
+        """
+        sql = select(self.model).where(self.model.parent_id == pid)
+        return session.exec(sql).first() is not None
+
 
 menu = CRUDMenu(Menu)

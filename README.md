@@ -56,25 +56,6 @@
 
 ```
 
-2. 前端启动：
-
-```
-进入www页面，执行：npm run serve
-```
-
-3. 后端启动
-
-```
-uvicorn server.main:app --reload
-uvicorn --host 192.168.137.129  server.main:app --reload --reload-exclude www
-```
-
-4. 任务管理启动
-
-```
-cd /mnt/hgfs/simple_ams/rpyc_scheduler/&&python3 scheduler-server.py
-```
-
 ## 生产环境部署
 
 1. 前端执行打包命令
@@ -107,11 +88,12 @@ server {
 }
 ```
 
-3. 启动后端服务
-   生产环境使用，建议通过gunicorn启动服务
+## 服务管理
 
+* dev:开发环境，使用uvicorn启动
+* pro:生产环境，使用gunicorn启动
 ```
-nohup gunicorn server.main:app -b 127.0.0.1:8000 -w 4 -k uvicorn.workers.UvicornWorker >gunicorn.log 2>&1&
+./service.sh {dev|pro} {start|stop|restart}
 ```
 
 ## 约束

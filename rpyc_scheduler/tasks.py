@@ -99,6 +99,7 @@ def ansible_task(job_id, targets, ansible_args):
                       'log': json.dumps(run_logs),
                       'stats': json.dumps(runner.stats)})
         conn.commit()
+    private_data_dir.rmdir()
 
 
 def run_command_with_channel(job_id=None, targets: List[str] = None, command=None):

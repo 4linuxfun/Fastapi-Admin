@@ -28,7 +28,7 @@
   import modeYamlUrl from 'ace-builds/src-noconflict/mode-yaml?url'
   import themeTomorrow from 'ace-builds/src-noconflict/theme-tomorrow?url'
   import snippetsYamlUrl from 'ace-builds/src-noconflict/snippets/yaml?url'
-  import {PostNewPlaybook, PutPlaybook} from '@/api/playbook.js'
+  import {GetPlaybook, PostNewPlaybook, PutPlaybook} from '@/api/playbook.js'
 
   ace.config.setModuleUrl('ace/mode/yaml', modeYamlUrl)
   ace.config.setModuleUrl('ace/theme/tomorrow', themeTomorrow)
@@ -64,16 +64,38 @@
     visible.value = true
   }
 
-  function edit(data) {
+  async function edit(id) {
     title.value = '编辑Playbook'
-    Object.assign(playBook, JSON.parse(JSON.stringify(data)))
+    try {
+      let response = await GetPlaybook(id)
+      Object.assign(playBook, JSON.parse(JSON.stringify(response)))
+    } catch (err) {
+      console.log('get playbook error', err)
+    }
     RequestAPI = PutPlaybook
+    visible.value = true
+  }
+
+  /**
+   * 模板拷贝功能
+   */
+  async function copy(id) {
+    title.value = '新建Playbook'
+    try {
+      let response = await GetPlaybook(id)
+      Object.assign(playBook, JSON.parse(JSON.stringify(response)))
+      playBook.id = null
+    } catch (err) {
+      console.log('get playbook error', err)
+    }
+    RequestAPI = PostNewPlaybook
     visible.value = true
   }
 
   defineExpose({
     add,
-    edit
+    edit,
+    copy
   })
 </script>
 <style scoped>

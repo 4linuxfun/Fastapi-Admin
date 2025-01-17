@@ -11,7 +11,7 @@
                    style="padding: 10px" highlight-current default-expand-all
                    :expand-on-click-node="false">
             <template #default="{node,data}">
-              <el-row style="flex: 1" justify="space-between" >
+              <el-row style="flex: 1" justify="space-between">
                 <el-col :span="18" @click="handleSearchHost(data)"><span>{{ node.label }}</span></el-col>
                 <el-col :span="6" style="text-align: right">
                   <el-link :underline="false" style="margin-left: 10px" @click="handleEditGroup(data)">
@@ -87,6 +87,10 @@
 </template>
 
 <script setup>
+  defineOptions({
+    name: '主机管理'
+  })
+
   import {ref, onMounted} from 'vue'
   import {Delete, Edit} from '@element-plus/icons-vue'
   import {GetAllGroup, DelHost, DelGroup, PingHost} from '@/api/host.js'

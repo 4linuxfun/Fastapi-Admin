@@ -6,11 +6,10 @@ export function makeRouter(routers) { // 遍历后台传来的路由字符串，
   console.log(routers)
   let asyncRouter = routers.map(route => {
     console.log('name:' + route.name + ' path:' + route.path)
-    if (route.component === null || route.component === undefined || route.component === '') {
-      route.component = null
-      // console.log('layout')
-    } else {
+    if (route.component) {
       route.component = loadView(route.component)
+    } else {
+      route.component = null
     }
 
     if (route.children && route.children.length) {
@@ -18,7 +17,7 @@ export function makeRouter(routers) { // 遍历后台传来的路由字符串，
     }
     return route
   })
-  console.log('asyncrouter is:' + asyncRouter)
+  console.log('asyncrouter is:', asyncRouter) // 修改: 更改为对象输出
   return asyncRouter
 }
 

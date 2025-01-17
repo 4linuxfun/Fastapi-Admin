@@ -1,5 +1,5 @@
 <template>
-  <el-dialog v-model="visible" title="用户密码重置" width="30%" @close="ruleFormRef.resetFields()">
+  <el-dialog v-model="visible" title="用户密码重置" width="30%" destroy-on-close>
     <el-form ref="ruleFormRef" :model="form" label-width="100px" :rules="rules">
       <el-form-item label="用户名:">
         <el-input v-model="userName" disabled></el-input>
