@@ -1,64 +1,68 @@
-import {
-  reactive,
-  ref,
-  watch
-} from 'vue'
+import {reactive, ref, watch} from 'vue'
 import {POST} from '@/utils/request'
 
-export default function usePagination(url, searchForm, orderType = 'asc') {
+/**
+ * 分页逻辑复用函数
+ * @param {string} url - 请求的API地址
+ * @param {Object} searchForm - 搜索表单数据，默认为空对象
+ * @param {string} orderType - 排序方式，默认为 'asc'
+ * @returns {Object} - 返回分页相关的状态和方法
+ */
+export default function usePagination(url, searchForm = {}, orderType = 'asc') {
+  // 响应式搜索表单数据
   const search = reactive(searchForm)
+
+  // 表格数据
   const tableData = ref([])
+
+  // 每页显示条数
   const pageSize = ref(10)
+
+  // 当前页码
   const currentPage = ref(1)
+
+  // 排序方式
   const orderModel = ref(orderType)
+
+  // 数据总数
   const total = ref(0)
 
-
-  const searchFunc = (search, page, pageSize, orderModel) => POST(url, {
-    search,
-    page,
-    page_size: pageSize,
-    model:orderModel
-  })
-  // // 初始化调用
-  // searchFunc(search, currentPage.value, pageSize.value, orderModel.value).then((response) => {
-  //   tableData.value = response.data
-  //   total.value = response.total
-  // })
-
-  const freshCurrentPage = () => {
-    searchFunc(search, currentPage.value, pageSize.value, orderModel.value).then((response) => {
-      tableData.value = response.data
-      total.value = response.total
+  /**
+   * 获取分页数据
+   * @returns {Promise<void>}
+   */
+  const fetchData = async () => {
+    const response = await POST(url, {
+      search,
+      page: currentPage.value,
+      page_size: pageSize.value,
+      model: orderModel.value,
     })
-
+    tableData.value = response.data
+    total.value = response.total
   }
+
+  /**
+   * 刷新当前页数据
+   */
+  const freshCurrentPage = () => {
+    fetchData()
+  }
+
+  /**
+   * 处理搜索操作，重置页码并获取数据
+   */
   const handleSearch = () => {
     currentPage.value = 1
-    searchFunc(search, currentPage.value, pageSize.value, orderModel.value).then((response) => {
-      tableData.value = response.data
-      total.value = response.total
-    })
+    fetchData()
   }
 
-  watch(currentPage, (newValue, oldValue) => {
-    console.log(newValue)
-    searchFunc(search, currentPage.value, pageSize.value, orderModel.value).then((
-      response) => {
-      tableData.value = response.data
-      total.value = response.total
-    })
+  // 监听 currentPage 和 pageSize 的变化，自动获取数据
+  watch([currentPage, pageSize], () => {
+    fetchData()
+  })
 
-  })
-  watch(pageSize, (newValue) => {
-    // pageSize变更后，为了保障页数等信息，最好还是返回第一页
-    console.log('pagesize：' + newValue)
-    searchFunc(search, currentPage.value, pageSize.value, orderModel.value).then((
-      response) => {
-      tableData.value = response.data
-      total.value = response.total
-    })
-  })
+  // 返回分页相关的状态和方法
   return {
     search,
     tableData,
@@ -67,6 +71,6 @@ export default function usePagination(url, searchForm, orderType = 'asc') {
     orderModel,
     total,
     freshCurrentPage,
-    handleSearch
+    handleSearch,
   }
 }
