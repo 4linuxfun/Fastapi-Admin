@@ -2,11 +2,13 @@ import logging
 
 from loguru import logger
 from datetime import datetime, timedelta
-from fastapi import Request, HTTPException, status
+from fastapi import Request, WebSocket, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.security.utils import get_authorization_scheme_param
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from starlette.websockets import WebSocket
+
 from ..settings import settings
 
 # to get a string like this run:
@@ -18,12 +20,16 @@ pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 
-def auth_check(request: Request):
+def auth_check(request: Request = None, ws: WebSocket = None):
     """
     检查是否有token信息，并在request.state中添加uid值
     :param request:
+    :param ws:
     :return:
     """
+    # websocket不需要验证
+    if ws:
+        return None
     logger.info(f'request url:{request.url} method:{request.method}')
     for url in settings.NO_VERIFY_URL:
         if url == request.url.path.lower():
