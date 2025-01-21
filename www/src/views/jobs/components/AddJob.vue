@@ -63,11 +63,7 @@
           <el-input v-model="targetHosts[index].name" disabled/>
         </el-col>
         <el-col :span="1">
-          <el-button type="danger" circle @click="targetHosts.splice(index,1)">
-            <el-icon>
-              <Minus/>
-            </el-icon>
-          </el-button>
+          <el-button style="margin-left: 5px;" type="danger" circle size="small" :icon="Minus" @click="targetHosts.splice(index,1)"/>
         </el-col>
       </el-row>
 
