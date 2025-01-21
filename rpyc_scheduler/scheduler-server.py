@@ -35,6 +35,20 @@ def print_text(*args, **kwargs):
     logger.debug(kwargs)
 
 
+import sys
+import pdb
+
+
+def trace_calls(frame, event, arg):
+    if event == "call" and "apscheduler" in frame.f_globals.get("__name__", ""):
+        if frame.f_code.co_name == "_get_jobs":
+            pdb.set_trace()  # 自动启动调试
+    return trace_calls
+
+
+sys.settrace(trace_calls)
+
+
 class SchedulerService(rpyc.Service):
     def exposed_add_job(self, func, **kwargs):
         trigger = kwargs.pop('trigger', None)
@@ -47,6 +61,8 @@ class SchedulerService(rpyc.Service):
                                   end_date=trigger_args['end_date'])
             return scheduler.add_job(func, CronTrigger.from_crontab(trigger), **kwargs)
         elif trigger == 'date':
+            logger.debug(kwargs)
+            logger.debug(trigger,trigger_args)
             return scheduler.add_job(func, DateTrigger(
                 run_date=trigger_args['run_date'] if trigger_args is not None else None), **kwargs)
 
@@ -107,7 +123,7 @@ class SchedulerService(rpyc.Service):
 
 def event_listener(event):
     if event.code == EVENT_JOB_ADDED:
-        logger.debug('event add')
+        logger.debug('event add', event)
     elif event.code == EVENT_JOB_EXECUTED:
         logger.debug('event executed')
     elif event.code == EVENT_JOB_REMOVED:
