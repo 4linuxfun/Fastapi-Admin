@@ -1,10 +1,12 @@
+import json
 import os
 import websockets
 from collections import defaultdict
 from fastapi import WebSocket
 from typing import List, Dict, Generic, Type, TypeVar
 from loguru import logger
-from sqlmodel import SQLModel
+from sqlmodel import SQLModel, select
+from server import crud
 
 from ..models.internal.dictonary import DictBase
 from ..models.internal.menu import MenusWithChild
@@ -18,8 +20,8 @@ class Tree(Generic[T]):
     """
 
     def __init__(self, tree_list: List[T], model: Type[T]):
-        self.tree_dict: Dict[int, T] = {tree.id:model(**tree.model_dump()) for tree in tree_list}
-        self.children_map:Dict[int,List[T]] = defaultdict(list)
+        self.tree_dict: Dict[int, T] = {tree.id: model(**tree.model_dump()) for tree in tree_list}
+        self.children_map: Dict[int, List[T]] = defaultdict(list)
         for tree in self.tree_dict.values():
             self.children_map[tree.parent_id].append(tree)
 
@@ -100,37 +102,51 @@ def remove_tmp_file(file):
     os.remove(file)
 
 
-async def get_task_logs(ws: WebSocket, redis, session, task_id: str, trigger: str):
-    key_name = f'tasks:{task_id}'
+async def get_task_logs(ws: WebSocket, redis, session, job_id: str):
+    """
+    通过websocket给前端展示实时日志信息
+    Args:
+        ws(WebSocket): ws连接，用于给前端传递日志
+        redis(Redis): redis连接，用于获取实时日志
+        session(Session): 数据库连接，用于直接获取日志
+        job_id(str): 任务ID
+    Returns:
+        None
+    """
+    key_name = f'tasks:{job_id}'
     last_id = 0
     sleep_ms = 5000
-    if trigger == 'date':
-        job_log.get(session,)
     while True:
         if await redis.exists(key_name):
+            # key存在于redis中，从redis中实时获取日志信息
             resp = await redis.xread({f'{key_name}': last_id}, count=1, block=sleep_ms)
             if resp:
                 key, message = resp[0]
                 last_id = message[0][0]
                 # last_id, data = message[0]
                 # data_dict = {k.decode("utf-8"): data[k].decode("utf-8") for k in data}
+                msg = message[0][1].get(b'msg', b'').decode("utf-8")
                 try:
-                    await ws.send_json({'task_id': task_id, 'data': message})
+                    logger.debug(msg)
+                    await ws.send_text(msg + '\r\n')
                 except websockets.exceptions.ConnectionClosed as e:
                     logger.warning(f"websocket 异常关闭:{e}")
                     break
-        elif last_id == 0 and (result.state == 'FAILURE' or result.state == 'SUCCESS'):
-            # last_id为0表示redis中不存在key，task_id为已执行完成的任务，且redis缓存已过期
-            logger.debug(f'{task_id} state:{result.state}')
-            try:
-                await ws.send_json({'task_id': task_id, 'data': AsyncResult(task_id).result})
-            except websockets.exceptions.ConnectionClosed as e:
-                logger.warning(f"websocket 异常关闭:{e}")
-            break
-        elif result.state == 'PENDING' or result.state == 'STARTED':
-            logger.debug(f"{task_id} state:{result.state}")
-            continue
         else:
-            logger.debug(f'{task_id}已结束')
-            break
+            # Redis 中不存在 key，从数据库的 job_logs 表中获取日志
+            logger.debug(f'{job_id} 已结束，尝试从数据库获取日志')
+            try:
+                logs = crud.internal.job_logs.get_by_job_id(session, job_id)
+
+                if logs:
+
+                    await ws.send_text(json.dump(logs.log) + '\r\n')
+                    logger.debug(f"从数据库获取日志成功: {len(logs)} 条记录")
+                else:
+                    logger.debug(f"数据库中没有 {job_id} 的日志记录")
+
+                break  # 数据库日志获取完成后退出循环
+            except Exception as e:
+                logger.error(f"从数据库获取日志失败: {e}")
+                return False
     return True

@@ -24,13 +24,19 @@ class TriggerArgs(BaseModel):
     end_date: Optional[str] = Field(default=None, description="cron类型触发器结束时间")
 
 
+class AnsibleArgs(BaseModel):
+    module: Union[str, None] = Field(default=None, description="ansible模块")
+    module_args: Union[str, None] = Field(default=None, description="ansible模块参数")
+    playbook: Union[str, None] = Field(default=None, description="ansible playbook")
+
+
 class JobAdd(BaseModel):
     id: Optional[str] = Field(default=None, description="任务ID")
-    name: str = Field(description="任务名称")
+    name: Union[str, None] = Field(description="任务名称")
     trigger: TriggerEnum = Field(description="触发器类型")
     trigger_args: TriggerArgs = Field(description="触发器")
     targets: List[int] = Field(description="执行任务的主机")
-    ansible_args: Dict[str, Any] = Field(default=None, description="ansible任务参数")
+    ansible_args: AnsibleArgs = Field(description="ansible任务参数")
 
 
 # class Job(SQLModel, table=True):
@@ -47,6 +53,9 @@ class JobAdd(BaseModel):
 #
 #
 class JobLogs(SQLModel, table=True):
+    """
+    任务执行日志相关表
+    """
     __tablename__ = 'job_logs'
     id: Optional[int] = Field(sa_column=Column('id', Integer, primary_key=True, autoincrement=True))
     job_id: Optional[str] = Field(sa_column=Column('job_id', String(191), index=True))
@@ -54,6 +63,7 @@ class JobLogs(SQLModel, table=True):
     end_time: datetime = Field(default=datetime.now, sa_column_kwargs={'comment': '任务结束时间'})
     log: str = Field(sa_column=Column(mysql.TEXT, comment='执行日志'))
     stats: str = Field(sa_column=Column(mysql.TEXT, comment='任务返回状态'))
+    type: int = Field(sa_column=Column('type', mysql.TINYINT, comment='任务类型,0:cron,1:date'))
 
 
 class JobSearch(SQLModel):
@@ -62,4 +72,5 @@ class JobSearch(SQLModel):
 
 
 class JobLogSearch(BaseModel):
-    job_id: str
+    job_id: Union[str, None] = None
+    type: Union[int, None] = None
