@@ -4,6 +4,10 @@
 
 start_fastapi() {
   env=$1
+  if pgrep -f "gunicorn server.main:app" > /dev/null || pgrep -f "uvicorn server.main:app" > /dev/null; then
+    echo "FastAPI service is already running."
+    return 1
+  fi
   echo "Starting FastAPI service..."
   if [ "$env" = "pro" ]; then
     echo "Running in production mode..."
@@ -17,6 +21,10 @@ start_fastapi() {
 
 stop_fastapi() {
   env=$1
+  if ! pgrep -f "gunicorn server.main:app" > /dev/null && ! pgrep -f "uvicorn server.main:app" > /dev/null; then
+    echo "FastAPI service is not running."
+    return 1
+  fi
   echo "Stopping FastAPI service..."
   if [ "$env" = "pro" ]; then
     echo "Running in production mode..."
@@ -34,7 +42,7 @@ restart_fastapi() {
 
 start_rpyc() {
   echo "Starting RPyc service..."
-  cd ./rpyc_scheduler && nohup python scheduler-server.py > ../rpyc_scheduler.log 2>&1&
+  cd ./rpyc_scheduler && nohup python3.9 scheduler-server.py > ../rpyc_scheduler.log 2>&1&
   cd ..
 }
 
@@ -63,6 +71,13 @@ case "$2" in
     ;;
   *)
     echo "Usage: $0 {dev|pro} {start|stop|restart}"
+    echo "Options:"
+    echo "  dev     Development environment"
+    echo "  pro     Production environment"
+    echo "Commands:"
+    echo "  start   Start services"
+    echo "  stop    Stop services"
+    echo "  restart Restart services"
     exit 1
     ;;
 esac
