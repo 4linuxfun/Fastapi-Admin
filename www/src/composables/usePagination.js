@@ -6,9 +6,10 @@ import {POST} from '@/utils/request'
  * @param {string} url - 请求的API地址
  * @param {Object} searchForm - 搜索表单数据，默认为空对象
  * @param {string} orderType - 排序方式，默认为 'asc'
+ * @param {number} initialPageSize - 每页显示条数，默认为 10
  * @returns {Object} - 返回分页相关的状态和方法
  */
-export default function usePagination(url, searchForm = {}, orderType = 'asc') {
+export default function usePagination(url, searchForm = {}, orderType = 'asc', initialPageSize = 10) {
   // 响应式搜索表单数据
   const search = reactive(searchForm)
 
@@ -16,7 +17,7 @@ export default function usePagination(url, searchForm = {}, orderType = 'asc') {
   const tableData = ref([])
 
   // 每页显示条数
-  const pageSize = ref(10)
+  const pageSize = ref(initialPageSize)
 
   // 当前页码
   const currentPage = ref(1)
