@@ -46,21 +46,21 @@ export default function usePagination(url, searchForm = {}, orderType = 'asc', i
   /**
    * 刷新当前页数据
    */
-  const freshCurrentPage = () => {
-    fetchData()
+  const freshCurrentPage = async () => {
+    await fetchData()
   }
 
   /**
    * 处理搜索操作，重置页码并获取数据
    */
-  const handleSearch = () => {
+  const handleSearch = async () => {
     currentPage.value = 1
-    fetchData()
+    await fetchData()
   }
 
   // 监听 currentPage 和 pageSize 的变化，自动获取数据
-  watch([currentPage, pageSize], () => {
-    fetchData()
+  watch([currentPage, pageSize], async () => {
+    await fetchData()
   })
 
   // 返回分页相关的状态和方法
