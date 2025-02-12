@@ -27,7 +27,7 @@ class TriggerArgs(BaseModel):
 class AnsibleArgs(BaseModel):
     module: Union[str, None] = Field(default=None, description="ansible模块")
     module_args: Union[str, None] = Field(default=None, description="ansible模块参数")
-    playbook: Union[str, None] = Field(default=None, description="ansible playbook")
+    playbook: Union[int, None] = Field(default=None, description="ansible playbook")
 
 
 class JobAdd(BaseModel):
