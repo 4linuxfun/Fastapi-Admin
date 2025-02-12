@@ -9,13 +9,13 @@ from typing import List, Dict, Any, Union
 from datetime import datetime
 from loguru import logger
 from sqlmodel import text
-from utils import Channel, hosts_to_inventory
-from config import rpc_config
-from models import engine, InventoryHost
+from .utils import Channel, hosts_to_inventory
+from .config import rpc_config
+from .models import engine, InventoryHost
 
 
 def local_executor(job_id, host, command):
-    with Channel(rpc_config.redis, job_id=f"{job_id}:{host}") as channel:
+    with Channel(rpc_config['redis'], job_id=f"{job_id}:{host}") as channel:
         start_time = datetime.now()
         channel.send({'msg': '开始执行任务：'})
         channel.send({'msg': f"执行命令：{command}"})
@@ -91,7 +91,7 @@ def ansible_task(job_id: str, targets: List[int], ansible_args: Dict[str, Any], 
             (project_dir / playbook_name).write_text(playbook_content)
             ansible_args['playbook'] = playbook_name
     # 执行任务，日志通过event_handler写入redis，达到实时写入的效果
-    with Channel(rpc_config.redis, job_id=job_id) as channel:
+    with Channel(rpc_config['redis'], job_id=job_id) as channel:
         channel.send({'msg': '开始执行任务'})
         ansible_msg = "执行主机：" + ','.join(ansible_inventory['all']['hosts'].keys()) + '\r\n'
         if ansible_args['module']:

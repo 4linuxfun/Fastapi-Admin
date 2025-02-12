@@ -1,13 +1,20 @@
-from pydantic_settings import BaseSettings
-from pydantic import MySQLDsn, RedisDsn
+import yaml
+import os
+from pathlib import Path
 
+# 获取环境变量，默认为 development
+env = os.getenv('ENV', 'development')
+config_path = Path(__file__).parent.parent / 'config' / f'{env}.yaml'
 
-class RpcConfig(BaseSettings):
-    # apscheduler指定job store和excutors
-    apscheduler_job_store: MySQLDsn = 'mysql+pymysql://root:123456@192.168.137.129/devops'
-    redis: dict = {'host': '192.168.137.129', 'password': 'seraphim', 'port': 6379, 'health_check_interval': 30}
-    rpc_port: int = 18861
+# 初始化配置变量
+rpc_config = {}
 
+# 读取配置文件
+def load_config():
+    global rpc_config
+    with open(config_path, 'r', encoding='utf-8') as f:
+        config = yaml.safe_load(f)
+        rpc_config.update(config['scheduler'])
 
-
-rpc_config = RpcConfig()
+# 加载配置
+load_config()
