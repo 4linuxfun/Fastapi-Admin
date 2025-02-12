@@ -15,7 +15,8 @@
                     clearable
                     @change="handleSearch"/>
           <el-table ref="tableRef" :data="tableData" border style="margin-top: 10px"
-                    @selection-change="handleSelectionChange">
+                    @select="handleSelect"
+                    @select-all="handleSelectAll">
             <el-table-column type="selection" label="#" align="center"/>
             <el-table-column prop="name" label="主机名" align="center"/>
             <el-table-column prop="ansible_host" label="主机IP" align="center"/>
@@ -37,7 +38,7 @@
 </template>
 
 <script setup>
-  import {ref} from 'vue'
+  import {ref, watch, nextTick} from 'vue'
   import {GetAllGroup} from '@/api/host.js'
   import usePagination from '@/composables/usePagination.js'
 
@@ -46,7 +47,7 @@
   const visible = ref(false)
   const allGroups = ref([])
   const selectedHosts = ref([])
-  const initialSelected = ref([])
+  const isProgramSelect = ref(false)
 
   const searchForm = {
     name: null,
@@ -81,16 +82,55 @@
   }
 
   /**
-   * 处理表格选择变化
+   * 处理单行选择
    */
-  function handleSelectionChange(selection) {
-    // 如果是初始加载，使用initialSelected的值
-    if (initialSelected.value.length > 0) {
-      selectedHosts.value = initialSelected.value
-      initialSelected.value = []
+  function handleSelect(selection, row) {
+    console.log('handleSelect', selection, row)
+    if (isProgramSelect.value) {
+      isProgramSelect.value = false
       return
     }
-    selectedHosts.value = selection
+
+    // 检查是选中还是取消选中
+    const isSelected = selection.some(item => item.id === row.id)
+    if (isSelected) {
+      // 添加新选择的主机
+      if (!selectedHosts.value.some(host => host.id === row.id)) {
+        selectedHosts.value.push(row)
+      }
+    } else {
+      // 移除取消选择的主机
+      selectedHosts.value = selectedHosts.value.filter(host => host.id !== row.id)
+    }
+    console.log('selectedHosts', selectedHosts.value)
+  }
+
+  /**
+   * 处理全选
+   */
+  function handleSelectAll(selection) {
+    console.log('handleSelectAll', selection)
+    if (isProgramSelect.value) {
+      isProgramSelect.value = false
+      return
+    }
+
+    // 获取当前页面上的所有主机ID
+    const currentPageIds = tableData.value.map(row => row.id)
+
+    if (selection.length > 0) {
+      // 全选：添加当前页面所有未选择的主机
+      const newSelection = tableData.value.filter(
+        row => !selectedHosts.value.some(host => host.id === row.id)
+      )
+      selectedHosts.value = [...selectedHosts.value, ...newSelection]
+    } else {
+      // 取消全选：移除当前页面的所有主机
+      selectedHosts.value = selectedHosts.value.filter(
+        host => !currentPageIds.includes(host.id)
+      )
+    }
+    console.log('selectedHosts', selectedHosts.value)
   }
 
   /**
@@ -104,31 +144,48 @@
       return false
     }
 
-    // 保存初始选中的主机到两个变量
-    initialSelected.value = JSON.parse(JSON.stringify(selected || []))
+    // 保存初始选中的主机
+    isProgramSelect.value = false
     selectedHosts.value = JSON.parse(JSON.stringify(selected || []))
 
     // 查询数据
     await handleSearch()
 
-    console.log(tableData.value)
-    // 先清除所有选中状态
-    tableData.value.forEach(row => {
-      tableRef.value?.toggleRowSelection(row, false)
-    })
-
-    console.log('start to selected', selectedHosts.value)
     // 设置选中状态
-    selectedHosts.value.forEach(item => {
-      console.log(item)
-      const found = tableData.value.find(data => data.id === item.id)
-      if (found) {
-        tableRef.value?.toggleRowSelection(found, true)
-      }
-    })
+    setTableSelection()
 
     visible.value = true
   }
+
+  /**
+   * 设置表格选中状态
+   */
+  function setTableSelection() {
+    if (!tableRef.value) return
+    
+    isProgramSelect.value = true
+    // 先清除所有选中状态
+    tableData.value.forEach(row => {
+      tableRef.value.toggleRowSelection(row, false)
+    })
+
+    // 设置选中状态
+    tableData.value.forEach(row => {
+      if (selectedHosts.value.some(selected => selected.id === row.id)) {
+        tableRef.value.toggleRowSelection(row, true)
+      }
+    })
+    isProgramSelect.value = false
+  }
+
+  // 监听表格数据变化，重新设置选中状态
+  watch(tableData, () => {
+    if (visible.value) {
+      nextTick(() => {
+        setTableSelection()
+      })
+    }
+  })
 
   defineExpose({add})
 </script>
