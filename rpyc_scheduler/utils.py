@@ -3,7 +3,7 @@ import os
 from loguru import logger
 from pathlib import Path
 from typing import Dict, Any, List
-from models import InventoryHost
+from .models import InventoryHost
 
 
 class Channel:
@@ -11,7 +11,7 @@ class Channel:
         self.conn = redis.Redis(**redis_config, decode_responses=True)
         self.job_id = job_id
         self.task_key = f"tasks:{self.job_id}"
-        self._expire = 60
+        self._expire = 15
 
     @property
     def msg(self, ):
