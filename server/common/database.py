@@ -19,7 +19,7 @@ def get_session():
 
 
 def get_rpyc():
-    with rpyc.connect(**settings.rpyc_config) as conn:
+    with rpyc.connect(**settings['rpyc_config']) as conn:
         yield conn
 
 
@@ -42,7 +42,7 @@ def get_or_create(session: Session, model, **kwargs):
 
 
 async def get_redis():
-    redis_conn = redis.Redis(**settings.redis_config)
+    redis_conn = redis.Redis(**settings['redis'])
     try:
         yield redis_conn
     finally:

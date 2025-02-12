@@ -31,7 +31,7 @@ def auth_check(request: Request = None, ws: WebSocket = None):
     if ws:
         return None
     logger.info(f'request url:{request.url} method:{request.method}')
-    for url in settings.NO_VERIFY_URL:
+    for url in settings['no_verify_url']:
         if url == request.url.path.lower():
             logger.debug(f"{request.url.path} 在白名单中，不需要权限验证")
             return True
@@ -41,7 +41,7 @@ def auth_check(request: Request = None, ws: WebSocket = None):
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authenticated")
 
     try:
-        playload = jwt.decode(param, settings.SECRET_KEY, settings.ALGORITHM)
+        playload = jwt.decode(param, settings['secret_key'], settings['algorithm'])
     except jwt.ExpiredSignatureError as e:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=str(e))
     except JWTError as e:
@@ -58,12 +58,12 @@ def create_access_token(data):
     :param data:
     :return:
     """
-    expires_delta = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    expires_delta = timedelta(minutes=settings['access_token_expire_minutes'])
     to_encode = data.copy()
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
         expire = datetime.utcnow() + timedelta(minutes=15)
     to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, settings['secret_key'], algorithm=settings['algorithm'])
     return encoded_jwt
