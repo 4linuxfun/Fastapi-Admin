@@ -6,17 +6,13 @@ https://gist.github.com/gsw945/15cbb71eaca5be66787a2c187414e36f
 
 import rpyc
 from typing import List
+from rpyc.utils.server import ThreadedServer
+from loguru import logger
 
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.date import DateTrigger
-from sqlmodel import text
-from tasks import *
-from datetime import datetime
-from loguru import logger
-from config import rpc_config
-from rpyc.utils.server import ThreadedServer
+from rpyc_scheduler.tasks import *
 from apscheduler.job import Job
-# from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 from apscheduler.events import (
     EVENT_JOB_EXECUTED,
@@ -25,14 +21,31 @@ from apscheduler.events import (
     EVENT_JOB_SUBMITTED,
     EVENT_JOB_REMOVED
 )
-from jobstore import CustomJobStore
-from scheduler import CustomBackgroundScheduler
-from models import engine
+from rpyc_scheduler.jobstore import CustomJobStore
+from rpyc_scheduler.scheduler import CustomBackgroundScheduler
+from rpyc_scheduler.config import rpc_config
+
+# 全局变量定义
+scheduler = None
 
 
 def print_text(*args, **kwargs):
     logger.debug(args)
     logger.debug(kwargs)
+
+
+import sys
+import pdb
+
+
+def trace_calls(frame, event, arg):
+    if event == "call" and "apscheduler" in frame.f_globals.get("__name__", ""):
+        if frame.f_code.co_name == "_get_jobs":
+            pdb.set_trace()  # 自动启动调试
+    return trace_calls
+
+
+sys.settrace(trace_calls)
 
 
 class SchedulerService(rpyc.Service):
@@ -45,8 +58,10 @@ class SchedulerService(rpyc.Service):
             trigger = CronTrigger(minute=values[0], hour=values[1], day=values[2], month=values[3],
                                   day_of_week=values[4], start_date=trigger_args['start_date'],
                                   end_date=trigger_args['end_date'])
-            return scheduler.add_job(func, CronTrigger.from_crontab(trigger), **kwargs)
+            return scheduler.add_job(func, trigger=trigger, **kwargs)
         elif trigger == 'date':
+            logger.debug(kwargs)
+            logger.debug(trigger, trigger_args)
             return scheduler.add_job(func, DateTrigger(
                 run_date=trigger_args['run_date'] if trigger_args is not None else None), **kwargs)
 
@@ -107,7 +122,7 @@ class SchedulerService(rpyc.Service):
 
 def event_listener(event):
     if event.code == EVENT_JOB_ADDED:
-        logger.debug('event add')
+        logger.debug('event add', event)
     elif event.code == EVENT_JOB_EXECUTED:
         logger.debug('event executed')
     elif event.code == EVENT_JOB_REMOVED:
@@ -116,9 +131,10 @@ def event_listener(event):
         logger.debug('event error')
 
 
-if __name__ == '__main__':
+def main():
+    global scheduler
     job_store = {
-        'default': CustomJobStore(url=str(rpc_config.apscheduler_job_store))
+        'default': CustomJobStore(url=str(rpc_config['apscheduler_job_store']))
     }
     apscheduler_excutors = {
         'default': ThreadPoolExecutor(20),
@@ -131,7 +147,7 @@ if __name__ == '__main__':
     scheduler.start()
 
     # 启动rpyc服务
-    server = ThreadedServer(SchedulerService, port=rpc_config.rpc_port,
+    server = ThreadedServer(SchedulerService, port=rpc_config['rpc_port'],
                             protocol_config={'allow_public_attrs': True, 'allow_pickle': True})
     try:
         server.start()
@@ -139,3 +155,7 @@ if __name__ == '__main__':
         pass
     finally:
         scheduler.shutdown()
+
+
+if __name__ == "__main__":
+    main()

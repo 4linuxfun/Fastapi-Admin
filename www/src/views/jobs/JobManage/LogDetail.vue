@@ -39,26 +39,28 @@
 </template>
 
 <script setup>
-  import {reactive, ref, computed, onMounted} from 'vue'
-  import WsTerminal from '@/components/WsTerminal.vue'
+  import {reactive, ref, computed, onMounted, nextTick} from 'vue'
   import useTerm from '@/composables/useTerm.js'
 
   const visible = ref(false)
-  // const terminalRef = ref(null)
   const taskLogInfo = reactive({})
   const taskLogs = ref('')
   const taskStats = computed(() => {
     return JSON.parse(taskLogInfo.stats)
   })
   console.log('init log detail')
-  const {term, terminalRef, initTerm} = useTerm()
+  const terminalRef = ref(null)
+  const {term, initTerm} = useTerm(terminalRef)
 
 
   async function show(log) {
     visible.value = true
     Object.assign(taskLogInfo, JSON.parse(JSON.stringify(log)))
     console.log(taskLogInfo)
-    await initTerm()
+    await nextTick(async () => {
+      await initTerm()
+    })
+
     let data = JSON.parse(taskLogInfo.log)
     data.forEach(item => {
       // taskLogs.value += item[1].msg

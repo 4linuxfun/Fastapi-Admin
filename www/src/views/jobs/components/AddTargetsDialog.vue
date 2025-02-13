@@ -15,7 +15,8 @@
                     clearable
                     @change="handleSearch"/>
           <el-table ref="tableRef" :data="tableData" border style="margin-top: 10px"
-                    @selection-change="handleSelectionChange">
+                    @select="handleSelect"
+                    @select-all="handleSelectAll">
             <el-table-column type="selection" label="#" align="center"/>
             <el-table-column prop="name" label="主机名" align="center"/>
             <el-table-column prop="ansible_host" label="主机IP" align="center"/>
@@ -46,8 +47,7 @@
   const visible = ref(false)
   const allGroups = ref([])
   const selectedHosts = ref([])
-  // 存储上一次选择的行，可用于对比判定增、删了哪一行
-  const prevSelectedRows = ref([])
+  const isProgramSelect = ref(false)
 
   const searchForm = {
     name: null,
@@ -82,37 +82,59 @@
   }
 
   /**
-   *
-   * @param selection
+   * 处理单行选择
    */
-  function handleSelectionChange(selection) {
-    console.log(selectedHosts.value)
-    // 找到新增行
-    const newSelectedRows = selection.filter((row) => !prevSelectedRows.value.includes(row))
-    // 找到取消选择的行
-    const deselectedRows = prevSelectedRows.value.filter((row) => !selection.includes(row))
-    prevSelectedRows.value = selection
-    if (newSelectedRows.length > 0) {
-      if (!selectedHosts.value.some(row => row.id === newSelectedRows[0].id)) {
-        console.log('add hosts')
-        selectedHosts.value.push(newSelectedRows[0])
+  function handleSelect(selection, row) {
+    console.log('handleSelect', selection, row)
+    if (isProgramSelect.value) {
+      isProgramSelect.value = false
+      return
+    }
+
+    // 检查是选中还是取消选中
+    const isSelected = selection.some(item => item.id === row.id)
+    if (isSelected) {
+      // 添加新选择的主机
+      if (!selectedHosts.value.some(host => host.id === row.id)) {
+        selectedHosts.value.push(row)
       }
+    } else {
+      // 移除取消选择的主机
+      selectedHosts.value = selectedHosts.value.filter(host => host.id !== row.id)
     }
-    if (deselectedRows.length > 0) {
-      console.log('deselectedRows')
-      selectedHosts.value.forEach((row, index) => {
-        if (row.id === deselectedRows[0].id) {
-          selectedHosts.value.splice(index, 1)
-        }
-      })
-    }
-    console.log(selectedHosts.value)
+    console.log('selectedHosts', selectedHosts.value)
   }
 
   /**
-   *
-   * @param {Array[Object]} selected - 已选择的主机，需要勾选状态
-   * @return {Promise<boolean>}
+   * 处理全选
+   */
+  function handleSelectAll(selection) {
+    console.log('handleSelectAll', selection)
+    if (isProgramSelect.value) {
+      isProgramSelect.value = false
+      return
+    }
+
+    // 获取当前页面上的所有主机ID
+    const currentPageIds = tableData.value.map(row => row.id)
+
+    if (selection.length > 0) {
+      // 全选：添加当前页面所有未选择的主机
+      const newSelection = tableData.value.filter(
+        row => !selectedHosts.value.some(host => host.id === row.id)
+      )
+      selectedHosts.value = [...selectedHosts.value, ...newSelection]
+    } else {
+      // 取消全选：移除当前页面的所有主机
+      selectedHosts.value = selectedHosts.value.filter(
+        host => !currentPageIds.includes(host.id)
+      )
+    }
+    console.log('selectedHosts', selectedHosts.value)
+  }
+
+  /**
+   * 显示对话框并初始化选中状态
    */
   async function add(selected) {
     try {
@@ -121,34 +143,48 @@
       console.log('获取组失败。。。')
       return false
     }
+
+    // 保存初始选中的主机
+    isProgramSelect.value = false
+    selectedHosts.value = JSON.parse(JSON.stringify(selected || []))
+
+    // 查询数据
     await handleSearch()
-    selectedHosts.value = JSON.parse(JSON.stringify(selected))
+
+    // 设置选中状态
+    setTableSelection()
+
     visible.value = true
   }
 
-  watch(tableData, () => {
-    // 监听table，更新选中框
-    console.log('tableData changed')
-    prevSelectedRows.value = []
-    console.log(tableData.value)
-    // 更新选中的主机
-    nextTick(() => {
-      console.log('start to nexttick')
-      console.log(selectedHosts.value)
-      if (selectedHosts.value.length > 0) {
-        selectedHosts.value.forEach(item => {
-          tableData.value.forEach(data => {
-            if (data.id === item.id) {
-              console.log(data)
-              tableRef.value.toggleRowSelection(data, true)
-            }
-          })
-        })
-        prevSelectedRows.value = tableRef.value.getSelectionRows()
-        console.log(prevSelectedRows.value)
-      }
+  /**
+   * 设置表格选中状态
+   */
+  function setTableSelection() {
+    if (!tableRef.value) return
+    
+    isProgramSelect.value = true
+    // 先清除所有选中状态
+    tableData.value.forEach(row => {
+      tableRef.value.toggleRowSelection(row, false)
     })
 
+    // 设置选中状态
+    tableData.value.forEach(row => {
+      if (selectedHosts.value.some(selected => selected.id === row.id)) {
+        tableRef.value.toggleRowSelection(row, true)
+      }
+    })
+    isProgramSelect.value = false
+  }
+
+  // 监听表格数据变化，重新设置选中状态
+  watch(tableData, () => {
+    if (visible.value) {
+      nextTick(() => {
+        setTableSelection()
+      })
+    }
   })
 
   defineExpose({add})

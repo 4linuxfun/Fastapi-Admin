@@ -6,13 +6,13 @@ from .host import Host, Group
 from .job import JobLogs
 from .playbook import Playbook
 from pydantic import BaseModel
-from typing import TypeVar, Generic, Optional
+from typing import TypeVar, Generic, Optional, Union
 
 T = TypeVar('T')
 
 
 class Pagination(BaseModel, Generic[T]):
-    search: T
+    search: Union[T, None]
     page: Optional[int] = 1
     page_size: Optional[int] = 10
     model: Optional[str] = 'asc'

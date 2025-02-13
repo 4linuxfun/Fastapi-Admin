@@ -67,7 +67,7 @@
     total,
     freshCurrentPage,
     handleSearch
-  } = usePagination('/api/jobs/logs', searchForm, 'desc')
+  } = usePagination('/api/jobs/logs', searchForm, 'desc', 5)
 
   // 调用子组件现实日志详情
   function showLog(log) {

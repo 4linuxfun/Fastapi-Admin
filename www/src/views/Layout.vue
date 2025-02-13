@@ -37,6 +37,8 @@
   import {useTabsStore} from '@/stores/tabs'
   import {watch} from 'vue'
   import {storeToRefs} from 'pinia'
+  import MenuList from '@/components/MenuList.vue'
+  import HeaderContent from '@/components/HeaderContent.vue'
 
   const tabStore = useTabsStore()
   const {currentTab, allTabs, cacheTabs, tabsList} = storeToRefs(tabStore)

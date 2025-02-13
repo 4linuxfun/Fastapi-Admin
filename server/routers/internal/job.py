@@ -46,6 +46,7 @@ async def delete_job(job_id: str, uid: int = Depends(get_uid), session: Session 
         conn = rpyc.connect(**settings.rpyc_config)
         conn.root.pause_job(job_id)
         conn.root.remove_job(job_id)
+        crud.internal.job_logs.delete_by_jobid(session, job_id)
     except Exception as e:
         logger.warning(e)
         return ApiResponse(
@@ -80,10 +81,11 @@ async def add_job(job: JobAdd, uid: int = Depends(get_uid), session: Session = D
     logger.debug(f'user defined job ID:{job_id}')
     # 只支持cron和date任务，interval间隔任务完全可以用cron替代，没必要单独实现功能
     try:
-        conn = rpyc.connect(**settings.rpyc_config)
-        job = conn.root.add_job('scheduler-server:ansible_task', trigger=job.trigger, id=job_id,
+        conn = rpyc.connect(**settings['rpyc_config'])
+        job = conn.root.add_job('server:ansible_task', trigger=job.trigger, id=job_id,
                                 kwargs={'job_id': job_id, 'targets': job.targets,
-                                        'ansible_args': job.ansible_args}, name=job.name,
+                                        'ansible_args': job.ansible_args.model_dump(),
+                                        'task_type': 0 if job.trigger == 'cron' else 1}, name=job.name,
                                 trigger_args=job.trigger_args.model_dump())
         logger.debug(job.id)
     except Exception as e:
@@ -93,6 +95,7 @@ async def add_job(job: JobAdd, uid: int = Depends(get_uid), session: Session = D
             message=str(e)
         )
     return ApiResponse(
+        data=job_id,
         message=f'新建任务成功：{job.name}'
     )
 
@@ -178,8 +181,8 @@ async def show_jobs(search: Pagination[JobSearch], uid: int = Depends(get_uid), 
 @router.post('/logs', summary='任务日志查询', response_model=ApiResponse[SearchResponse[JobLogs]])
 async def job_logs(page_search: Pagination[JobLogSearch], session: Session = Depends(get_session)):
     logger.debug(page_search)
-    total = crud.internal.job_logs.search_total(session, page_search.search, filter_type={'job_id': 'eq'})
-    jobs = crud.internal.job_logs.search(session, page_search, filter_type={'job_id': 'eq'})
+    total = crud.internal.job_logs.search_total(session, page_search.search, filter_type={'job_id': 'eq', 'type': 'eq'})
+    jobs = crud.internal.job_logs.search(session, page_search, filter_type={'job_id': 'eq', 'type': 'eq'})
     logger.debug(jobs)
     return ApiResponse(
         data={
@@ -189,12 +192,12 @@ async def job_logs(page_search: Pagination[JobLogSearch], session: Session = Dep
     )
 
 
-@router.websocket('/logs/ws/')
-async def websocket_endpoint(id: int, job_id: str, trigger: str, websocket: WebSocket,
+@router.websocket('/logs/ws/{job_id}')
+async def websocket_endpoint(job_id: str, websocket: WebSocket,
                              session: Session = Depends(get_session),
                              redis=Depends(get_redis)):
     await websocket.accept()
     async with anyio.create_task_group() as tg:
-        tg.start_soon(get_task_logs, websocket, redis, session, task_id, trigger)
+        tg.start_soon(get_task_logs, websocket, redis, session, job_id)
     logger.debug('close websocket')
     await websocket.close()

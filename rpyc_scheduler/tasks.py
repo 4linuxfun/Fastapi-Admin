@@ -1,5 +1,6 @@
 import os.path
 import subprocess
+import shutil
 import json
 import ansible_runner
 from pathlib import Path
@@ -8,13 +9,13 @@ from typing import List, Dict, Any, Union
 from datetime import datetime
 from loguru import logger
 from sqlmodel import text
-from utils import Channel, hosts_to_inventory
-from config import rpc_config
-from models import engine, InventoryHost
+from .utils import Channel, hosts_to_inventory
+from .config import rpc_config
+from .models import engine, InventoryHost
 
 
 def local_executor(job_id, host, command):
-    with Channel(rpc_config.redis, job_id=f"{job_id}:{host}") as channel:
+    with Channel(rpc_config['redis'], job_id=f"{job_id}:{host}") as channel:
         start_time = datetime.now()
         channel.send({'msg': '开始执行任务：'})
         channel.send({'msg': f"执行命令：{command}"})
@@ -38,13 +39,22 @@ class EventLogs:
 
     def __call__(self, event):
         logger.debug(event)
-        self.channel.send({'msg': event['stdout']})
+        # 空字符不写入
+        if event['stdout']:
+            self.channel.send({'msg': event['stdout']})
         return True
 
 
-def ansible_task(job_id, targets, ansible_args):
+def ansible_task(job_id: str, targets: List[int], ansible_args: Dict[str, Any], task_type: int = 1):
     """
     通过ansible runner执行ansible任务
+    Args:
+        job_id(str): 任务ID
+        targets(List[int]): 执行任务的主机ID列表
+        ansible_args(Dict[str,Any]): ansible任务参数
+        task_type(int):任务类型，0：cron，1：date
+    Returns:
+        None
     """
     start_time = datetime.now()
     private_data_dir: Path = Path(f'/tmp/ansible/{job_id}')
@@ -80,26 +90,36 @@ def ansible_task(job_id, targets, ansible_args):
             logger.debug(f'playbook:{playbook_name}')
             (project_dir / playbook_name).write_text(playbook_content)
             ansible_args['playbook'] = playbook_name
-    # 执行任务，且日志实时写入redis
-    with Channel(rpc_config.redis, job_id=job_id) as channel:
+    # 执行任务，日志通过event_handler写入redis，达到实时写入的效果
+    with Channel(rpc_config['redis'], job_id=job_id) as channel:
+        channel.send({'msg': '开始执行任务'})
+        ansible_msg = "执行主机：" + ','.join(ansible_inventory['all']['hosts'].keys()) + '\r\n'
+        if ansible_args['module']:
+            ansible_msg += '执行模块：' + ansible_args['module'] + ' ' + ansible_args['module_args'] + '\r\n'
+        else:
+            ansible_msg += '执行playbook：' + ansible_args['playbook'] + '\r\n'
+        channel.send({'msg': ansible_msg})
         runner = ansible_runner.run(private_data_dir=str(private_data_dir), inventory=ansible_inventory,
                                     host_pattern='all', event_handler=EventLogs(channel),
                                     **ansible_args)
+        channel.send({'msg': '任务执行结束'})
         run_logs = channel.msg
-    end_time = datetime.now()
-    # 日志写入数据库
-    with engine.connect() as conn:
-        logger.debug(runner.stats)
-        sql = text(
-            "INSERT INTO job_logs (job_id,start_time,end_time,log,stats) values (:job_id,:start_time,:end_time,:log,:stats)")
-        conn.execute(sql,
-                     {'job_id': job_id,
-                      'start_time': start_time,
-                      'end_time': end_time,
-                      'log': json.dumps(run_logs),
-                      'stats': json.dumps(runner.stats)})
-        conn.commit()
-    private_data_dir.rmdir()
+        end_time = datetime.now()
+        # 把执行日志写入数据库保存
+        with engine.connect() as conn:
+            logger.debug(runner.stats)
+            sql = text(
+                "INSERT INTO job_logs (job_id,start_time,end_time,log,stats,type) values (:job_id,:start_time,:end_time,:log,:stats,:type)")
+            conn.execute(sql,
+                         {'job_id': job_id,
+                          'start_time': start_time,
+                          'end_time': end_time,
+                          'log': json.dumps(run_logs),
+                          'stats': json.dumps(runner.stats),
+                          'type': task_type})
+            conn.commit()
+    # 删除临时目录
+    shutil.rmtree(private_data_dir)
 
 
 def run_command_with_channel(job_id=None, targets: List[str] = None, command=None):

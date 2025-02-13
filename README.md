@@ -92,9 +92,15 @@ server {
 
 * dev:开发环境，使用uvicorn启动
 * pro:生产环境，使用gunicorn启动
+
 ```
 ./service.sh {dev|pro} {start|stop|restart}
 ```
+后端需要修改对应配置文件信息
+* dev: config/development.yaml
+* pro: config/production.yaml
+
+开发模式下，uvicorn服务能自动刷新，rpyc服务无法自动刷新，需要手动重启
 
 ## 约束
 
