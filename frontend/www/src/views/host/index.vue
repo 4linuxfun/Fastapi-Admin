@@ -14,12 +14,12 @@
               <el-row style="flex: 1" justify="space-between">
                 <el-col :span="18" @click="handleSearchHost(data)"><span>{{ node.label }}</span></el-col>
                 <el-col :span="6" style="text-align: right">
-                  <el-link :underline="false" style="margin-left: 10px" @click="handleEditGroup(data)">
+                  <el-link underline="never" style="margin-left: 10px" @click="handleEditGroup(data)">
                     <el-icon>
                       <Edit/>
                     </el-icon>
                   </el-link>
-                  <el-link :underline="false" style="margin-left: 10px" @click="handleDelGroup(data.id)">
+                  <el-link underline="never" style="margin-left: 10px" @click="handleDelGroup(data.id)">
                     <el-icon color="red">
                       <Delete/>
                     </el-icon>
