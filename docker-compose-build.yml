@@ -1,0 +1,19 @@
+# 生产镜像生成脚本
+
+services:
+  backend_api:
+    image: ${BACKEND_IMAGE}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.prod
+      args:
+        - NODE_ENV=${NODE_ENV}
+
+  frontend_web:
+    image: ${FRONTEND_IMAGE}
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+      args:
+        - NODE_ENV=${NODE_ENV}
+        - VITE_APP_BASEURL=${VITE_APP_BASEURL}

@@ -1,0 +1,37 @@
+# 阶段一：使用 Node.js 构建 Vue 应用
+FROM node:20 AS builder
+
+ARG VITE_APP_BASEURL=/
+
+# 设置工作目录
+WORKDIR /app
+
+# 复制 package.json 和 package-lock.json（如有）
+COPY www/package*.json ./
+
+# 安装依赖
+RUN npm install --verbose 
+RUN npm install terser --save-dev
+
+# 将本地 bin 加入 PATH
+ENV PATH=/app/node_modules/.bin:$PATH 
+
+# 复制源代码
+COPY www/ ./
+
+ENV VITE_APP_BASEURL=${VITE_APP_BASEURL}
+
+# 使用Vite进行打包
+RUN npm run build
+
+# 阶段二：使用 Nginx 提供静态文件服务
+FROM nginx:latest
+
+# 从构建阶段复制构建结果
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# 暴露端口
+EXPOSE 80
+
+# 启动 Nginx
+CMD ["nginx", "-g", "daemon off;"]

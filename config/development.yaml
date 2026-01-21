@@ -13,16 +13,20 @@ server:
   algorithm: "HS256"
   access_token_expire_minutes: 30
   # 连接数据库
-  database_uri: "mysql+pymysql://root:123456@localhost/devops"
+  database_uri: "mysql+pymysql://root:123456@10.19.201.29:33306/devops"
   casbin_model_path: "server/model.conf"
+  # 资产前缀
+  asset_prefix: "JS"
+  # 上传目录
+  upload_dir: "server/static/upload"
   #  白名单
   no_verify_url:
     - "/"
     - "/api/login"
   redis:
-    host: "192.168.137.129"
+    host: "10.19.201.29"
     password: "seraphim"
-    port: 6379
+    port: 36379
     health_check_interval: 30
   #  配置连接rpyc信息
   rpyc_config:

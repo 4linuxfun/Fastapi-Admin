@@ -1,6 +1,19 @@
-server/**/__pycache__/*.pyc
-server/**/.idea
+# Python
+__pycache__/
 *.pyc
-*.pyc
+*.pyo
+*.pyd
 *.log
-*.pyc
+
+# IDE
+.idea
+.vscode
+
+# Environment Variables
+.env
+.env.*
+!.env.example
+
+# Uploads
+backend/app/static/upload
+
