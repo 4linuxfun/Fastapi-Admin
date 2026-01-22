@@ -13,7 +13,7 @@
     </el-col>
     <el-col :span="2" style="text-align: right">
       <el-dropdown @command="handleCommand">
-        <el-avatar shape="square" :size="50">{{ userName }}</el-avatar>
+        <el-avatar shape="circle" :size="50" :src="userAvatar">{{ userName }}</el-avatar>
         <template #dropdown>
           <el-dropdown-menu>
             <el-dropdown-item command="personalCenter">个人中心</el-dropdown-item>
@@ -36,6 +36,7 @@ import { useCollapseStore } from '@/stores/collapse.js'
 const collapseStore = useCollapseStore()
 const store = useStore()
 const userName = computed(() => store.name)
+const userAvatar = computed(() => store.avatar)
 const router = useRouter()
 
 function handleCollapse() {
