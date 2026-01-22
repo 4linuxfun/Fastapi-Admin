@@ -1,0 +1,88 @@
+services:
+  db:
+    image: mysql:8.0
+    # container_name: mysql
+    environment:
+      # 时区都需要统一
+      - TZ=Asia/Shanghai
+      - MYSQL_ROOT_PASSWORD=123456
+    volumes:
+      - db-data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - fastapi-admin-network
+
+  backend_api:
+    image: ${BACKEND_IMAGE}
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=${NODE_ENV}
+    # container_name: backend_api
+    ports:
+      - "${BACKEND_PORT}:${BACKEND_PORT}"
+    environment:
+      # 时区都需要统一
+      - TZ=Asia/Shanghai
+      - SECRET_KEY=${SECRET_KEY}
+      - ASSET_PREFIX=${ASSET_PREFIX}
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_PORT=${MYSQL_PORT}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DB=${MYSQL_DB}
+    volumes:
+      - ${BACKEND_VOLUME}
+      - ${BACKEND_UPLOAD_VOLUME}
+    command: ${BACKEND_COMMAND}
+    networks:
+      - fastapi-admin-network
+    depends_on:
+      - db
+
+  frontend_web:
+    image: ${FRONTEND_IMAGE}
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        - NODE_ENV=${NODE_ENV}
+    # container_name: frontend_web
+    environment:
+      # 时区都需要统一
+      - TZ=Asia/Shanghai
+      - NODE_ENV=${NODE_ENV}
+      - VITE_APP_BASEURL=${VITE_APP_BASEURL}
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    volumes:
+      - ${FRONTEND_VOLUME}
+      - node_modules_data:/app/node_modules
+    command: ${FRONTEND_COMMAND}
+    networks:
+      - fastapi-admin-network
+
+  nginx:
+    image: nginx:latest
+    # container_name: nginx
+    ports:
+      - "${NGINX_PORT}:80"
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./nginx/dev.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - frontend_web
+      - backend_api
+    networks:
+      - fastapi-admin-network
+
+volumes:
+  db-data:
+  node_modules_data:
+
+networks:
+  fastapi-admin-network:
+    driver: bridge

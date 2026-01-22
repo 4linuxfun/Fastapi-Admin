@@ -1,0 +1,53 @@
+# 生产环境启动服务
+services:
+  db:
+    image: mysql:8.0
+    # container_name: mysql
+    environment:
+      # 时区都需要统一
+      - TZ=Asia/Shanghai
+      - MYSQL_ROOT_PASSWORD=123456
+    volumes:
+      - ${MYSQL_DATADIR}:/var/lib/mysql
+    ports:
+      - "3316:3306"
+    networks:
+      - prod-seraphimops-network
+
+  backend_api:
+    image: ${BACKEND_IMAGE}
+    environment:
+      # 时区都需要统一
+      - TZ=Asia/Shanghai
+      - SECRET_KEY=${SECRET_KEY}
+      - ASSET_PREFIX=${ASSET_PREFIX}
+      - MYSQL_HOST=${MYSQL_HOST}
+      - MYSQL_PORT=${MYSQL_PORT}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_DB=${MYSQL_DB}
+    volumes:
+      - ${BACKEND_UPLOAD_VOLUME}
+    command: ${BACKEND_COMMAND}
+    networks:
+      - prod-seraphimops-network
+    depends_on:
+      - db
+
+  frontend_web:
+    image: ${FRONTEND_IMAGE}
+    environment:
+      # 时区都需要统一
+      - TZ=Asia/Shanghai
+    ports:
+      - "8080:80"
+    volumes:
+      - ${NGINX_VOLUME}
+    networks:
+      - prod-seraphimops-network
+    depends_on:
+      - backend_api
+
+networks:
+  prod-seraphimops-network:
+    driver: bridge

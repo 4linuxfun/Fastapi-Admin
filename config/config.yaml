@@ -1,0 +1,34 @@
+# 通用配置
+common:
+  env: development
+  log_level: INFO
+  
+# FastAPI 服务器配置
+server:
+  host: 0.0.0.0
+  port: 8000
+  debug: true
+  secret_key: "09d25e094faa6ca2556c818166b7a9563b93f7099f6f0f4caa6cf63b88e8d3e7"
+  algorithm: "HS256"
+  access_token_expire_minutes: 30
+  database_uri: "mysql+pymysql://root:123456@localhost/devops"
+  casbin_model_path: "server/model.conf"
+  no_verify_url:
+    - "/"
+    - "/api/login"
+  redis:
+    host: "192.168.137.129"
+    password: "seraphim"
+    port: 6379
+    health_check_interval: 30
+  
+# RPyC Scheduler 配置
+scheduler:
+  host: localhost
+  port: 18861
+  auth_key: your_auth_key
+  max_workers: 4
+  config:
+    allow_public_attrs: true
+    allow_pickle: true
+  keepalive: true 
