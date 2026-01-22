@@ -26,7 +26,7 @@
       <el-table-column label="#" type="index" width="50"/>
       <el-table-column label="头像" align="center">
         <template #default="scope">
-          <el-image style="width: 50px; height: 50px; border-radius: 50%" :src="scope.row.avatar" :preview-src-list="[scope.row.avatar]" fit="cover" preview-teleported></el-image>
+          <el-avatar shape="circle" :size="50" :src="scope.row.avatar" />
         </template>
       </el-table-column>
       <el-table-column prop="name" label="用户名" align="center"/>
