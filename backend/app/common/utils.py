@@ -15,7 +15,7 @@ from ..models.internal.dictonary import DictBase
 from ..models.internal.menu import MenusWithChild
 from ..crud.base import CRUDCategory
 
-T = TypeVar('T', bound=SQLModel)
+T = TypeVar("T", bound=SQLModel)
 
 
 class Tree(Generic[T]):
@@ -24,8 +24,9 @@ class Tree(Generic[T]):
     """
 
     def __init__(self, tree_list: List[T], model: Type[T]):
-        self.tree_dict: Dict[int, T] = {tree.id: model(
-            **tree.model_dump()) for tree in tree_list}
+        self.tree_dict: Dict[int, T] = {
+            tree.id: model(**tree.model_dump()) for tree in tree_list
+        }
         self.children_map: Dict[int, List[T]] = defaultdict(list)
         for tree in self.tree_dict.values():
             self.children_map[tree.parent_id].append(tree)
@@ -103,7 +104,7 @@ def update_model(old_model, new_model):
 
 
 def remove_tmp_file(file):
-    logger.debug(f'删除临时文件{file}')
+    logger.debug(f"删除临时文件{file}")
     os.remove(file)
 
 
@@ -118,34 +119,33 @@ async def get_task_logs(ws: WebSocket, redis, session, job_id: str):
     Returns:
         None
     """
-    key_name = f'tasks:{job_id}'
+    key_name = f"tasks:{job_id}"
     last_id = 0
     sleep_ms = 5000
     while True:
         if await redis.exists(key_name):
             # key存在于redis中，从redis中实时获取日志信息
-            resp = await redis.xread({f'{key_name}': last_id}, count=1, block=sleep_ms)
+            resp = await redis.xread({f"{key_name}": last_id}, count=1, block=sleep_ms)
             if resp:
                 key, message = resp[0]
                 last_id = message[0][0]
                 # last_id, data = message[0]
                 # data_dict = {k.decode("utf-8"): data[k].decode("utf-8") for k in data}
-                msg = message[0][1].get(b'msg', b'').decode("utf-8")
+                msg = message[0][1].get(b"msg", b"").decode("utf-8")
                 try:
                     logger.debug(msg)
-                    await ws.send_text(msg + '\r\n')
+                    await ws.send_text(msg + "\r\n")
                 except websockets.exceptions.ConnectionClosed as e:
                     logger.warning(f"websocket 异常关闭:{e}")
                     break
         else:
             # Redis 中不存在 key，从数据库的 job_logs 表中获取日志
-            logger.debug(f'{job_id} 已结束，尝试从数据库获取日志')
+            logger.debug(f"{job_id} 已结束，尝试从数据库获取日志")
             try:
                 logs = crud.internal.job_logs.get_by_job_id(session, job_id)
 
                 if logs:
-
-                    await ws.send_text(json.dump(logs.log) + '\r\n')
+                    await ws.send_text(json.dump(logs.log) + "\r\n")
                     logger.debug(f"从数据库获取日志成功: {len(logs)} 条记录")
                 else:
                     logger.debug(f"数据库中没有 {job_id} 的日志记录")
@@ -157,9 +157,9 @@ async def get_task_logs(ws: WebSocket, redis, session, job_id: str):
     return True
 
 
-def generate_category_code(parent_id: int, db: Session,
-                           crud_instance: CRUDCategory,
-                           code_attr: str = "code") -> str:
+def generate_category_code(
+    parent_id: int, db: Session, crud_instance: CRUDCategory, code_attr: str = "code"
+) -> str:
     """
     生成分类编码，格式为 A01 / A01A01 / A01A01A01，字母与数字同时递增。
     Args:
@@ -217,28 +217,34 @@ def generate_category_code(parent_id: int, db: Session,
     return new_code
 
 
-def build_hierarchical_path(session: Session, node_id: int, crud_instance, name_attr: str = "name", separator: str = "/") -> str:
+def build_hierarchical_path(
+    session: Session,
+    node_id: int,
+    crud_instance,
+    name_attr: str = "name",
+    separator: str = "/",
+) -> str:
     """
     构建层级结构的完整路径
     适用于任何具有parent_id字段的层级结构（如位置、分类等）
-    
+
     Args:
         session (Session): 数据库会话
         node_id (int): 节点ID
         crud_instance: CRUD实例，需要有get方法
         name_attr (str): 节点名称属性，默认为"name"
         separator (str): 路径分隔符，默认为"/"
-    
+
     Returns:
         str: 完整的层级路径，例如："东楼/二楼/MIS机房"
-    
+
     Example:
         # 构建位置路径
         location_path = build_hierarchical_path(session, location_id, crud.assets_location)
-        
+
         # 构建分类路径
         category_path = build_hierarchical_path(session, category_id, crud.assets_category)
-        
+
         # 使用自定义分隔符
         path = build_hierarchical_path(session, node_id, crud_instance, separator=" > ")
     """
@@ -252,7 +258,7 @@ def build_hierarchical_path(session: Session, node_id: int, crud_instance, name_
 
     # 构建路径数组
     path_parts = [getattr(node, name_attr)]
-    parent_id = getattr(node, 'parent_id', None)
+    parent_id = getattr(node, "parent_id", None)
 
     # 递归获取所有父级节点
     while parent_id and parent_id != 0:
@@ -260,92 +266,118 @@ def build_hierarchical_path(session: Session, node_id: int, crud_instance, name_
         if not parent_node:
             break
         path_parts.insert(0, getattr(parent_node, name_attr))
-        parent_id = getattr(parent_node, 'parent_id', None)
+        parent_id = getattr(parent_node, "parent_id", None)
 
     # 拼接完整路径
     return separator.join(path_parts)
 
 
-def find_node_by_path(session: Session, path: str, crud_instance, name_attr: str = "name", separator: str = "/") -> int:
+def find_node_by_path(
+    session: Session,
+    path: str,
+    crud_instance,
+    name_attr: str = "name",
+    separator: str = "/",
+) -> int:
     """
     根据路径查找节点ID
     适用于任何具有parent_id字段的层级结构
-    
+
     Args:
         session (Session): 数据库会话
         path (str): 层级路径，例如："东楼/二楼/MIS机房"
         crud_instance: CRUD实例，需要有查询方法
         name_attr (str): 节点名称属性，默认为"name"
         separator (str): 路径分隔符，默认为"/"
-    
+
     Returns:
         int: 节点ID，如果未找到返回None
-    
+
     Example:
         # 根据位置路径查找位置ID
         location_id = find_node_by_path(session, "东楼/二楼/MIS机房", crud.assets_location)
-        
+
         # 根据分类路径查找分类ID
         category_id = find_node_by_path(session, "IT设备/服务器", crud.assets_category)
     """
     if not path or path.strip() == "":
         return None
-    
+
     path_parts = [part.strip() for part in path.split(separator) if part.strip()]
     if not path_parts:
         return None
-    
+
     # 从根级别开始查找
     current_parent_id = 0
-    
+
     for part in path_parts:
         # 查找当前层级下的节点
         # 这里需要根据具体的CRUD实例来调整查询方法
         # 假设CRUD实例有find_by_name_and_parent方法
         node = None
-        if hasattr(crud_instance, 'find_by_name_and_parent'):
-            node = crud_instance.find_by_name_and_parent(session, part, current_parent_id)
+        if hasattr(crud_instance, "find_by_name_and_parent"):
+            node = crud_instance.find_by_name_and_parent(
+                session, part, current_parent_id
+            )
         else:
             # 如果没有专门的方法，使用通用查询
             from sqlmodel import select
+
             model_class = crud_instance.model
             stmt = select(model_class).where(
                 getattr(model_class, name_attr) == part,
-                getattr(model_class, 'parent_id') == current_parent_id
+                getattr(model_class, "parent_id") == current_parent_id,
             )
             node = session.exec(stmt).first()
-        
+
         if not node:
             return None
-        
+
         current_parent_id = node.id
-    
+
     return current_parent_id
 
 
-async def upload_files(files: List[UploadFile], upload_dir: str) -> List[str]:
+async def upload_files(
+    files: List[UploadFile], upload_dir: str, tag: str = "common"
+) -> List[str]:
     """
     上传文件并返回文件路径列表
     :param files: 上传的文件列表
     :param upload_dir: 文件上传目录
+    :param tag: 文件分类标签，如 'avatar'
     :return: 文件路径列表
     """
     image_paths = []
     if files is None or len(files) == 0:
         return image_paths
-    current_time = datetime.datetime.now()
-    date_dir = current_time.strftime("%Y-%m")
-    upload_path = os.path.join(upload_dir, date_dir)
-    static_path = os.path.join("/static/upload", date_dir)
+
+    # Determined sub-paths based on tag
+    if tag == "avatar":
+        # Avatars go directly into /avatar/
+        relative_path = tag
+    else:
+        # Others go into /tag/YYYY-MM/
+        current_time = datetime.datetime.now()
+        date_dir = current_time.strftime("%Y-%m")
+        relative_path = os.path.join(tag, date_dir)
+
+    upload_path = os.path.join(upload_dir, relative_path)
+    static_base = "/static/upload"
+    static_path = os.path.join(static_base, relative_path).replace(
+        "\\", "/"
+    )  # Ensure web-friendly paths
 
     if not os.path.exists(upload_path):
         os.makedirs(upload_path)
 
     for file in files:
+        current_time = datetime.datetime.now()
         original_filename, file_extension = os.path.splitext(file.filename)
         new_filename = f"{original_filename}_{current_time.strftime('%Y%m%d%H%M%S')}{file_extension}"
         file_path = os.path.join(upload_path, new_filename)
-        static_file_path = os.path.join(static_path, new_filename)
+        # static_file_path is the URL path served by Nginx/FastAPI
+        static_file_path = f"{static_path}/{new_filename}".replace("//", "/")
 
         async with aiofiles.open(file_path, "wb") as f:
             content = await file.read()
