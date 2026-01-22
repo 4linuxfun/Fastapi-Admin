@@ -51,7 +51,7 @@ export const useStore = defineStore('user', () => {
   function getInfo() {
     return new Promise((resolve, reject) => {
       console.log('get user info')
-      GetUserInfo(this.uid).then(response => {
+      GetUserInfo(uid.value).then(response => {
         name.value = response.name
         avatar.value = response.avatar
         resolve(response)

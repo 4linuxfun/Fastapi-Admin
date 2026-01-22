@@ -24,9 +24,13 @@
     <el-table :data="tableData" border style="width: 100%" stripe
               :header-cell-style="{background:'#eef1f6',color:'#606266'}">
       <el-table-column label="#" type="index" width="50"/>
+      <el-table-column label="头像" align="center">
+        <template #default="scope">
+          <el-image style="width: 50px; height: 50px; border-radius: 50%" :src="scope.row.avatar" :preview-src-list="[scope.row.avatar]" fit="cover" preview-teleported></el-image>
+        </template>
+      </el-table-column>
       <el-table-column prop="name" label="用户名" align="center"/>
       <el-table-column prop="email" label="邮箱" align="center"/>
-      <el-table-column prop="avatar" label="头像" align="center"/>
       <el-table-column label="状态" align="center">
         <template #default="scope">
           <el-tag effect="dark" :type="scope.row.enable === true?'success':'danger'">

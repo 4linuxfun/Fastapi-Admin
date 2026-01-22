@@ -1,4 +1,3 @@
-from typing import Union
 from loguru import logger
 from sqlmodel import select, Session
 from ...models.internal.user import User
@@ -9,9 +8,11 @@ from .roles import role
 
 class CRUDUser(CRUDBase[User]):
     def login(self, session: Session, login_form: UserLogin) -> User:
-        sql = select(self.model).where(self.model.name == login_form.username,
-                                       self.model.password == login_form.password,
-                                       self.model.enable == 1)
+        sql = select(self.model).where(
+            self.model.name == login_form.username,
+            self.model.password == login_form.password,
+            self.model.enable == 1,
+        )
         return session.exec(sql).one()
 
     def check_name(self, session: Session, name: str):
@@ -20,6 +21,10 @@ class CRUDUser(CRUDBase[User]):
 
     def insert(self, session: Session, user_info: UserInfo) -> User:
         updated_user = User(**user_info.user.model_dump())
+        if not updated_user.avatar:
+            updated_user.avatar = (
+                "https://wpimg.wallstcn.com/f778738c-e4f8-4870-b634-56703b4acafe.gif"
+            )
         user_roles = role.get_roles_by_id(session, user_info.roles)
         updated_user.roles = user_roles
         return super(CRUDUser, self).insert(session, updated_user)
@@ -30,7 +35,7 @@ class CRUDUser(CRUDBase[User]):
         db_obj = super(CRUDUser, self).update(session, db_obj, updated_user)
         user_roles = role.get_roles_by_id(session, user_info.roles)
         db_obj.roles = user_roles
-        logger.debug('update:')
+        logger.debug("update:")
         logger.debug(db_obj)
         session.add(db_obj)
         session.commit()
