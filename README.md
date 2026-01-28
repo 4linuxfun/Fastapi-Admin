@@ -267,10 +267,36 @@ async def search_items(search: Pagination[DictItemSearch], session: Session = De
 
 v-permission 定义了权限标识，当拥有权限时，可以页面上能显示按钮，同时，后端也会进行权限的判断。
 
-```js
-   <el-button v-permission="'role:update'" v-if="scope.row.name!='admin'" type="primary" size="small"
-                     @click = "handleEdit(scope.row)" > 编辑
-    </el-button>
+**方式一：使用指令 (推荐简单按钮使用)**
+
+```html
+<el-button
+  v-permission="'role:update'"
+  type="primary"
+  size="small"
+  @click="handleEdit(scope.row)"
+>
+  编辑
+</el-button>
+```
+
+**方式二：使用全局函数 (推荐复杂逻辑或组件使用)**
+全局挂载了 `$hasPermi` (或 `$hasPermission`) 方法，可在 `v-if` 或 JS 中使用。
+
+```html
+<el-button
+  v-if="$hasPermi('role:update')"
+  type="primary"
+  size="small"
+  @click="handleEdit(scope.row)"
+>
+  编辑
+</el-button>
+
+<!-- 支持多个权限满足其一 -->
+<el-button v-if="$hasPermi(['role:update', 'role:admin'])" ...>
+  管理
+</el-button>
 ```
 
 ### 后端

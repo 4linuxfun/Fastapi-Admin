@@ -29,9 +29,11 @@ export const useStore = defineStore('user', () => {
     const username = userInfo.username
     const password = userInfo.password
     const rememberMe = userInfo.rememberMe
+    const captcha_code = userInfo.captcha_code
+    const captcha_key = userInfo.captcha_key
     console.log('user login actions')
     return new Promise((resolve, reject) => {
-      requestLogin(username, password).then((response) => {
+      requestLogin(username, password, captcha_code, captcha_key).then((response) => {
         console.log(response)
         setTokenWithRemember(response.token, rememberMe)
         token.value = response.token

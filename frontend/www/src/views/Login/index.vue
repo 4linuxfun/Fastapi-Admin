@@ -22,18 +22,18 @@
         </el-input>
       </el-form-item>
       <!-- 添加验证码输入框 -->
-      <!-- <el-form-item prop="captcha">
-        <el-input v-model="loginForm.captcha" type="text" auto-complete="off" placeholder="请输入验证码">
+      <el-form-item prop="captcha_code">
+        <el-input v-model="loginForm.captcha_code" type="text" auto-complete="off" placeholder="请输入验证码">
           <template #prepend>
             <el-icon :size="20">
               <key/>
             </el-icon>
           </template>
           <template #append>
-            <img :src="captchaSrc" @click="refreshCaptcha" alt="验证码" style="cursor: pointer; height: 38px; width: 100px;">
+            <img :src="captchaSrc" @click="refreshCaptcha" alt="验证码" style="cursor: pointer; height: 38px; width: auto; object-fit: contain;">
           </template>
         </el-input>
-      </el-form-item> -->
+      </el-form-item>
       <el-checkbox v-model="loginForm.rememberMe" style="margin: 0px 0px 25px 0px">记住账号</el-checkbox>
       <el-form-item style="width: 100%">
         <el-button :loading="loading" type="primary" style="width: 100%" @click="handleLogin">
@@ -60,12 +60,14 @@ import {
 
 import { onMounted, reactive, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import axios from 'axios'
 
 const loginForm = reactive({
   username: '',
   password: '',
   rememberMe: false,
-  captcha: '' // 添加验证码字段
+  captcha_code: '',
+  captcha_key: ''
 })
 
 const loginRules = reactive({
@@ -79,8 +81,8 @@ const loginRules = reactive({
     trigger: 'blur',
     message: '密码不能为空'
   }],
-  captcha: [{
-    required: false,
+  captcha_code: [{
+    required: true,
     trigger: 'blur',
     message: '验证码不能为空'
   }]
@@ -93,7 +95,7 @@ const loginFormRef = ref(null)
 const router = useRouter()
 const route = useRoute()
 
-const captchaSrc = ref('/api/captcha') // 假设验证码接口为/api/captcha
+const captchaSrc = ref('')
 
 function getCookie() {
   const username = Cookies.get('username')
@@ -111,7 +113,8 @@ function handleLogin() {
       username: loginForm.username,
       password: password,
       rememberMe: loginForm.rememberMe,
-      captcha: loginForm.captcha // 添加验证码字段
+      captcha_code: loginForm.captcha_code,
+      captcha_key: loginForm.captcha_key
     }
     console.log('start to do login')
     if (valid) {
@@ -151,11 +154,17 @@ function handleLogin() {
 }
 
 function refreshCaptcha() {
-  captchaSrc.value = '/api/captcha?' + Date.now() // 刷新验证码图片
+  axios.get('/api/captcha').then(res => {
+    if (res.data.code === 200) {
+      captchaSrc.value = res.data.data.image_base64
+      loginForm.captcha_key = res.data.data.captcha_key
+    }
+  })
 }
 
 onMounted(() => {
   getCookie()
+  refreshCaptcha()
 })
 </script>
 

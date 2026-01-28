@@ -10,14 +10,24 @@ if TYPE_CHECKING:
 
 
 class User(SQLModel, table=True):
-    __tablename__ = 'user'
-    id: Optional[int] = Field(sa_column=Column('id', Integer, primary_key=True, autoincrement=True))
-    name: Union[str, None] = Field(sa_column=Column(String(20), nullable=False, unique=True, comment='用户名'))
-    enable: Union[bool, None] = Field(sa_column=Column(Boolean, default=True, comment='可用'))
-    avatar: Union[str, None] = Field(sa_column=Column(String(100), default=None, comment='头像'))
-    email: Union[str, None] = Field(sa_column=Column(String(20), default=None, comment='邮箱'))
-    password: Optional[str] = Field(sa_column=Column(String(50), comment='密码'))
-    roles: List['Role'] = Relationship(back_populates="users", link_model=UserRole)
+    __tablename__ = "user"
+    id: Optional[int] = Field(
+        sa_column=Column("id", Integer, primary_key=True, autoincrement=True)
+    )
+    name: Union[str, None] = Field(
+        sa_column=Column(String(20), nullable=False, unique=True, comment="用户名")
+    )
+    enable: Union[bool, None] = Field(
+        sa_column=Column(Boolean, default=True, comment="可用")
+    )
+    avatar: Union[str, None] = Field(
+        sa_column=Column(String(100), default=None, comment="头像")
+    )
+    email: Union[str, None] = Field(
+        sa_column=Column(String(20), default=None, comment="邮箱")
+    )
+    password: Optional[str] = Field(sa_column=Column(String(50), comment="密码"))
+    roles: List["Role"] = Relationship(back_populates="users", link_model=UserRole)
 
 
 class UserWithOutPasswd(SQLModel):
@@ -28,7 +38,7 @@ class UserWithOutPasswd(SQLModel):
 
 
 class UserBase(UserWithOutPasswd):
-    password: Optional[str] = Field(sa_column=Column(String(50), comment='密码'))
+    password: Optional[str] = Field(sa_column=Column(String(50), comment="密码"))
     # age: Optional[int] = Field(..., title='年龄', lt=120)
 
 
@@ -39,11 +49,11 @@ class UserRead(UserWithOutPasswd):
 
 class UserReadWithRoles(UserRead):
     # 包含relationship的数据模型
-    roles: List['Role'] = []
+    roles: List["Role"] = []
 
 
 class UserRoles(SQLModel):
-    roles: List['Role'] = []
+    roles: List["Role"] = []
     enable: List[str] = []
 
 
@@ -53,7 +63,7 @@ class UserCreateWithRoles(SQLModel):
     roles: List[int]
 
     class Config:
-        title = '新建用户'
+        title = "新建用户"
 
 
 class UserUpdatePassword(SQLModel):
@@ -70,6 +80,8 @@ class UserUpdateWithRoles(SQLModel):
 class UserLogin(SQLModel):
     username: str
     password: str
+    captcha_code: str
+    captcha_key: str
 
 
 class LoginResponse(SQLModel):

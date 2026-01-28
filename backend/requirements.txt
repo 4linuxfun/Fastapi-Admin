@@ -3,6 +3,7 @@ alembic==1.15.2
 annotated-types==0.7.0
 anyio==4.9.0
 APScheduler==3.11.0
+captcha>=0.5.0
 casbin==1.41.0
 casbin_sqlalchemy_adapter==1.4.0
 cffi==1.17.1

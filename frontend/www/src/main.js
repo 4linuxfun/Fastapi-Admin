@@ -20,17 +20,36 @@ app.use(ElementPlus, {locale: zhCn})
 app.use(router)
 app.use(createPinia())
 
+// 权限检查方法
+function checkPermission(value) {
+  if (value && value instanceof Array && value.length > 0) {
+    const store = useStore()
+    const permissions = store.buttons
+    const permissionRoles = value
+
+    const hasPermission = permissions.some(permission => {
+      return permissionRoles.includes(permission)
+    })
+    return hasPermission
+  } else if (value && typeof value === 'string') {
+    const store = useStore()
+    const permissions = store.buttons
+    return permissions.includes(value)
+  } else {
+    console.error(`need roles! Like v-permission="['admin','editor']" or v-permission="'admin'"`)
+    return false
+  }
+}
+
+// 全局挂载
+app.config.globalProperties.$hasPermi = checkPermission
+app.config.globalProperties.$hasPermission = checkPermission
+
 app.directive('permission', {
   mounted(el, binding) {
-    console.log('permission run')
-    console.log(el, binding)
-    const store = useStore()
-    let permission = binding.value
-    console.log('check permission:' + permission)
-    let btnPermissions = store.buttons
-    console.log(btnPermissions)
-    if (!btnPermissions.includes(permission)) {
-      el.parentNode.removeChild(el)
+    const { value } = binding
+    if (!checkPermission(value)) {
+      el.parentNode && el.parentNode.removeChild(el)
     }
   }
 })
